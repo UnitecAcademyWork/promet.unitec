@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Moon, Sun } from "lucide-react";
+import logo from "/public/images/prometlogo.png"
+import Image from "next/image";
 
 const Navbar = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -29,24 +31,23 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
 
         <Link href="/" className="text-2xl font-bold text-brand-main dark:text-brand-lime">
-          PROMET
+          <Image src={logo} alt="PROMET" width={60} height={60}/>
         </Link>
         <div className="hidden md:flex space-x-8 font-medium">
-          <Link href="/" className="hover:text-brand-main dark:hover:text-brand-lime transition">
+          <Link href="/" className="text-gray-600 hover:text-brand-main dark:hover:text-brand-lime transition">
             Início
           </Link>
-          <Link href="/#beneficios" className="hover:text-brand-main dark:hover:text-brand-lime transition">
+          <Link href="/#beneficios" className="text-gray-600 hover:text-brand-main dark:hover:text-brand-lime transition">
             Beneficios
           </Link>
-          <Link href="/#sobre" className="hover:text-brand-main dark:hover:text-brand-lime transition">
+          <Link href="/#sobre" className="text-gray-600 hover:text-brand-main dark:hover:text-brand-lime transition">
             Sobre
           </Link>
-          <Link href="/#contacto" className="hover:text-brand-main dark:hover:text-brand-lime transition">
+          <Link href="/#contacto" className="text-gray-600 hover:text-brand-main dark:hover:text-brand-lime transition">
             Contacto
           </Link>
         </div>
 
-        {/* Botão Dark/Light Mode */}
         <button
           onClick={toggleDarkMode}
           className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:scale-105 transition"
