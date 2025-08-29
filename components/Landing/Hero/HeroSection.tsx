@@ -16,10 +16,10 @@ const Hero = () => {
         </p>
         <div className="mt-10 flex justify-center">
           <Link
-            href="/contacto"
+            href="/formulario"
             className="relative rounded-lg bg-brand-main px-8 py-3.5 text-base font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl "
           >
-            COMEÇAR AGORA
+            Quero Participar
           </Link>
         </div>
 
