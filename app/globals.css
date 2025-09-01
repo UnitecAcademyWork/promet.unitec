@@ -777,3 +777,15 @@ span.flatpickr-weekday,
   scrollbar-width: thin;           /* 'auto', 'thin', ou 'none' */
   scrollbar-color: #2c3e50 #f0f0f0;  /* thumb | track */
 }
+/* globals.css ou tailwind.css */
+.stroke-dasharray-422 {
+  stroke-dasharray: 422;
+}
+
+.stroke-dashoffset-422 {
+  stroke-dashoffset: 422;
+}
+
+.group-hover\:stroke-dashoffset-0:hover rect {
+  stroke-dashoffset: 0;
+}
