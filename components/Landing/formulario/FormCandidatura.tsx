@@ -1,7 +1,7 @@
 "use client"
 import React, { useState, ChangeEvent, FormEvent, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Phone, MapPin, BookOpen, Briefcase, IdCard, CheckCircle, ArrowRight, ArrowLeft, Upload, X } from 'lucide-react';
+import { User, Mail, Phone, MapPin, BookOpen, Briefcase, IdCard, CheckCircle, ArrowRight, ArrowLeft, Upload, X, Plus, Calendar, Building } from 'lucide-react';
 
 const provinces = [
   "Maputo Cidade", "Maputo Província", "Gaza", "Inhambane", 
@@ -19,14 +19,42 @@ const academicLevels = [
   "Doutoramento"
 ];
 
+const areasFormacao = [
+  "Administração e Gestão",
+  "Contabilidade",
+  "Direito",
+  "Engenharia Civil",
+  "Engenharia Informática",
+  "Medicina",
+  "Enfermagem",
+  "Economia",
+  "Marketing",
+  "Recursos Humanos",
+  "Educação",
+  "Arquitetura",
+  "Design",
+  "Turismo e Hotelaria",
+  "Agricultura",
+  "Outra"
+];
+
+interface Experience {
+  empresa: string;
+  cargo: string;
+  dataInicio: string;
+  dataFim: string;
+  descricao: string;
+}
+
 interface FormData {
   name: string;
   surname: string;
   contact: string;
   email: string;
-  experience: string;
+  experiences: Experience[];
   academicLevel: string;
-  province: string;
+  areaFormacao: string;
+  provincia: string;
   biNumber: string;
   certificate: File | null;
 }
@@ -40,17 +68,27 @@ const ApplicationForm = () => {
     surname: '',
     contact: '',
     email: '',
-    experience: '',
+    experiences: [],
     academicLevel: '',
-    province: '',
+    areaFormacao: '',
+    provincia: '',
     biNumber: '',
     certificate: null
+  });
+
+  const [currentExperience, setCurrentExperience] = useState<Experience>({
+    empresa: '',
+    cargo: '',
+    dataInicio: '',
+    dataFim: '',
+    descricao: ''
   });
 
   const certificateInputRef = useRef<HTMLInputElement>(null);
 
   const steps = [
     { id: 'Pessoal', icon: <User className="w-5 h-5" /> },
+    { id: 'Experiência', icon: <Briefcase className="w-5 h-5" /> },
     { id: 'Formação', icon: <BookOpen className="w-5 h-5" /> },
     { id: 'Finalizar', icon: <CheckCircle className="w-5 h-5" /> }
   ];
@@ -60,6 +98,39 @@ const ApplicationForm = () => {
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  const handleExperienceChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setCurrentExperience(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const addExperience = () => {
+    if (currentExperience.empresa && currentExperience.cargo && currentExperience.dataInicio) {
+      setFormData(prev => ({
+        ...prev,
+        experiences: [...prev.experiences, currentExperience]
+      }));
+      setCurrentExperience({
+        empresa: '',
+        cargo: '',
+        dataInicio: '',
+        dataFim: '',
+        descricao: ''
+      });
+    } else {
+      alert('Por favor, preencha pelo menos a empresa, cargo e data de início');
+    }
+  };
+
+  const removeExperience = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      experiences: prev.experiences.filter((_, i) => i !== index)
     }));
   };
 
@@ -98,12 +169,12 @@ const ApplicationForm = () => {
       return false;
     }
     
-    if (step === 2 && (!formData.academicLevel || !formData.province || !formData.biNumber)) {
+    if (step === 3 && (!formData.academicLevel || !formData.provincia || !formData.biNumber)) {
       alert('Por favor, preencha todos os campos obrigatórios da seção de formação');
       return false;
     }
 
-    if (step === 2 && isUnitecStudent && !certificateFile) {
+    if (step === 3 && isUnitecStudent && !certificateFile) {
       alert('Por favor, faça upload do seu certificado da Unitec');
       return false;
     }
@@ -153,7 +224,7 @@ const ApplicationForm = () => {
               <div key={step.id} className="flex items-center">
                 <div className="flex flex-col items-center">
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
-                    currentStep > index ? 'bg-white text-brand-main bg-opacity-20' : 'bg-white text-brand-lime bg-opacity-10'
+                    currentStep > index ? 'bg-white text-brand-lime bg-opacity-20' : 'bg-white text-brand-main bg-opacity-10'
                   }`}>
                     {step.icon}
                   </div>
@@ -167,7 +238,7 @@ const ApplicationForm = () => {
           </motion.div>
           
           <motion.div 
-            className="bg-white bg-opacity-10 text-brand-main p-6 rounded-xl backdrop-blur-sm"
+            className="bg-white text-brand-main bg-opacity-10 p-6 rounded-xl backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.5 }}
@@ -314,13 +385,150 @@ const ApplicationForm = () => {
                 </div>
               </motion.div>
               
-              {/* Passo 2: Formação e Experiência */}
+              {/* Passo 2: Experiência Profissional */}
               <motion.div
                 initial={currentStep === 2 ? { opacity: 1 } : { opacity: 0 }}
                 animate={currentStep === 2 ? { opacity: 1 } : { opacity: 0, height: 0 }}
                 transition={{ duration: 0.3 }}
                 className={currentStep === 2 ? 'block space-y-6' : 'hidden'}
               >
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <Briefcase className="w-5 h-5 mr-2 text-blue-600" />
+                  Experiência Profissional
+                </h3>
+                
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label htmlFor="empresa" className="block text-sm font-medium text-gray-700 mb-1">Empresa/Organização *</label>
+                      <input
+                        type="text"
+                        id="empresa"
+                        name="empresa"
+                        value={currentExperience.empresa}
+                        onChange={handleExperienceChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Nome da empresa"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="cargo" className="block text-sm font-medium text-gray-700 mb-1">Cargo/Função *</label>
+                      <input
+                        type="text"
+                        id="cargo"
+                        name="cargo"
+                        value={currentExperience.cargo}
+                        onChange={handleExperienceChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Seu cargo na empresa"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label htmlFor="dataInicio" className="block text-sm font-medium text-gray-700 mb-1">Data de Início *</label>
+                      <div className="relative">
+                        <input
+                          type="date"
+                          id="dataInicio"
+                          name="dataInicio"
+                          value={currentExperience.dataInicio}
+                          onChange={handleExperienceChange}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                        <Calendar className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="dataFim" className="block text-sm font-medium text-gray-700 mb-1">Data de Fim</label>
+                      <div className="relative">
+                        <input
+                          type="date"
+                          id="dataFim"
+                          name="dataFim"
+                          value={currentExperience.dataFim}
+                          onChange={handleExperienceChange}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                        <Calendar className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <label htmlFor="descricao" className="block text-sm font-medium text-gray-700 mb-1">Descrição das Funções</label>
+                    <textarea
+                      id="descricao"
+                      name="descricao"
+                      rows={3}
+                      value={currentExperience.descricao}
+                      onChange={handleExperienceChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Descreva suas principais responsabilidades e conquistas"
+                    />
+                  </div>
+                  
+                  <button
+                    type="button"
+                    onClick={addExperience}
+                    className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Adicionar Experiência
+                  </button>
+                </div>
+                
+                {/* Lista de experiências adicionadas */}
+                {formData.experiences.length > 0 && (
+                  <div className="mt-6">
+                    <h4 className="text-md font-semibold text-gray-700 mb-3">Experiências Adicionadas</h4>
+                    <div className="space-y-3">
+                      {formData.experiences.map((exp, index) => (
+                        <div key={index} className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h5 className="font-medium text-gray-800">{exp.cargo}</h5>
+                              <p className="text-sm text-gray-600 flex items-center">
+                                <Building className="w-4 h-4 mr-1" />
+                                {exp.empresa}
+                              </p>
+                              <p className="text-sm text-gray-500 mt-1">
+                                {exp.dataInicio} - {exp.dataFim || 'Presente'}
+                              </p>
+                              {exp.descricao && (
+                                <p className="text-sm text-gray-600 mt-2">{exp.descricao}</p>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeExperience(index)}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <X className="w-5 h-5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+              
+              {/* Passo 3: Formação Académica */}
+              <motion.div
+                initial={currentStep === 3 ? { opacity: 1 } : { opacity: 0 }}
+                animate={currentStep === 3 ? { opacity: 1 } : { opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className={currentStep === 3 ? 'block space-y-6' : 'hidden'}
+              >
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <BookOpen className="w-5 h-5 mr-2 text-blue-600" />
+                  Formação Académica
+                </h3>
+                
                 <div>
                   <label htmlFor="academicLevel" className="block text-sm font-medium text-gray-700 mb-1">Nível Académico *</label>
                   <select
@@ -334,6 +542,22 @@ const ApplicationForm = () => {
                     <option value="">Selecione o seu nível académico</option>
                     {academicLevels.map(level => (
                       <option key={level} value={level}>{level}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label htmlFor="areaFormacao" className="block text-sm font-medium text-gray-700 mb-1">Área de Formação</label>
+                  <select
+                    id="areaFormacao"
+                    name="areaFormacao"
+                    value={formData.areaFormacao}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  >
+                    <option value="">Selecione a sua área de formação</option>
+                    {areasFormacao.map(area => (
+                      <option key={area} value={area}>{area}</option>
                     ))}
                   </select>
                 </div>
@@ -354,12 +578,12 @@ const ApplicationForm = () => {
                   </div>
                   
                   <div>
-                    <label htmlFor="province" className="block text-sm font-medium text-gray-700 mb-1">Província *</label>
+                    <label htmlFor="provincia" className="block text-sm font-medium text-gray-700 mb-1">Província *</label>
                     <select
-                      id="province"
-                      name="province"
+                      id="provincia"
+                      name="provincia"
                       required
-                      value={formData.province}
+                      value={formData.provincia}
                       onChange={handleChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                     >
@@ -369,19 +593,6 @@ const ApplicationForm = () => {
                       ))}
                     </select>
                   </div>
-                </div>
-                
-                <div>
-                  <label htmlFor="experience" className="block text-sm font-medium text-gray-700 mb-1">Experiência Profissional</label>
-                  <textarea
-                    id="experience"
-                    name="experience"
-                    rows={4}
-                    value={formData.experience}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                    placeholder="Descreva sua experiência profissional anterior"
-                  />
                 </div>
                 
                 <div className="mb-6">
@@ -443,51 +654,65 @@ const ApplicationForm = () => {
                 )}
               </motion.div>
               
-              {/* Passo 3: Finalizar */}
+              {/* Passo 4: Finalizar */}
               <motion.div
-                initial={currentStep === 3 ? { opacity: 1 } : { opacity: 0 }}
-                animate={currentStep === 3 ? { opacity: 1 } : { opacity: 0, height: 0 }}
+                initial={currentStep === 4 ? { opacity: 1 } : { opacity: 0 }}
+                animate={currentStep === 4 ? { opacity: 1 } : { opacity: 0, height: 0 }}
                 transition={{ duration: 0.3 }}
-                className={currentStep === 3 ? 'block space-y-6' : 'hidden'}
+                className={currentStep === 4 ? 'block space-y-6' : 'hidden'}
               >
                 <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
                   <h3 className="text-lg font-semibold text-blue-800 mb-4">Revise suas informações</h3>
                   
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Nome completo:</span>
-                      <span className="font-medium">{formData.name} {formData.surname}</span>
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-medium text-blue-700 mb-2">Informações Pessoais</h4>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <span className="text-gray-600">Nome completo:</span>
+                        <span className="font-medium">{formData.name} {formData.surname}</span>
+                        
+                        <span className="text-gray-600">Contacto:</span>
+                        <span className="font-medium">{formData.contact}</span>
+                        
+                        <span className="text-gray-600">Email:</span>
+                        <span className="font-medium">{formData.email}</span>
+                      </div>
                     </div>
                     
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Contacto:</span>
-                      <span className="font-medium">{formData.contact}</span>
-                    </div>
+                    {formData.experiences.length > 0 && (
+                      <div>
+                        <h4 className="font-medium text-blue-700 mb-2">Experiência Profissional</h4>
+                        {formData.experiences.map((exp, index) => (
+                          <div key={index} className="mb-3 text-sm">
+                            <p className="font-medium">{exp.cargo} - {exp.empresa}</p>
+                            <p className="text-gray-600">{exp.dataInicio} - {exp.dataFim || 'Presente'}</p>
+                            {exp.descricao && <p className="text-gray-500 mt-1">{exp.descricao}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Email:</span>
-                      <span className="font-medium">{formData.email}</span>
-                    </div>
-                    
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Nível académico:</span>
-                      <span className="font-medium">{formData.academicLevel || 'Não especificado'}</span>
-                    </div>
-                    
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Nº de BI:</span>
-                      <span className="font-medium">{formData.biNumber}</span>
-                    </div>
-                    
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Província:</span>
-                      <span className="font-medium">{formData.province || 'Não especificada'}</span>
+                    <div>
+                      <h4 className="font-medium text-blue-700 mb-2">Formação</h4>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <span className="text-gray-600">Nível académico:</span>
+                        <span className="font-medium">{formData.academicLevel || 'Não especificado'}</span>
+                        
+                        <span className="text-gray-600">Área de formação:</span>
+                        <span className="font-medium">{formData.areaFormacao || 'Não especificada'}</span>
+                        
+                        <span className="text-gray-600">Nº de BI:</span>
+                        <span className="font-medium">{formData.biNumber}</span>
+                        
+                        <span className="text-gray-600">Província:</span>
+                        <span className="font-medium">{formData.provincia || 'Não especificada'}</span>
+                      </div>
                     </div>
                     
                     {isUnitecStudent && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Certificado da Unitec:</span>
-                        <span className="font-medium">{certificateFile ? certificateFile.name : 'Não enviado'}</span>
+                      <div>
+                        <h4 className="font-medium text-blue-700 mb-2">Certificado Unitec</h4>
+                        <span className="text-sm font-medium">{certificateFile ? certificateFile.name : 'Não enviado'}</span>
                       </div>
                     )}
                   </div>

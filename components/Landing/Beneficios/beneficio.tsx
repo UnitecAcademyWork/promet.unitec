@@ -7,6 +7,7 @@ import {
   Briefcase,
   ArrowRight
 } from 'lucide-react';
+import Link from 'next/link';
 
 const Beneficios = () => {
   const beneficiosCandidatos = [
@@ -61,10 +62,12 @@ const Beneficios = () => {
         </div>
         
         <div className="text-center">
+            <Link href="/candidatura">
           <button className="bg-brand-main dark:bg-brand-lime text-white dark:text-gray-900 font-medium py-3 px-8 rounded-lg hover:bg-brand-main/90 dark:hover:bg-brand-lime/90 transition-all duration-300 flex items-center mx-auto">
             Quero me Candidatar
             <ArrowRight size={20} className="ml-2" />
           </button>
+          </Link>
         </div>
       </div>
     </section>
