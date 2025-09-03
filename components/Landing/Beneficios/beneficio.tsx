@@ -34,10 +34,10 @@ const Beneficios = () => {
   ];
 
   return (
-    <section className="py-16 px-4 md:px-8 bg-white dark:bg-gray-900 relative overflow-hidden">
+    <section className="py-16 px-4 md:px-8 bg-gradient-to-br from-brand-main-light/5 via-white to-brand-main-light/10 dark:from-gray-900 dark:via-gray-800 dark:to-brand-main/10  relative overflow-hidden">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-brand-main dark:text-brand-lime mb-4">
+          <h2 className="text-2xl md:text-5xl font-bold text-brand-main dark:text-white mb-4">
             Benefícios
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
@@ -55,7 +55,7 @@ const Beneficios = () => {
               <div className="w-14 h-14 bg-brand-main/10 dark:bg-brand-lime/20 rounded-lg flex items-center justify-center text-brand-main dark:text-brand-lime mb-4">
                 {beneficio.icon}
               </div>
-              <h4 className="text-lg font-semibold text-brand-main dark:text-brand-lime mb-2">{beneficio.title}</h4>
+              <h4 className="text-lg font-semibold text-brand-main dark:text-white mb-2">{beneficio.title}</h4>
               <p className="text-gray-600 dark:text-gray-300 text-sm">{beneficio.description}</p>
             </div>
           ))}

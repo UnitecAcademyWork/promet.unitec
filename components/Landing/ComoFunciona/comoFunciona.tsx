@@ -26,7 +26,7 @@ const HowItWorks = () => {
       title: 'Pré-seleção',
       description: 'Análise do perfil e competências pela nossa equipe especializada.',
       price: null,
-      free: false
+      free: true
     },
     {
       number: 3,
@@ -50,7 +50,7 @@ const HowItWorks = () => {
       title: 'Workshop',
       description: 'Sessões interativas sobre processos e melhores práticas.',
       price: null,
-      free: false
+      free: true
     },
     {
       number: 6,
@@ -58,7 +58,7 @@ const HowItWorks = () => {
       title: 'Inclusão',
       description: 'Seu perfil é incluído em nosso banco de talentos.',
       price: null,
-      free: false
+      free: true
     }
   ];
 
