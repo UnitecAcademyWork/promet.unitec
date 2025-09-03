@@ -163,17 +163,6 @@ const TrainingAreas = () => {
           ))}
         </div>
 
-        <div className="text-center mt-16">
-          <Link
-            href="/areas-formacao"
-            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-brand-main hover:bg-brand-main/90 transition-colors duration-300"
-          >
-            Ver todas as áreas de formação
-            <svg className="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-        </div>
       </div>
 
       <style jsx>{`

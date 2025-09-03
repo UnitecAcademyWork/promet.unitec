@@ -70,7 +70,7 @@ const PartnerSlider = () => {
                     <div key={`${set}-${partner.id}`} className="flex items-center justify-center mx-4 w-32 h-20">
                       <div 
                         ref={el => addToRefs(el, refIndex)}
-                        className="partner-logo max-h-full max-w-full object-contain bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center p-3"
+                        className="partner-logo max-h-full max-w-full object-contain bg-transparent dark:bg-gray-700 rounded-lg flex items-center justify-center p-3"
                       >
                         <svg className="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-0.5m-9 0H9m0 0h0.5M4 21H2m2 0v-0.5M4 21v-0.5" />
@@ -84,8 +84,8 @@ const PartnerSlider = () => {
           </div>
           
           {/* Overlays de gradiente para melhor UX */}
-          <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white dark:from-gray-900 to-transparent z-10"></div>
-          <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white dark:from-gray-900 to-transparent z-10"></div>
+          {/* <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white dark:from-gray-900 to-transparent z-10"></div>
+          <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white dark:from-gray-900 to-transparent z-10"></div> */}
         </div>
 
         <style jsx>{`
