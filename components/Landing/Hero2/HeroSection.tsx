@@ -1,10 +1,10 @@
 "use client"
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import heroBg from "./../../../public/images/hero9.png"; // substitua pelo nome da sua imagem
-
 const Hero2 = () => {
+  const [open, setOpen] = useState(false)
   return (
     <section className="relative flex items-center justify-center w-full h-screen overflow-hidden ">
 
@@ -51,14 +51,50 @@ const Hero2 = () => {
         <p className="mt-6 text-xs sm:text-xl leading-8 text-gray-500 dark:text-gray-300">
           Programa de Melhoria de Empregabilidade e Trabalho
         </p>
-        <div className="mt-10 flex justify-center">
-          <Link
-            href="/formulario"
-            className="relative rounded-lg bg-brand-main px-8 py-3.5 text-base font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl "
-          >
-            Quero Participar
-          </Link>
-        </div>
+        <div className="mt-10 flex justify-center relative">
+  <button
+    onClick={() => setOpen(!open)}
+    className="relative rounded-xl bg-brand-main px-8 py-3.5 text-lg font-semibold text-white shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:from-purple-700 hover:to-indigo-800 flex items-center justify-center space-x-2"
+  >
+    <span>Quero Participar</span>
+    <svg 
+      className={`w-5 h-5 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} 
+      fill="none" 
+      stroke="currentColor" 
+      viewBox="0 0 24 24"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+    </svg>
+  </button>
+
+  {open && (
+    <div className="absolute top-full mt-3 w-86 bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-100 z-20 animate-fadeIn">
+      <div className="p-2 flex flex-row justify-center items-center w-full">
+        <Link
+          href="/formulario/parceiro"
+          className="flex items-center px-4 py-3 text-gray-800 hover:bg-purple-50 rounded-lg transition-all duration-200 group"
+        >
+          <svg className="w-5 h-5 mr-3 text-purple-600 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+          </svg>
+          <span>Parceiro</span>
+        </Link>
+        <Link
+          href="/formulario/candidatura"
+          className="flex items-center px-4 py-3 text-gray-800 hover:bg-purple-50 rounded-lg transition-all duration-200 group"
+        >
+          <svg className="w-5 h-5 mr-3 text-indigo-600 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          <span>Candidatura</span>
+        </Link>
+      </div>
+      <div className="border-t border-gray-100 bg-gray-50 px-4 py-2 text-xs text-gray-500">
+        Selecione uma opção para continuar
+      </div>
+    </div>
+  )}
+</div>
 
         <div className="mt-6 flex justify-center">
           <div className="h-1 w-32 rounded-full bg-brand-main"></div>

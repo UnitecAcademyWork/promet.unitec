@@ -221,8 +221,8 @@ const ApplicationForm = () => {
             transition={{ delay: 0.4, duration: 0.5 }}
           >
             {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center">
-                <div className="flex flex-col items-center">
+              <div key={step.id} className="md:flex hidden items-center">
+                <div className="flex md:flex-col items-center">
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
                     currentStep > index ? 'bg-white text-brand-lime bg-opacity-20' : 'bg-white text-brand-main bg-opacity-10'
                   }`}>
@@ -285,7 +285,7 @@ const ApplicationForm = () => {
           
           {/* Progresso */}
           <motion.div 
-            className="flex items-center mb-10"
+            className="flex w-full items-center mb-10"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.5 }}

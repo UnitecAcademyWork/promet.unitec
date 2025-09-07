@@ -56,7 +56,7 @@ const PartnerSlider = () => {
     <section className="py-12 bg-gradient-to-tr from-brand-main-light/5 via-white to-brand-main-light/10 dark:from-gray-900 dark:via-gray-800 dark:to-brand-main/10">
       <div className="container mx-auto px-4">
         <h2 className="text-2xl md:text-3xl font-bold text-center text-brand-bgdark dark:text-white mb-8">
-          Nossos <span className="text-brand-main">Parceiros</span>
+          Nossos <span className="text-brand-main dark:text-brand-lime">Parceiros</span>
         </h2>
         
         <div className="relative overflow-hidden group">

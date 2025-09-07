@@ -19,11 +19,17 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // This code will only run on the client side
+    // Só roda no cliente
     const savedTheme = localStorage.getItem("theme") as Theme | null;
-    const initialTheme = savedTheme || "light"; // Default to light theme
 
-    setTheme(initialTheme);
+    if (savedTheme) {
+      setTheme(savedTheme);
+    } else {
+      // pega preferência do sistema
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      setTheme(prefersDark ? "dark" : "light");
+    }
+
     setIsInitialized(true);
   }, []);
 

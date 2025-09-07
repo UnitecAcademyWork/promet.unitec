@@ -25,7 +25,7 @@ const HowItWorks = () => {
       icon: <Search className="w-5 h-5" />,
       title: 'Pré-seleção',
       description: 'Análise do perfil e competências pela nossa equipe especializada.',
-      price: null,
+      price: "Gratuita",
       free: true
     },
     {
@@ -49,7 +49,7 @@ const HowItWorks = () => {
       icon: <Briefcase className="w-5 h-5" />,
       title: 'Workshop',
       description: 'Sessões interativas sobre processos e melhores práticas.',
-      price: null,
+      price: "Gratuita",
       free: true
     },
     {
@@ -57,7 +57,7 @@ const HowItWorks = () => {
       icon: <Rocket className="w-5 h-5" />,
       title: 'Inclusão',
       description: 'Seu perfil é incluído em nosso banco de talentos.',
-      price: null,
+      price: "Gratuita",
       free: true
     }
   ];

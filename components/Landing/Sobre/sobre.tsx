@@ -13,11 +13,11 @@ const WhatIsPromet = () => {
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-brand-bgdark dark:text-white">
-            O que é o <span className="text-brand-main">PROMET</span>?
+            O que é o <span className="text-brand-main dark:text-brand-lime">PROMET</span>?
           </h2>
           <div className="w-20 h-1 bg-brand-lime mx-auto mt-4"></div>
         </div>
-
+x
         <div className="flex flex-col lg:flex-row gap-10 items-center">
           <div className="lg:w-1/2">
             <p className="text-lg text-gray-700 dark:text-gray-300 mb-8">

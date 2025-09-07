@@ -17,7 +17,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${outfit.className} dark:bg-gray-900`}>
         <ThemeProvider>
-          <div className="sticky top-0 mb-14 z-50 bg-white dark:bg-gray-800 shadow-md">
+          <div className="sticky top-0 mb-16 z-50 bg-white dark:bg-gray-800 shadow-md">
           <Navbar />
           </div>
           <SidebarProvider>{children}</SidebarProvider>

@@ -1,9 +1,20 @@
 "use client"
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import { CarFront, Earth, LaptopMinimalCheck, ShieldCheck } from "lucide-react";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 const TrainingAreas = () => {
+  useEffect(() => {
+    AOS.init({
+      duration: 800,
+      once: true,
+      easing: 'ease-out-cubic',
+      offset: 50
+    });
+  }, []);
+
   // Dados das áreas de formação
   const areas = [
     {
@@ -17,19 +28,19 @@ const TrainingAreas = () => {
     {
       title: "Mecânica Auto",
       icon: (
-        <CarFront  />
+        <CarFront className="w-6 h-6" />
       )
     },
     {
       title: "Informática e Excel",
       icon: (
-        <LaptopMinimalCheck  />
+        <LaptopMinimalCheck className="w-6 h-6" />
       )
     },
     {
       title: "Inglês Prático Oral",
       icon: (
-        <Earth />
+        <Earth className="w-6 h-6" />
       )
     },
     {
@@ -43,7 +54,7 @@ const TrainingAreas = () => {
     {
       title: "HSST",
       icon: (
-        <ShieldCheck />
+        <ShieldCheck className="w-6 h-6" />
       )
     },
     {
@@ -132,14 +143,14 @@ const TrainingAreas = () => {
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center mb-16">
+        <div className="text-center mb-16" data-aos="fade-up">
           <h2 className="text-4xl md:text-5xl font-bold text-brand-bgdark dark:text-white mb-6">
-            Áreas de <span className="text-brand-main">Formação</span>
+            Áreas de <span className="text-brand-main dark:text-brand-lime">Formação</span>
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             Principais áreas pré-selecionadas para as necessidades atuais do mercado de trabalho.
           </p>
-          <div className="w-24 h-1 bg-gradient-to-r from-brand-main to-brand-lime mx-auto mt-6"></div>
+          <div className="w-24 h-1 bg-gradient-to-r from-brand-main to-brand-lime dark:from-white mx-auto mt-6" data-aos="fade-right" data-aos-delay="300"></div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-5">
@@ -147,9 +158,16 @@ const TrainingAreas = () => {
             <div 
               key={index}
               className="group bg-white dark:bg-gray-800 rounded-lg p-5 transition-all duration-300 hover:shadow-md border border-gray-100 dark:border-gray-700 hover:border-brand-main/20"
+              data-aos="fade-up"
+              data-aos-delay={index * 50}
+              data-aos-duration="600"
             >
               <div className="flex flex-col items-center text-center">
-                <div className="p-2 rounded-lg bg-gray-50 dark:bg-gray-700/50 group-hover:bg-brand-main/5 transition-colors duration-300 mb-3">
+                <div 
+                  className="p-2 rounded-lg bg-gray-50 dark:bg-gray-700/50 group-hover:bg-brand-main/5 transition-colors duration-300 mb-3"
+                  data-aos="zoom-in"
+                  data-aos-delay={index * 50 + 200}
+                >
                   <div className="text-gray-500 dark:text-gray-400 group-hover:text-brand-main transition-colors duration-300">
                     {area.icon}
                   </div>
@@ -163,6 +181,19 @@ const TrainingAreas = () => {
           ))}
         </div>
 
+        <div className="text-center mt-12" data-aos="fade-up" data-aos-delay="500">
+          <Link 
+            href="/cursos" 
+            className="inline-flex items-center px-6 py-3 bg-brand-main text-white rounded-lg hover:bg-blue-700 transition-colors duration-300 shadow-md hover:shadow-lg"
+            data-aos="zoom-in"
+            data-aos-delay="600"
+          >
+            Ver Todos os Cursos
+            <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
       </div>
 
       <style jsx>{`
