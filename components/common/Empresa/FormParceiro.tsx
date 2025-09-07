@@ -283,13 +283,13 @@ const PartnershipForm = () => {
       </div>
       
       {/* Seção do Formulário */}
-      <div className="w-full p-8 dark:bg-gray-900 text-white lg:p-12 flex flex-col justify-center">
+      <div className="w-full p-8 dark:bg-gray-800 text-white lg:p-12 flex flex-col justify-center">
         <div className="max-w-4xl w-full mx-auto">
           <motion.h2 
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="text-3xl font-bold text-gray-800 mb-2"
+            className="text-3xl font-bold text-gray-800 dark:text-white mb-2"
           >
             Formulário de Parceria
           </motion.h2>
@@ -298,7 +298,7 @@ const PartnershipForm = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-gray-600 mb-8"
+            className="text-gray-600 dark:text-gray-300 mb-8"
           >
             Preencha o formulário para estabelecer uma parceria com o PROMET
           </motion.p>
@@ -400,7 +400,7 @@ const PartnershipForm = () => {
                       required
                       value={formData.companyName}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-main focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
                       placeholder="Nome da empresa/organização"
                     />
                   </div>
@@ -414,7 +414,7 @@ const PartnershipForm = () => {
                       required
                       value={formData.nuit}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-main focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
                       placeholder="Número de Identificação Tributária"
                     />
                   </div>
@@ -427,7 +427,7 @@ const PartnershipForm = () => {
                       required
                       value={formData.businessSector}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-main focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border text-gray-700 border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
                     >
                       <option value="">Selecione o setor de atividade</option>
                       {businessSectors.map(sector => (
@@ -448,7 +448,7 @@ const PartnershipForm = () => {
                         name="website"
                         value={formData.website}
                         onChange={handleChange}
-                        className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-main focus:border-transparent transition-all"
+                        className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
                         placeholder="https://..."
                       />
                     </div>
@@ -467,7 +467,7 @@ const PartnershipForm = () => {
                         required
                         value={formData.address}
                         onChange={handleChange}
-                        className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-main focus:border-transparent transition-all"
+                        className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
                         placeholder="Endereço completo da empresa"
                       />
                     </div>
@@ -497,7 +497,7 @@ const PartnershipForm = () => {
                       required
                       value={formData.contactPerson}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-main focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
                       placeholder="Nome do ponto focal"
                     />
                   </div>
@@ -511,7 +511,7 @@ const PartnershipForm = () => {
                       required
                       value={formData.position}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-main focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
                       placeholder="Cargo/função"
                     />
                   </div>
@@ -529,7 +529,7 @@ const PartnershipForm = () => {
                         required
                         value={formData.phone}
                         onChange={handleChange}
-                        className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-main focus:border-transparent transition-all"
+                        className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
                         placeholder="+258 8X XXX XXXX"
                       />
                     </div>
@@ -548,7 +548,7 @@ const PartnershipForm = () => {
                         required
                         value={formData.email}
                         onChange={handleChange}
-                        className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-main focus:border-transparent transition-all"
+                        className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
                         placeholder="seu@email.com"
                       />
                     </div>
@@ -652,7 +652,7 @@ const PartnershipForm = () => {
                       required
                       value={formData.responsibleName}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-main focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
                       placeholder="Nome completo do responsável"
                     />
                   </div>
@@ -666,7 +666,7 @@ const PartnershipForm = () => {
                       required
                       value={formData.responsiblePosition}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-main focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
                       placeholder="Cargo/função do responsável"
                     />
                   </div>
@@ -680,7 +680,7 @@ const PartnershipForm = () => {
                       required
                       value={formData.locationDate}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-main focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
                       placeholder="Ex: Maputo, 15 de Outubro de 2023"
                     />
                   </div>
