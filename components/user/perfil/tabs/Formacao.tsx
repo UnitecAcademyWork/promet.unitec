@@ -174,7 +174,7 @@ export default function Formacao() {
           <div className="text-center py-8 text-gray-500 dark:text-gray-400">
             <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-50" />
             <p>Nenhuma formação adicionada ainda.</p>
-            <p className="text-sm">Clique em "Adicionar Formação" para começar.</p>
+            <p className="text-sm">Clique em Adicionar Formação para começar.</p>
           </div>
         ) : (
           formacoes.map((f) => (

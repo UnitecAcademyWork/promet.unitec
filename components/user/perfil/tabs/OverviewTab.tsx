@@ -147,7 +147,7 @@ export default function VisaoGeral({ userData, isEditing: initialEditing, setUse
           animate={{ opacity: 1 }}
           className="mt-4 text-sm text-gray-500 dark:text-gray-400 text-center"
         >
-          Clique em "Editar" para modificar sua visão geral
+          Clique em Editar para modificar sua visão geral
         </motion.div>
       )}
     </motion.div>
