@@ -905,11 +905,12 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import Tabs from "./Tabs";
 import DadosPessoais from "./tabs/DadosPessoais";
-import Experiencia from "./tabs/ExperienceTab";
+import Experiencia, { Experience } from "./tabs/ExperienceTab";
 import Formacao from "./tabs/Formacao";
 import Idiomas from "./tabs/Idiomas";
 import VisaoGeral from "./tabs/OverviewTab";
 import Habilidades from "./tabs/SkillsTab";
+import { UserData } from "../types/user-types";
 
 const tabs = [
   "Dados Pessoais",
@@ -920,21 +921,46 @@ const tabs = [
   "Idiomas",
 ];
 
+
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState(tabs[0]);
+const [userData, setUserData] = useState<UserData>({
+    id: "1",
+    nome: "André Rodrigues",
+    email: "andre.novela@promet.co.mz",
+    overview: "Minha visão geral inicial...",
+  });
+  const [experiences, setExperiences] = useState<Experience[]>([]);
+  const [isEditing, setIsEditing] = useState(true);
 
+  const addExperience = (exp: Experience) => {
+    setExperiences((prev) => [...prev, exp]);
+  };
+
+  const removeExperience = (id: number) => {
+    setExperiences((prev) => prev.filter((e) => e.id !== id));
+  };
   const renderTabContent = () => {
     switch (activeTab) {
       case "Dados Pessoais":
         return <DadosPessoais />;
       case "Visão Geral":
-        return <VisaoGeral />;
+        return <VisaoGeral
+        userData={userData}
+        isEditing={true}
+        setUserData={setUserData}
+      />;
       case "Experiência":
-        return <Experiencia />;
+        return  <Experiencia
+        experiences={experiences}
+        isEditing={isEditing}
+        addExperience={addExperience}
+        removeExperience={removeExperience}
+      />;
       case "Formação":
         return <Formacao />;
-      case "Habilidades":
-        return <Habilidades />;
+      // case "Habilidades":
+      //   return <Habilidades />;
       case "Idiomas":
         return <Idiomas />;
       default:

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Save, Edit3 } from "lucide-react";
 import { updateUser } from "../../../../lib/user-actions";
-import { UserData } from "../UserProfile";
+import { UserData } from "../../types/user-types";
 
 type OverviewTabProps = {
   userData: UserData

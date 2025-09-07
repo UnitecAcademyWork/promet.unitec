@@ -27,9 +27,9 @@ export type UserData = {
   telefone?: string;
   localizacao?: string;
   overview?: string;
-  experiencias: Experience[];
-  formacoes: Education[];
-  skills: Skill[];
+  experiencias?: Experience[];
+  formacoes?: Education[];
+  skills?: Skill[];
 };
 
 export type HabilidadesProps = {
