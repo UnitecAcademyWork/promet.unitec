@@ -7,7 +7,10 @@ import {
   GraduationCap, 
   Briefcase, 
   Rocket,
-  CheckCircle
+  CheckCircle,
+  UserCheck,
+  FileText,
+  Users
 } from 'lucide-react';
 
 const HowItWorks = () => {
@@ -30,6 +33,14 @@ const HowItWorks = () => {
     },
     {
       number: 3,
+      icon: <UserCheck className="w-5 h-5" />,
+      title: 'Teste de Perfil de Carreira',
+      description: 'Pequeno questionário para identificar suas áreas de maior afinidade.',
+      price: 'Gratuita',
+      free: true
+    },
+    {
+      number: 4,
       icon: <BarChart3 className="w-5 h-5" />,
       title: 'Exame de diagnóstico',
       description: 'Avaliação técnica para verificar suas competências na área desejada.',
@@ -37,26 +48,34 @@ const HowItWorks = () => {
       free: false
     },
     {
-      number: 4,
+      number: 5,
       icon: <GraduationCap className="w-5 h-5" />,
-      title: 'Formação inicial',
-      description: 'Curso intensivo com foco nas necessidades do mercado actual.',
+      title: 'Formação Intensiva (30 dias)',
+      description: 'Curso prático e intensivo com foco nas necessidades atuais do mercado.',
       price: '2,500 MT',
       free: false
     },
     {
-      number: 5,
+      number: 6,
       icon: <Briefcase className="w-5 h-5" />,
-      title: 'Workshop',
-      description: 'Sessões interativas sobre processos e melhores práticas.',
+      title: 'Workshop de Empregabilidade',
+      description: 'Sessões interativas sobre mercado de trabalho e melhores práticas.',
       price: "Gratuita",
       free: true
     },
     {
-      number: 6,
-      icon: <Rocket className="w-5 h-5" />,
-      title: 'Inclusão',
-      description: 'Seu perfil é incluído em nosso banco de talentos.',
+      number: 7,
+      icon: <FileText className="w-5 h-5" />,
+      title: 'Currículo Profissional',
+      description: 'Otimização de um currículo profissional de acordo com padrões de mercado.',
+      price: "Gratuita",
+      free: true
+    },
+    {
+      number: 8,
+      icon: <Users className="w-5 h-5" />,
+      title: 'Inclusão na Base de Talentos',
+      description: 'Seu perfil é incluído no nosso banco e encaminhado para empresas parceiras.',
       price: "Gratuita",
       free: true
     }
@@ -75,7 +94,7 @@ const HowItWorks = () => {
         </div>
         
         {/* Grid de 3 colunas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {steps.map((step) => (
             <div key={step.number} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-5 border border-gray-200 dark:border-gray-700">
               {/* Cabeçalho com número e ícone */}

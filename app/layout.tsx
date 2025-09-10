@@ -15,9 +15,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${outfit.className} dark:bg-gray-900`}>
+      <head>
+          {/* Google Analytics */}
+          <script async src="https://www.googletagmanager.com/gtag/js?id=G-3YZK3D46ZS"></script>
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-3YZK3D46ZS');
+              `,
+            }}
+          />
+        </head>
+      <body className={`h-full text-white${outfit.className} dark:bg-gray-900`}>
         <ThemeProvider>
-          <div className="sticky top-0 mb-16 z-50 bg-white dark:bg-gray-800 shadow-md">
+          <div className="sticky top-0 mb-20 z-50 bg-white dark:bg-gray-800 shadow-md">
           <Navbar />
           </div>
           <SidebarProvider>{children}</SidebarProvider>

@@ -1,47 +1,136 @@
 "use client";
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Plus, GraduationCap, Calendar, School, X, BookOpen } from "lucide-react";
-import { addFormacao } from "../../../../lib/formacao-actions";
 
-type FormacaoType = {
-  id: number;
-  curso: string;
-  instituicao: string;
-  inicio: string;
-  fim: string;
-  descricao: string;
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Plus,
+  GraduationCap,
+  Calendar,
+  School,
+  X,
+  BookOpen,
+  Trash2,
+  Edit3,
+} from "lucide-react";
+import {
+  addFormation,
+  getFormations,
+  deleteFormation,
+  updateFormation,
+} from "../../../../lib/formation-actions";
+import { toast, Toaster } from "react-hot-toast";
+
+// Tipo usado no client
+export type FormationType = {
+  id: string;
+  nome: string;
+  local: string;
+  dataInicio: string;
+  dataFim?: string;
+  descricao?: string;
+  duracao: string;
 };
 
 export default function Formacao() {
-  const [formacoes, setFormacoes] = useState<FormacaoType[]>([]);
+  const [formacoes, setFormacoes] = useState<FormationType[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState<Omit<FormacaoType, "id">>({
-    curso: "",
-    instituicao: "",
-    inicio: "",
-    fim: "",
+  const [editId, setEditId] = useState<string | null>(null);
+
+  const [form, setForm] = useState<Omit<FormationType, "id">>({
+    nome: "",
+    local: "",
+    dataInicio: "",
+    dataFim: "",
     descricao: "",
+    duracao: "",
   });
+
+  // carregar formações do backend
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await getFormations();
+        setFormacoes(data);
+      } catch (err) {
+        toast.error("Erro ao carregar formações");
+      }
+    })();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newFormacao: FormacaoType = { id: Date.now(), ...form };
-    setFormacoes([...formacoes, newFormacao]);
-    await addFormacao(newFormacao);
-    setForm({ curso: "", instituicao: "", inicio: "", fim: "", descricao: "" });
+
+    if (editId) {
+      // atualizar
+      try {
+        const updated = await updateFormation(editId, form);
+        setFormacoes((prev) =>
+          prev.map((f) => (f.id === editId ? { ...updated } : f))
+        );
+        toast.success("Formação atualizada!");
+        setEditId(null);
+      } catch (err) {
+        toast.error("Erro ao atualizar formação");
+      }
+    } else {
+      // adicionar
+      try {
+        const created = await addFormation(form);
+        setFormacoes([...formacoes, created]);
+        toast.success("Formação adicionada!");
+      } catch (err) {
+        toast.error("Erro ao adicionar formação");
+      }
+    }
+
+    setForm({
+      nome: "",
+      local: "",
+      dataInicio: "",
+      dataFim: "",
+      descricao: "",
+      duracao: "",
+    });
     setShowForm(false);
   };
 
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteFormation(id);
+      setFormacoes(formacoes.filter((f) => f.id !== id));
+      toast.success("Formação removida!");
+    } catch (err) {
+      toast.error("Erro ao remover formação");
+    }
+  };
+
+  const handleEdit = (f: FormationType) => {
+    setForm({
+      nome: f.nome,
+      local: f.local,
+      dataInicio: f.dataInicio,
+      dataFim: f.dataFim,
+      descricao: f.descricao,
+      duracao: f.duracao,
+    });
+    setEditId(f.id);
+    setShowForm(true);
+  };
+
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
+    if (!dateString) return "";
+    return new Date(dateString).toLocaleDateString("pt-BR");
   };
 
   return (
     <div className="p-6 bg-white rounded-2xl shadow-lg border border-gray-100 dark:bg-gray-900 dark:border-gray-800">
+      <Toaster position="top-right" />
+
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Formação Acadêmica</h2>
-        
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+          Formação Acadêmica
+        </h2>
+
         {!showForm && (
           <motion.button
             onClick={() => setShowForm(true)}
@@ -63,12 +152,20 @@ export default function Formacao() {
             exit={{ opacity: 0, height: 0 }}
             className="mb-6"
           >
-            <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-gray-50 rounded-xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-4 p-4 bg-gray-50 rounded-xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700"
+            >
               <div className="flex justify-between items-center">
-                <h3 className="font-semibold text-gray-800 dark:text-white">Nova Formação</h3>
+                <h3 className="font-semibold text-gray-800 dark:text-white">
+                  {editId ? "Editar Formação" : "Nova Formação"}
+                </h3>
                 <button
                   type="button"
-                  onClick={() => setShowForm(false)}
+                  onClick={() => {
+                    setShowForm(false);
+                    setEditId(null);
+                  }}
                   className="p-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                 >
                   <X className="w-5 h-5" />
@@ -82,11 +179,11 @@ export default function Formacao() {
                   </label>
                   <input
                     type="text"
-                    placeholder="Ex: Engenharia de Software"
-                    value={form.curso}
-                    onChange={(e) => setForm({ ...form, curso: e.target.value })}
+                    placeholder="Ex: Inglês para Iniciantes"
+                    value={form.nome}
+                    onChange={(e) => setForm({ ...form, nome: e.target.value })}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
                   />
                 </div>
 
@@ -96,11 +193,13 @@ export default function Formacao() {
                   </label>
                   <input
                     type="text"
-                    placeholder="Ex: Universidade Federal"
-                    value={form.instituicao}
-                    onChange={(e) => setForm({ ...form, instituicao: e.target.value })}
+                    placeholder="Ex: Instituto de Línguas"
+                    value={form.local}
+                    onChange={(e) =>
+                      setForm({ ...form, local: e.target.value })
+                    }
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
                   />
                 </div>
 
@@ -108,31 +207,45 @@ export default function Formacao() {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Data de Início *
                   </label>
-                  <div className="relative">
-                    <input
-                      type="date"
-                      value={form.inicio}
-                      onChange={(e) => setForm({ ...form, inicio: e.target.value })}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    />
-                    <Calendar className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
-                  </div>
+                  <input
+                    type="date"
+                    value={form.dataInicio}
+                    onChange={(e) =>
+                      setForm({ ...form, dataInicio: e.target.value })
+                    }
+                    required
+                    className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Data de Término
                   </label>
-                  <div className="relative">
-                    <input
-                      type="date"
-                      value={form.fim}
-                      onChange={(e) => setForm({ ...form, fim: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    />
-                    <Calendar className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
-                  </div>
+                  <input
+                    type="date"
+                    value={form.dataFim}
+                    onChange={(e) =>
+                      setForm({ ...form, dataFim: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Duração *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ex: 2 anos"
+                    value={form.duracao}
+                    onChange={(e) =>
+                      setForm({ ...form, duracao: e.target.value })
+                    }
+                    required
+                    className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
+                  />
                 </div>
               </div>
 
@@ -141,18 +254,23 @@ export default function Formacao() {
                   Descrição
                 </label>
                 <textarea
-                  placeholder="Descreva sua formação, disciplinas relevantes, conquistas..."
+                  placeholder="Descreva sua formação..."
                   value={form.descricao}
-                  onChange={(e) => setForm({ ...form, descricao: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, descricao: e.target.value })
+                  }
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
                 />
               </div>
 
               <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowForm(false)}
+                  onClick={() => {
+                    setShowForm(false);
+                    setEditId(null);
+                  }}
                   className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:text-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
                 >
                   Cancelar
@@ -161,7 +279,7 @@ export default function Formacao() {
                   type="submit"
                   className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
                 >
-                  Adicionar Formação
+                  {editId ? "Salvar Alterações" : "Adicionar Formação"}
                 </button>
               </div>
             </form>
@@ -182,30 +300,47 @@ export default function Formacao() {
               key={f.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700"
+              className="p-4 bg-white border rounded-xl shadow-sm flex justify-between items-start dark:bg-gray-800"
             >
               <div className="flex items-start gap-3">
                 <div className="p-2 bg-green-100 rounded-lg dark:bg-green-900/30">
                   <GraduationCap className="w-5 h-5 text-green-600 dark:text-green-400" />
                 </div>
-                
-                <div className="flex-1">
-                  <h3 className="font-bold text-lg text-gray-800 dark:text-white">{f.curso}</h3>
+                <div>
+                  <h3 className="font-bold text-lg text-gray-800 dark:text-white">
+                    {f.nome}
+                  </h3>
                   <p className="text-gray-600 dark:text-gray-300 flex items-center gap-1 mt-1">
                     <School className="w-4 h-4" />
-                    {f.instituicao}
+                    {f.local}
                   </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-2">
-                    <Calendar className="w-4 h-4" />
-                    {formatDate(f.inicio)} - {f.fim ? formatDate(f.fim) : "Atual"}
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                    <Calendar className="w-4 h-4 inline-block" />
+                    {formatDate(f.dataInicio)} -{" "}
+                    {f.dataFim ? formatDate(f.dataFim) : "Atual"} ({f.duracao})
                   </p>
-                  
                   {f.descricao && (
                     <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                      <p className="text-gray-700 dark:text-gray-300">{f.descricao}</p>
+                      <p className="text-gray-700 dark:text-gray-300">
+                        {f.descricao}
+                      </p>
                     </div>
                   )}
                 </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleEdit(f)}
+                  className="p-2 text-blue-500 hover:bg-blue-100 rounded-full"
+                >
+                  <Edit3 className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => handleDelete(f.id)}
+                  className="p-2 text-red-500 hover:bg-red-100 rounded-full"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
               </div>
             </motion.div>
           ))

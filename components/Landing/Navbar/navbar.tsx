@@ -31,7 +31,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
 
         <Link href="/" className="text-2xl font-bold text-brand-main dark:text-brand-lime">
-          <Image src={logo} alt="PROMET" width={60} height={60}/>
+          <Image src={logo} alt="PROMET" width={50} height={50}/>
         </Link>
         <div className="hidden md:flex space-x-8 font-medium">
           <Link href="/" className="text-gray-600 hover:text-brand-main dark:hover:text-brand-lime transition">

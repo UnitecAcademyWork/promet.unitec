@@ -1,7 +1,8 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Briefcase, Calendar, Building, X, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getExperiences, addExperience, deleteExperience } from "../../../../lib/experiencia-actions";
 
 export type Experience = {
   id: number;
@@ -14,18 +15,13 @@ export type Experience = {
 };
 
 type ExperienciaProps = {
-  experiences: Experience[];
   isEditing: boolean;
-  addExperience: (exp: Experience) => void;
-  removeExperience: (id: number) => void;
 };
 
-export default function Experiencia({
-  experiences,
-  isEditing,
-  addExperience,
-  removeExperience,
-}: ExperienciaProps) {
+export default function Experiencia({ isEditing }: ExperienciaProps) {
+  const [experiences, setExperiences] = useState<Experience[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<Omit<Experience, "id">>({
     position: "",
@@ -36,13 +32,103 @@ export default function Experiencia({
     description: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Carregar experiências do servidor
+  useEffect(() => {
+    loadExperiences();
+  }, []);
+
+  const loadExperiences = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await getExperiences();
+      
+      if (result.success && result.data) {
+        // Converter dados do servidor para o formato do cliente
+        const formattedExperiences: Experience[] = result.data.map((exp: any) => ({
+          id: exp.id,
+          position: exp.cargo,
+          company: exp.organizacao,
+          startDate: exp.dataInicio,
+          endDate: exp.dataFim || undefined,
+          current: !exp.dataFim, // Se não tem dataFim, considera como atual
+          description: exp.descricao || undefined
+        }));
+        
+        setExperiences(formattedExperiences);
+      } else {
+        setError(result.error || "Erro ao carregar experiências");
+      }
+    } catch (err) {
+      setError("Erro ao carregar experiências");
+      console.error("Erro ao carregar experiências:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Adicionar experiência
+  const handleAddExperience = async (exp: Experience) => {
+    try {
+      setError(null);
+      
+      // Converter para formato do servidor
+      const serverExperience = {
+        organizacao: exp.company,
+        cargo: exp.position,
+        descricao: exp.description || "",
+        dataInicio: exp.startDate,
+        dataFim: exp.current ? undefined : exp.endDate
+      };
+
+      const result = await addExperience(serverExperience);
+      
+      if (result.success) {
+        // Recarregar a lista para garantir sincronização
+        await loadExperiences();
+        setShowForm(false);
+      } else {
+        setError(result.error || "Erro ao adicionar experiência");
+      }
+    } catch (err) {
+      setError("Erro ao adicionar experiência");
+      console.error("Erro ao adicionar experiência:", err);
+    }
+  };
+
+  // Remover experiência
+  const handleRemoveExperience = async (id: number) => {
+    try {
+      setError(null);
+      const result = await deleteExperience(id.toString());
+      
+      if (result.success) {
+        // Remover localmente ou recarregar a lista
+        setExperiences(prev => prev.filter(exp => exp.id !== id));
+      } else {
+        setError(error || "Erro ao remover experiência");
+      }
+    } catch (err) {
+      setError("Erro ao remover experiência");
+      console.error("Erro ao remover experiência:", err);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.position.trim() || !form.company.trim() || !form.startDate) return;
+    if (!form.position.trim() || !form.company.trim() || !form.startDate) {
+      setError("Preencha os campos obrigatórios");
+      return;
+    }
 
-    const newExp: Experience = { id: Date.now(), ...form };
-    addExperience(newExp);
+    const newExp: Experience = { 
+      id: Date.now(), // ID temporário até ser salvo no servidor
+      ...form 
+    };
 
+    await handleAddExperience(newExp);
+    
+    // Reset do formulário apenas se a operação for bem sucedida
     setForm({
       position: "",
       company: "",
@@ -51,7 +137,6 @@ export default function Experiencia({
       current: false,
       description: "",
     });
-    setShowForm(false);
   };
 
   const formatDate = (dateString?: string) => {
@@ -61,6 +146,22 @@ export default function Experiencia({
       year: "numeric",
     });
   };
+
+  if (loading) {
+    return (
+      <div className="p-6 bg-white rounded-2xl shadow-lg border border-gray-100 dark:bg-gray-900 dark:border-gray-800">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+            Experiência Profissional
+          </h2>
+        </div>
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-500 dark:text-gray-400">Carregando experiências...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-white rounded-2xl shadow-lg border border-gray-100 dark:bg-gray-900 dark:border-gray-800">
@@ -83,6 +184,19 @@ export default function Experiencia({
         )}
       </div>
 
+      {/* Mensagem de erro */}
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg dark:bg-red-900 dark:border-red-700 dark:text-red-200">
+          {error}
+          <button
+            onClick={() => setError(null)}
+            className="float-right text-red-700 hover:text-red-900 dark:text-red-200 dark:hover:text-red-100"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Formulário */}
       <AnimatePresence>
         {showForm && (
@@ -102,7 +216,10 @@ export default function Experiencia({
                 </h3>
                 <button
                   type="button"
-                  onClick={() => setShowForm(false)}
+                  onClick={() => {
+                    setShowForm(false);
+                    setError(null);
+                  }}
                   className="p-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                 >
                   <X className="w-5 h-5" />
@@ -220,7 +337,10 @@ export default function Experiencia({
               <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowForm(false)}
+                  onClick={() => {
+                    setShowForm(false);
+                    setError(null);
+                  }}
                   className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg 
                              hover:bg-gray-300 dark:text-gray-300 
                              dark:bg-gray-700 dark:hover:bg-gray-600"
@@ -230,7 +350,8 @@ export default function Experiencia({
                 <button
                   type="submit"
                   className="px-4 py-2 bg-blue-500 text-white rounded-lg 
-                             hover:bg-blue-600 transition"
+                             hover:bg-blue-600 transition disabled:opacity-50"
+                  disabled={!form.position.trim() || !form.company.trim() || !form.startDate}
                 >
                   Adicionar Experiência
                 </button>
@@ -277,8 +398,9 @@ export default function Experiencia({
 
                 {isEditing && (
                   <button
-                    onClick={() => removeExperience(exp.id)}
-                    className="text-red-500 hover:text-red-700"
+                    onClick={() => handleRemoveExperience(exp.id)}
+                    className="text-red-500 hover:text-red-700 p-1"
+                    title="Remover experiência"
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>

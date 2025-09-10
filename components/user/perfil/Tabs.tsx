@@ -11,24 +11,24 @@ type TabsProps = {
 
 export default function Tabs({ tabs, activeTab, setActiveTab, showCount = false, counts = {} }: TabsProps) {
   return (
-    <div className="flex space-x-6 border-b border-gray-200 dark:border-gray-700 pb-1">
+    <div className="flex space-x-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
       {tabs.map((tab) => (
         <button
           key={tab}
           onClick={() => setActiveTab(tab)}
-          className={`relative py-3 px-2 font-medium transition-all duration-300 group ${
+          className={`relative py-3 px-5 font-medium transition-all duration-300 group rounded-md ${
             activeTab === tab
-              ? "text-brand-main dark:text-brand-lime"
-              : "text-gray-500 dark:text-gray-400 hover:text-brand-main dark:hover:text-brand-lime"
+              ? "text-white shadow-sm"
+              : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
           }`}
         >
-          <span className="flex items-center gap-2">
+          <span className="flex items-center gap-2 relative z-10">
             {tab}
             {showCount && counts[tab] > 0 && (
               <span className={`text-xs px-2 py-1 rounded-full transition-colors ${
                 activeTab === tab
-                  ? "bg-brand-main/10 text-brand-main"
-                  : "bg-gray-100 dark:bg-gray-800 group-hover:bg-brand-main/10"
+                  ? "bg-white/20 text-white"
+                  : "bg-gray-200 dark:bg-gray-700 group-hover:bg-gray-300 dark:group-hover:bg-gray-600"
               }`}>
                 {counts[tab]}
               </span>
@@ -38,7 +38,7 @@ export default function Tabs({ tabs, activeTab, setActiveTab, showCount = false,
           {activeTab === tab && (
             <motion.div
               layoutId="underline"
-              className="absolute left-0 right-0 bottom-0 h-1 bg-brand-lime rounded-t-full"
+              className="absolute inset-0 bg-brand-main rounded-md shadow-sm z-0"
               initial={false}
               transition={{
                 type: "spring",

@@ -273,18 +273,18 @@ export default function RegisterForm() {
                   <div className="relative">
                     <UserCircle className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
-  id="username"
-  type="text"
-  name="username"
-  placeholder="Username"
-  value={form.username}
-  onChange={handleChange}
-  autoComplete="new-password"
-  autoCorrect="off"
-  autoCapitalize="off"
-  spellCheck="false"
-  className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-0 focus:border-gray-300 transition-all dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-/>
+                    id="username"
+                    type="text"
+                    name="username"
+                    placeholder="Username"
+                    value={form.username}
+                    onChange={handleChange}
+                    autoComplete="new-password"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-0 focus:border-gray-300 transition-all dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                  />
 
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
