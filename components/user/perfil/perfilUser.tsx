@@ -6,9 +6,9 @@ import Tabs from "./Tabs";
 import DadosPessoais from "./tabs/DadosPessoais";
 import Experiencia from "./tabs/ExperienceTab";
 import Formacao from "./tabs/Formacao";
-import Idiomas from "./tabs/Idiomas";
+// import Idiomas from "./tabs/Idiomas";
 import VisaoGeral from "./tabs/OverviewTab";
-import Habilidades from "./tabs/SkillsTab";
+// import Habilidades from "./tabs/SkillsTab";
 import { UserData } from "../types/user-types";
 import CandidatoHeader from "./UserHeader";
 import { getCandidato } from "../../../lib/candidato-actions";
@@ -62,8 +62,8 @@ export default function ProfilePage() {
         return <Experiencia isEditing={isEditing} />;
       case "Formação":
         return <Formacao />;
-      case "Idiomas":
-        return <Idiomas />;
+      // case "Idiomas":
+      //   return <Idiomas />;
       // case "Habilidades":
       //   return <Habilidades />;
       default:

@@ -1,10 +1,14 @@
+import type {Metadata} from "next"
 import React from 'react'
 import UserProfile from '../../../components/user/perfil/perfilUser'
-// import UserProfile from '../../../components/user/perfil/UserProfile'
 
+export const metadata: Metadata =
+{
+  title: "Perfil"
+}
 export default function page() {
   return (
-    <div>
+    <div className='h-screen'>
       <UserProfile />
     </div>
   )
