@@ -17,7 +17,6 @@ const WhatIsPromet = () => {
           </h2>
           <div className="w-20 h-1 bg-brand-lime mx-auto mt-4"></div>
         </div>
-x
         <div className="flex flex-col lg:flex-row gap-10 items-center">
           <div className="lg:w-1/2">
             <p className="text-lg text-gray-700 dark:text-gray-300 mb-8">

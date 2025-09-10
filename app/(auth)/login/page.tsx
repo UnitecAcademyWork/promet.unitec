@@ -31,7 +31,7 @@ export default function LoginForm() {
           sameSite: "strict",
         });
         
-        toast.success("Login realizado com sucesso! Redirecionando...");
+        toast.success("Login realizado com sucesso!");
         console.log("Token salvo:", result.token);
 
         setTimeout(() => {

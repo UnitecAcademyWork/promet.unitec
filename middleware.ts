@@ -6,7 +6,7 @@ export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Rotas públicas
-  const publicRoutes = ["/", "/login", "/registro", "/recuperar-senha"];
+  const publicRoutes = ["/", "/login", "/registro", "/recuperar-senha", "/formulario/parceiro"];
 
   // Ignora arquivos estáticos e rotas internas do Next
   if (

@@ -5,6 +5,7 @@ import { Eye, EyeOff, User, Mail, Lock, UserPlus, CheckCircle, Sparkles, KeyRoun
 import { registerUser } from "../../lib/register-user-actions";
 import { toast, Toaster } from "react-hot-toast";
 import Image from "next/image";
+import Link from "next/link";
 
 type PasswordStrength = {
   strength: number;
@@ -419,9 +420,9 @@ export default function RegisterForm() {
             <div className="text-center mt-5">
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 Já tem uma conta?{" "}
-                <a href="#" className="text-brand-main hover:text-brand-lime font-medium">
+                <Link href="/login" className="text-brand-main hover:text-brand-lime font-medium">
                   Entrar
-                </a>
+                </Link>
               </p>
             </div>
           </div>

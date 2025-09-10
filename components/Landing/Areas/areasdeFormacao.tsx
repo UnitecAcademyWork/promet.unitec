@@ -181,19 +181,7 @@ const TrainingAreas = () => {
           ))}
         </div>
 
-        <div className="text-center mt-12" data-aos="fade-up" data-aos-delay="500">
-          <Link 
-            href="/cursos" 
-            className="inline-flex items-center px-6 py-3 bg-brand-main text-white rounded-lg hover:bg-blue-700 transition-colors duration-300 shadow-md hover:shadow-lg"
-            data-aos="zoom-in"
-            data-aos-delay="600"
-          >
-            Ver Todos os Cursos
-            <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-        </div>
+        
       </div>
 
       <style jsx>{`
