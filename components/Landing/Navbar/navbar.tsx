@@ -87,7 +87,7 @@ const Navbar = () => {
                 Login
               </Link>
               <Link
-                href="/register"
+                href="/registro"
                 className="px-4 py-2 rounded-lg bg-brand-main text-white font-medium hover:bg-brand-main/90 transition"
               >
                 Registro
