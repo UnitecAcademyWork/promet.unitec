@@ -1,5 +1,6 @@
 "use client"
 import React, { useEffect, useRef } from "react";
+import Image from "next/image";
 
 const PartnerSlider = () => {
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -10,7 +11,7 @@ const PartnerSlider = () => {
     if (!slider) return;
 
     // Configurar a animação
-    const logoCount = 8; // Número de logos
+    const logoCount = 11; // Número de logos
     const duration = logoCount * 3; // 3 segundos por logo
     slider.style.animationDuration = `${duration}s`;
 
@@ -46,11 +47,20 @@ const PartnerSlider = () => {
     }
   };
 
-  // Dados dos parceiros
-  const partnerLogos = Array(8).fill(null).map((_, i) => ({
-    id: i + 1,
-    name: `Empresa ${i + 1}`
-  }));
+  // Dados dos parceiros com as imagens reais
+  const partnerLogos = [
+    { id: 1, name: "Tecso", image: "/images/tecso.png" },
+    { id: 2, name: "Sab Comunição e Media", image: "/images/sabcm.jpg" },
+    { id: 3, name: "Zukuyuma", image: "/images/ZK.png" },
+    // { id: 4, name: "Sabores no Ponto", image: "/images/snp.png" },
+    { id: 5, name: "Prospectus Engenharia", image: "/images/proeng.jpg" },
+    { id: 6, name: "Mio Reabilitação", image: "/images/mio.jpg" },
+    { id: 7, name: "Empresa Nacional de Uniformes", image: "/images/ENU.png" },
+    { id: 8, name: "EGIP", image: "/images/EGIP.png" },
+    { id: 9, name: "Ebnezer Gráfica e Consultoria", image: "/images/egc.jpg" },
+    { id: 10, name: "Building Mozambique Group", image: "/images/BMG.png" },
+    { id: 11, name: "naturis", image: "/images/naturis.png" }
+  ];
 
   return (
     <section className="py-12 bg-gradient-to-tr from-brand-main-light/5 via-white to-brand-main-light/10 dark:from-gray-900 dark:via-gray-800 dark:to-brand-main/10">
@@ -67,14 +77,34 @@ const PartnerSlider = () => {
                 {partnerLogos.map((partner, index) => {
                   const refIndex = (set - 1) * partnerLogos.length + index;
                   return (
-                    <div key={`${set}-${partner.id}`} className="flex items-center justify-center mx-4 w-32 h-20">
+                    <div key={`${set}-${partner.id}`} className="flex items-center justify-center mx-4 w-40 h-24">
                       <div 
                         ref={el => addToRefs(el, refIndex)}
-                        className="partner-logo max-h-full max-w-full object-contain bg-transparent dark:bg-gray-700 rounded-lg flex items-center justify-center p-3"
+                        className="partner-logo max-h-full max-w-full bg-white dark:bg-gray-700 rounded-lg flex items-center justify-center p-3 shadow-md hover:shadow-lg transition-all"
                       >
-                        <svg className="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-0.5m-9 0H9m0 0h0.5M4 21H2m2 0v-0.5M4 21v-0.5" />
-                        </svg>
+                        <div className="w-32 h-16 flex rounded-full items-center justify-center">
+                          <Image
+                            src={partner.image}
+                            alt={partner.name}
+                            width={128}
+                            height={64}
+                            className="object-contain rounded-lg w-full h-full"
+                            onError={(e) => {
+                              // Fallback em caso de erro no carregamento da imagem
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              target.nextSibling && ((target.nextSibling as HTMLElement).style.display = 'flex');
+                            }}
+                          />
+                          {/* Fallback caso a imagem não carregue */}
+                          <div className="hidden items-center justify-center text-gray-400 w-full h-full">
+                            <div className="bg-gray-200 dark:bg-gray-600 w-full h-full flex items-center justify-center rounded">
+                              <span className="text-xs font-medium text-gray-500 dark:text-gray-300 text-center px-1">
+                                {partner.name}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   );
@@ -82,10 +112,6 @@ const PartnerSlider = () => {
               </div>
             ))}
           </div>
-          
-          {/* Overlays de gradiente para melhor UX */}
-          {/* <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white dark:from-gray-900 to-transparent z-10"></div>
-          <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white dark:from-gray-900 to-transparent z-10"></div> */}
         </div>
 
         <style jsx>{`
@@ -99,7 +125,7 @@ const PartnerSlider = () => {
           }
           
           .animate-slide {
-            animation: slide 30s linear infinite;
+            animation: slide 33s linear infinite;
           }
           
           .group:hover .animate-slide {

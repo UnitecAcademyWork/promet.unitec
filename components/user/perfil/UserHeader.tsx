@@ -101,7 +101,7 @@ export default function CandidatoHeader({ candidato }: Props) {
               </div>
             ) : (
               <>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                <h1 className="text-xl font-bold text-brand-main dark:text-white">
                   {nomeCompleto}
                 </h1>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -143,7 +143,7 @@ export default function CandidatoHeader({ candidato }: Props) {
             <p className="text-xs text-gray-600 dark:text-gray-400">Experiências</p>
           </div>
 
-          <div className="bg-brand-lime/10 dark:bg-brand-lime/20 px-4 py-2 rounded-lg text-center min-w-[100px]">
+          <div className="bg-brand-lime/10 dark:bg-brand-lime/10 px-4 py-2 rounded-lg text-center min-w-[100px]">
             <div className="flex items-center justify-center gap-1 text-brand-lime mb-1">
               <BookOpen className="w-4 h-4" />
               <span className="text-lg font-bold">{totalFormacoes}</span>

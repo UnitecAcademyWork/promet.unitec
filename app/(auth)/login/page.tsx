@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Mail, Lock, LogIn, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, LogIn, ArrowRightToLine } from "lucide-react";
 import Cookies from "js-cookie";
 import { loginUser } from "../../../lib/login-actions";
 import { toast, Toaster } from "react-hot-toast";
@@ -48,7 +48,7 @@ export default function LoginForm() {
   };
 
   const handleGoogleLogin = () => {
-    toast("Google Login em breve! 🚀", {
+    toast("Google Login em breve!", {
       icon: '👋',
     });
   };
@@ -68,7 +68,7 @@ export default function LoginForm() {
         }}
       />
       
-      <div className="min-h-[90vh] flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+      <div className="min-h-[90vh] flex items-center justify-center p-4 bg-slate-50 dark:bg-gray-700">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -83,11 +83,11 @@ export default function LoginForm() {
                 initial={{ scale: 0, rotate: -180 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ delay: 0.2, type: "spring" }}
-                className="w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-3"
+                className="w-14 h-14 bg-brand-main rounded-full flex items-center justify-center mx-auto mb-3"
               >
                 <LogIn className="w-6 h-6 text-white" />
               </motion.div>
-              <h1 className="text-xl font-bold text-gray-800 mb-1">Bem-vindo de volta!</h1>
+              <h1 className="text-xl font-bold text-brand-main mb-1">Bem-vindo de volta!</h1>
               <p className="text-gray-600 text-xs">Entre na sua conta para continuar</p>
             </div>
 
@@ -135,7 +135,7 @@ export default function LoginForm() {
               </div>
 
               <div className="text-right">
-                <Link href="recuperar-senha" className="text-xs text-blue-600 hover:text-blue-800 transition-colors">
+                <Link href="/recuperar-senha" className="text-xs text-blue-600 hover:text-blue-800 transition-colors">
                   Esqueceu a senha?
                 </Link>
               </div>
@@ -145,7 +145,7 @@ export default function LoginForm() {
                 disabled={loading}
                 whileHover={!loading ? { scale: 1.02 } : {}}
                 whileTap={!loading ? { scale: 0.98 } : {}}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2.5 rounded-lg font-medium text-xs shadow-md hover:shadow transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-brand-main text-white py-2.5 rounded-lg font-medium text-xs shadow-md hover:shadow transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <div className="flex items-center justify-center">
@@ -154,8 +154,8 @@ export default function LoginForm() {
                   </div>
                 ) : (
                   <div className="flex items-center justify-center">
-                    <Sparkles className="w-4 h-4 mr-2" />
                     Entrar
+                    <ArrowRightToLine  className="w-4 h-4 ml-2" />
                   </div>
                 )}
               </motion.button>
@@ -186,9 +186,9 @@ export default function LoginForm() {
             <div className="text-center mt-4">
               <p className="text-xs text-gray-600">
                 Não tem uma conta?{" "}
-                <a href="/register" className="text-blue-600 font-medium hover:text-blue-800 transition-colors">
+                <Link href="/register" className="text-blue-600 font-medium hover:text-blue-800 transition-colors">
                   Cadastre-se
-                </a>
+                </Link>
               </p>
             </div>
           </div>

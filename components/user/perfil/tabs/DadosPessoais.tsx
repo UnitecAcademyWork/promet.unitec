@@ -113,7 +113,7 @@ export default function DadosPessoais() {
 
   return (
     <motion.div
-      className="p-6 bg-white rounded-2xl shadow-lg border border-gray-100 dark:bg-gray-900 dark:border-gray-800"
+      className="p-6 bg-white rounded-2xl shadow-lg border border-gray-100 dark:bg-gray-800 dark:text-white dark:border-gray-800"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -121,7 +121,7 @@ export default function DadosPessoais() {
       {/* Cabeçalho */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-gray-100 dark:border-gray-800">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-r from-blue-400 to-purple-500 rounded-xl shadow-md">
+          <div className="p-2 bg-brand-main rounded-xl shadow-md">
             <User className="text-white w-6 h-6" />
           </div>
           <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
@@ -136,7 +136,7 @@ export default function DadosPessoais() {
                 onClick={() => setIsEditing(true)}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all bg-blue-100 text-blue-600 hover:bg-blue-200 shadow-sm"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all bg-brand-main/10 dark:bg-brand-lime/20 text-brand-main dark:text-white hover:bg-blue-200 shadow-sm"
               >
                 <Edit className="w-4 h-4" />
                 Editar
@@ -313,7 +313,7 @@ export default function DadosPessoais() {
               disabled={isSaving}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-70"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold bg-brand-main text-white shadow-md hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-70"
             >
               {isSaving ? (
                 <>
