@@ -172,11 +172,11 @@ const Sidebar = () => {
             >
               <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800">
                 <div className="flex items-center">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-brand-main to-brand-lime flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-lg bg-brand-lime flex items-center justify-center">
                     <Briefcase className="w-5 h-5 text-white" />
                   </div>
                   <span className="ml-3 text-xl font-bold text-brand-main dark:text-white">
-                    TalentFlow
+                    PROMET
                   </span>
                 </div>
                 <button
@@ -220,7 +220,7 @@ const Sidebar = () => {
       {/* Botão para abrir sidebar mobile */}
       <button
         onClick={toggleMobileSidebar}
-        className="md:hidden fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-gradient-to-r from-brand-main to-brand-lime shadow-lg flex items-center justify-center text-white"
+        className="md:hidden fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-brand-main shadow-lg flex items-center justify-center text-white"
       >
         <Menu className="w-6 h-6" />
       </button>
