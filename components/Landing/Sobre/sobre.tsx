@@ -3,7 +3,7 @@ import Link from "next/link";
 
 const WhatIsPromet = () => {
   return (
-    <section className="relative py-16 bg-white dark:bg-gray-900 overflow-hidden">
+    <section id="sobre" className="relative py-16 bg-white dark:bg-gray-900 overflow-hidden">
       <div className="absolute top-0 right-0 -mt-16 mr-16 opacity-10">
         <svg width="200" height="200" viewBox="0 0 200 200" className="text-brand-main">
           <circle cx="100" cy="100" r="100" fill="currentColor" />

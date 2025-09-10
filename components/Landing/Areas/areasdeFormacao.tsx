@@ -92,7 +92,7 @@ const TrainingAreas = () => {
   ];
 
   return (
-    <section className="relative py-20 bg-gradient-to-br from-brand-main-light/5 via-white to-brand-main-light/10 dark:from-gray-900 dark:via-gray-800 dark:to-brand-main/10 overflow-hidden">
+    <section id="areas-formacao" className="relative py-20 bg-gradient-to-br from-brand-main-light/5 via-white to-brand-main-light/10 dark:from-gray-900 dark:via-gray-800 dark:to-brand-main/10 overflow-hidden">
       {/* SVGs decorativos de fundo com animações de flutuação */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         {/* Círculos sutis com animação */}

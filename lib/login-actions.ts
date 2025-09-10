@@ -24,3 +24,24 @@ export async function loginUser(credentials: {
     throw error;
   }
 }
+export async function googleLogin(token: string) {
+  try {
+    const response = await fetch("http://localhost:4200/auth/google", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ token }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Erro ao fazer login com Google");
+    }
+
+    const data = await response.json();
+    return data; // deve conter token/jwt
+  } catch (error) {
+    console.error("Erro no googleLogin:", error);
+    throw error;
+  }
+}

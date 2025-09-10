@@ -34,7 +34,7 @@ const Beneficios = () => {
   ];
 
   return (
-    <section className="py-16 px-4 md:px-8 bg-gradient-to-br from-brand-main-light/5 via-white to-brand-main-light/10 dark:from-gray-900 dark:via-gray-800 dark:to-brand-main/10  relative overflow-hidden">
+    <section id='beneficios' className="py-16 px-4 md:px-8 bg-gradient-to-br from-brand-main-light/5 via-white to-brand-main-light/10 dark:from-gray-900 dark:via-gray-800 dark:to-brand-main/10  relative overflow-hidden">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-2xl md:text-5xl font-bold text-brand-main dark:text-white mb-4">
