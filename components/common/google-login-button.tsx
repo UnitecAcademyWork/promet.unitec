@@ -4,6 +4,7 @@ import { GoogleLogin } from "@react-oauth/google";
 import toast from "react-hot-toast";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
+import { routes } from "../../config/routes";
 export default function GoogleLoginButton() {
 
   const router = useRouter();
@@ -13,7 +14,7 @@ export default function GoogleLoginButton() {
     const token = credentialResponse.credential;
     console.log("Token JWT:", token);
     try {
-      const res = await fetch("http://localhost:4200/auth/google", {
+      const res = await fetch(routes.googleLogin, {
         method: "POST",
         headers: { "Content-Type": "application/json",
         "Authorization": `Bearer ${token}` },
