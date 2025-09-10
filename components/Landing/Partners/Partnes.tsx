@@ -89,12 +89,7 @@ const PartnerSlider = () => {
                             width={128}
                             height={64}
                             className="object-contain rounded-lg w-full h-full"
-                            onError={(e) => {
-                              // Fallback em caso de erro no carregamento da imagem
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                              target.nextSibling && ((target.nextSibling as HTMLElement).style.display = 'flex');
-                            }}
+                            
                           />
                           {/* Fallback caso a imagem não carregue */}
                           <div className="hidden items-center justify-center text-gray-400 w-full h-full">

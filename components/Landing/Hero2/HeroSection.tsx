@@ -8,16 +8,6 @@ const Hero2 = () => {
   return (
     <section className="relative flex items-center justify-center w-full h-screen overflow-hidden ">
 
-      {/* Imagem de fundo com blur */}
-      {/* <div className="absolute inset-0 -z-10">
-        <Image
-          src={heroBg}
-          alt="Fundo PROMET"
-          fill
-          className="object-cover blur-sm"
-          priority
-        />
-      </div> */}
 
       <svg
         className="absolute top-0 left-0 w-[28rem] h-[28rem] text-brand-main/30 dark:text-brand-main/40 blur-xl"

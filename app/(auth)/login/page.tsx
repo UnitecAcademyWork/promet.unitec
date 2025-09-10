@@ -186,14 +186,13 @@ export default function LoginForm() {
             <div className="text-center mt-4">
               <p className="text-xs text-gray-600">
                 Não tem uma conta?{" "}
-                <Link href="/register" className="text-blue-600 font-medium hover:text-blue-800 transition-colors">
+                <Link href="/registro" className="text-blue-600 font-medium hover:text-blue-800 transition-colors">
                   Cadastre-se
                 </Link>
               </p>
             </div>
           </div>
 
-          {/* Lado Direito - Imagem */}
           <div className="hidden md:block md:w-1/2 relative">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-600/70 to-purple-600/70 mix-blend-multiply" />
             <Image
