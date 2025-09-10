@@ -8,7 +8,7 @@ export const metadata: Metadata =
 }
 export default function page() {
   return (
-    <div className='h-screen'>
+    <div>
       <UserProfile />
     </div>
   )

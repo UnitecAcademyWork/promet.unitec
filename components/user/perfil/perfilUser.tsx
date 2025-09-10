@@ -72,7 +72,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-6 max-w-6xl dark:bg-gray-700 mx-auto">
       {/* Header com dados do candidato */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
