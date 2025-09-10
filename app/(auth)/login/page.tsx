@@ -168,8 +168,9 @@ export default function LoginForm() {
                 <div className="border-t border-gray-200 w-full"></div>
               </div>
 
-              
-              <GoogleLoginButton/>
+              <div className="flex items-center justify-center w-full">
+                <GoogleLoginButton/>
+              </div>
             
             </form>
 
