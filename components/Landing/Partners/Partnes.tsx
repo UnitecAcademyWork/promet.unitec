@@ -17,6 +17,9 @@ const PartnerSlider = () => {
     { id: 9, name: "Ebnezer Gráfica e Consultoria", image: "/images/egc.jpg" },
     { id: 10, name: "Building Mozambique Group", image: "/images/BMG1.png" },
     { id: 11, name: "Naturis", image: "/images/naturis.png" },
+    { id: 12, name: "Xiphefu", image: "/images/XPF.png" },
+    { id: 13, name: "PRI", image: "/images/PRI.png" },
+    { id: 14, name: "TC", image: "/images/TC.png" },
   ];
 
   // Duplicar a lista para o efeito de loop infinito
