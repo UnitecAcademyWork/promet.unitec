@@ -1,9 +1,10 @@
 "use client"
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import Image from "next/image";
 
 const PartnerSlider = () => {
   const sliderRef = useRef<HTMLDivElement>(null);
+  const [isPaused, setIsPaused] = useState(false);
 
   // Lista de parceiros
   const partnerLogos = [
@@ -26,9 +27,32 @@ const PartnerSlider = () => {
   const logosLoop = [...partnerLogos, ...partnerLogos];
 
   useEffect(() => {
-    if (!sliderRef.current) return;
-    sliderRef.current.style.animationPlayState = "running";
-  }, []);
+    const slider = sliderRef.current;
+    if (!slider) return;
+
+    let animationId: number;
+    let startTime: number | null = null;
+    const duration = 30000; // 30 segundos
+    const totalWidth = slider.scrollWidth / 2; // Metade da largura total (já que duplicamos)
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      
+      if (!isPaused) {
+        const elapsed = timestamp - startTime;
+        const progress = (elapsed % duration) / duration;
+        
+        // Usando transform para melhor performance
+        slider.style.transform = `translateX(-${progress * totalWidth}px)`;
+      }
+      
+      animationId = requestAnimationFrame(animate);
+    };
+
+    animationId = requestAnimationFrame(animate);
+
+    return () => cancelAnimationFrame(animationId);
+  }, [isPaused]);
 
   return (
     <section className="py-12 bg-gradient-to-tr from-brand-main-light/5 via-white to-brand-main-light/10 dark:from-gray-900 dark:via-gray-800 dark:to-brand-main/10">
@@ -38,20 +62,35 @@ const PartnerSlider = () => {
           <span className="text-brand-main dark:text-brand-lime">Parceiros</span>
         </h2>
 
-        <div className="relative overflow-hidden">
-          <div ref={sliderRef} className="flex animate-slide whitespace-nowrap">
+        <div 
+          className="relative overflow-hidden"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
+          <div 
+            ref={sliderRef} 
+            className="flex whitespace-nowrap will-change-transform"
+          >
             {logosLoop.map((partner, index) => (
               <div
-                key={`${partner.id}-${index}`} // ✅ chave estável
+                key={`${partner.id}-${index}`}
                 className="flex items-center justify-center mx-6 w-40 h-24 shrink-0"
               >
-                <div className="partner-logo bg-white dark:bg-gray-700 rounded-lg flex items-center justify-center p-3 shadow-md hover:shadow-lg transition-all">
+                <div className="partner-logo bg-white dark:bg-gray-700 rounded-lg flex items-center justify-center p-3 shadow-md hover:shadow-lg transition-all duration-300">
                   <Image
                     src={partner.image}
                     alt={partner.name}
                     width={128}
                     height={64}
                     className="object-contain rounded-lg w-32 h-16"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const fallback = document.createElement('div');
+                      fallback.className = 'flex items-center justify-center w-full h-full text-gray-500 text-xs font-medium text-center';
+                      fallback.textContent = partner.name;
+                      target.parentNode?.appendChild(fallback);
+                    }}
                   />
                 </div>
               </div>
@@ -60,19 +99,6 @@ const PartnerSlider = () => {
         </div>
 
         <style jsx>{`
-          @keyframes slide {
-            0% {
-              transform: translateX(0);
-            }
-            100% {
-              transform: translateX(-50%);
-            }
-          }
-
-          .animate-slide {
-            animation: slide 30s linear infinite;
-          }
-
           .partner-logo {
             filter: grayscale(100%);
             opacity: 0.7;
