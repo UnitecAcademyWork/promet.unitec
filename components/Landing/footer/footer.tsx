@@ -16,7 +16,7 @@ import PrivacyPolicyModal from "./politicadeprovacidade";
 
 export default function Footer() {
   return (
-    <footer className="w-full flex justify-center items-center bg-gradient-to-b from-gray-900 to-gray-800 text-white pt-14">
+    <footer id="contacto" className="w-full flex justify-center items-center bg-gradient-to-b from-gray-900 to-gray-800 text-white pt-14">
       <div className="mx-auto px-4 w-full max-w-7xl">
         {/* Main footer content */}
         <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-8">
@@ -119,7 +119,7 @@ export default function Footer() {
           
           {/* Services */}
           <div className="mb-8">
-            <h3 className="text-lg font-semibold mb-4 text-gray-200">Serviços</h3>
+            <h3 className="text-lg font-semibold mb-4 text-gray-200">Ecosistema</h3>
             <ul className="space-y-3">
               <li>
                 <Link 
@@ -174,12 +174,21 @@ export default function Footer() {
               </li>
               <li className="flex items-center transition-colors duration-300 hover:text-blue-300 text-gray-400">
                 <span className="text-blue-400 mr-3"><Mail className="w-4 h-4" /></span>
-                <span>suporte@unitec.co</span>
+                <span>promet@unitec.ac.mz</span>
               </li>
-              <li className="flex items-center transition-colors duration-300 hover:text-blue-300 text-gray-400">
-                <span className="text-blue-400 mr-3"><Clock className="w-4 h-4" /></span>
-                <span>Seg-Sex: 8:00 - 17:00</span>
-              </li>
+              <li className="flex items-center transition-colors duration-300 hover:text-green-400 text-gray-400">
+              <span className="text-green-500 mr-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  className="w-5 h-5"
+                >
+                  <path d="M12 .5C5.648.5.5 5.648.5 12c0 2.1.549 4.152 1.588 5.963L.542 23.5l5.722-1.497A11.46 11.46 0 0 0 12 23.5c6.352 0 11.5-5.148 11.5-11.5S18.352.5 12 .5Zm0 20.418c-1.883 0-3.721-.5-5.325-1.448l-.38-.225-3.397.889.905-3.307-.248-.394A9.462 9.462 0 0 1 2.542 12c0-5.206 4.252-9.458 9.458-9.458 5.205 0 9.458 4.252 9.458 9.458 0 5.205-4.253 9.458-9.458 9.458Zm5.184-7.065c-.283-.142-1.676-.828-1.936-.923-.26-.095-.449-.142-.638.142s-.732.923-.896 1.111c-.165.189-.331.213-.614.071-.283-.142-1.195-.44-2.275-1.402-.84-.749-1.407-1.672-1.572-1.955-.165-.283-.017-.437.124-.579.127-.127.283-.331.425-.496.142-.165.189-.283.283-.472.094-.189.047-.354-.024-.496-.071-.142-.638-1.538-.874-2.106-.23-.553-.465-.478-.638-.487l-.544-.01c-.189 0-.496.071-.756.354s-.99.968-.99 2.361 1.013 2.739 1.155 2.926c.142.189 1.994 3.042 4.83 4.263.676.292 1.202.467 1.612.598.678.216 1.295.185 1.783.112.544-.081 1.676-.685 1.912-1.348.236-.661.236-1.228.165-1.348-.071-.119-.26-.189-.543-.331Z" />
+                </svg>
+              </span>
+              <span>+258 84 123 4567</span>
+            </li>
             </ul>
           </div>
         </div>

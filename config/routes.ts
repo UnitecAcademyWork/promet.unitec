@@ -8,4 +8,5 @@ export const routes = {
   userprofile: `${API_BASE_URL}/user-perfil`,
   usereditprofile: `${API_BASE_URL}/editar-perfil`,
   adicionarcandidato: `${API_BASE_URL}/adicionar-candidato`,
+  candidato: `${API_BASE_URL}/candidato`,
 };

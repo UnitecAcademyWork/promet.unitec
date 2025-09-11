@@ -1,71 +1,64 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Edit3, Mail, Phone, User, BookOpen, Briefcase, Check, Loader2 } from "lucide-react";
-import { Candidato } from "../../../lib/candidato-actions";
-import { updateUser } from "../../../lib/user-actions";
 import { toast } from "react-hot-toast";
+import { getUser, updateUser, UserPerfilDados } from "../../../lib/user-actions";
+import HeaderSkeleton from "./Loading/UsreHeader";
 
-type Props = {
-  candidato: Candidato;
-};
-
-export default function CandidatoHeader({ candidato }: Props) {
+export default function CandidatoHeader() {
+  const [candidatodados, setCandidatoDados] = useState<UserPerfilDados | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [contacto, setContacto] = useState(candidato.contacto || "");
-  const [nome, setNome] = useState(candidato.user.nome || "");
-  const [apelido, setApelido] = useState(candidato.user.apelido || "");
+  const [nome, setNome] = useState("");
+  const [apelido, setApelido] = useState("");
+  const [contacto, setContacto] = useState("");
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const data = await getUser();
+      setCandidatoDados(data);
+      setNome(data.nome);
+      setApelido(data.apelido);
+      // setContacto(data.contacto);
+    };
+    fetchUser();
+  }, []);
 
   const nomeCompleto = `${nome} ${apelido}`;
-  const totalExperiencias = candidato.experiencias?.length || 0;
-  const totalFormacoes = candidato.formacoes?.length || 0;
+  // const totalExperiencias = candidatodados?.experiencias?.length || 0;
+  // const totalFormacoes = candidatodados?.formacoes?.length || 0;
 
   const handleSave = async () => {
     setIsSaving(true);
-    
     try {
       await updateUser({
-        id: candidato.user.id,
+        id: candidatodados?.id,
         nome,
         apelido,
-        email: candidato.user.email,
+        email: candidatodados?.email,
       });
-      
+      toast.success("Dados atualizados com sucesso!", { duration: 3000 });
       setIsEditing(false);
-      toast.success("Dados atualizados com sucesso!", {
-        duration: 3000,
-        position: "top-right",
-        style: {
-          background: '#10B981',
-          color: '#fff',
-        },
-        iconTheme: {
-          primary: '#fff',
-          secondary: '#10B981',
-        },
-      });
+      setCandidatoDados((prev: any) => prev ? { ...prev, nome, apelido, contacto } : prev);
     } catch (err) {
-      console.error("Erro ao atualizar usuário:", err);
-      toast.error("Erro ao atualizar dados. Tente novamente.", {
-        duration: 4000,
-        position: "top-right",
-        style: {
-          background: '#EF4444',
-          color: '#fff',
-        },
-      });
+      console.error(err);
+      toast.error("Erro ao atualizar dados. Tente novamente.", { duration: 4000 });
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleCancel = () => {
-    setNome(candidato.user.nome || "");
-    setApelido(candidato.user.apelido || "");
-    setContacto(candidato.contacto || "");
+    if (candidatodados) {
+      setNome(candidatodados.nome);
+      setApelido(candidatodados.apelido);
+      setContacto(candidatodados.email);
+    }
     setIsEditing(false);
   };
+
+  if (!candidatodados) return <HeaderSkeleton />;
 
   return (
     <header className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 mb-6">
@@ -96,7 +89,7 @@ export default function CandidatoHeader({ candidato }: Props) {
                   />
                 </div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  @{candidato.user.username}
+                  @{candidatodados.username}
                 </p>
               </div>
             ) : (
@@ -105,7 +98,7 @@ export default function CandidatoHeader({ candidato }: Props) {
                   {nomeCompleto}
                 </h1>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  @{candidato.user.username}
+                  @{candidatodados.username}
                 </p>
               </>
             )}
@@ -122,19 +115,19 @@ export default function CandidatoHeader({ candidato }: Props) {
                     placeholder="Contacto"
                   />
                 ) : (
-                  <span>{candidato.contacto}</span>
+                  <span>{candidatodados.email || "-"}</span>
                 )}
               </div>
               <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                 <Mail className="w-4 h-4 mr-1 text-brand-main dark:text-brand-lime flex-shrink-0" />
-                <span>{candidato.user.email}</span>
+                <span>{candidatodados.email}</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Estatísticas */}
-        <div className="flex gap-4">
+        {/* <div className="flex gap-4">
           <div className="bg-brand-main/5 dark:bg-brand-main/10 px-4 py-2 rounded-lg text-center min-w-[100px]">
             <div className="flex items-center justify-center gap-1 text-brand-main dark:text-brand-lime mb-1">
               <Briefcase className="w-4 h-4" />
@@ -150,7 +143,7 @@ export default function CandidatoHeader({ candidato }: Props) {
             </div>
             <p className="text-xs text-gray-600 dark:text-gray-400">Formações</p>
           </div>
-        </div>
+        </div> */}
 
         {/* Botão de ação */}
         <div className="flex gap-2">

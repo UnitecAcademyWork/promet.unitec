@@ -1,11 +1,8 @@
-// lib/candidato-actions.ts
 "use server";
 
 import { cookies } from "next/headers";
+import { routes } from "../config/routes";
 
-// ----------------------
-// Types
-// ----------------------
 export type User = {
   id: string;
   nome: string;
@@ -59,9 +56,6 @@ export type Candidato = {
   experiencias: Experiencia[];
 };
 
-// ----------------------
-// Action
-// ----------------------
 export async function getCandidato(): Promise<Candidato | null> {
   const token = (await cookies()).get("auth_token")?.value;
 
@@ -71,13 +65,13 @@ export async function getCandidato(): Promise<Candidato | null> {
   }
 
   try {
-    const res = await fetch("https://backend-promet.unitec.academy/candidato", {
+    const res = await fetch(routes.candidato, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      cache: "no-store", // evita cache em SSR
+      cache: "no-store", 
     });
 
     if (!res.ok) {

@@ -79,7 +79,7 @@ export default function ProfilePage() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-6"
       >
-        <CandidatoHeader candidato={candidato} />
+      <CandidatoHeader />
       </motion.div>
 
       {/* Tabs */}

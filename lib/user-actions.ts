@@ -1,13 +1,23 @@
 'use server';
-
 import { cookies } from "next/headers";
-import { UserData } from "../components/user/types/user-types";
 import { routes } from "../config/routes";
-
-
-
+import { UserData } from "../components/user/types/user-types";
+export type UserPerfilDados = {
+  id: any;
+  nome: string;
+  apelido: string;
+  username: string;
+  email: string;
+  googleId: string;
+  avatarUrl: string;
+  otp: null;
+  otpExpire: null;
+  role: string;
+  createdAt: string;
+  updatedAt: string;
+}
 // Buscar usuário
-export async function getUser(): Promise<UserData | undefined> {
+export async function getUser(): Promise<UserPerfilDados> {
   const token = (await cookies()).get("auth_token")?.value;
 
   try {

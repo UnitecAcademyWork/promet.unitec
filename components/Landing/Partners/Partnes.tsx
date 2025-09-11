@@ -64,7 +64,7 @@ const PartnerSlider = () => {
 
         <div 
           className="relative overflow-hidden"
-          onMouseEnter={() => setIsPaused(true)}
+          onMouseEnter={() => setIsPaused(false)}
           onMouseLeave={() => setIsPaused(false)}
         >
           <div 

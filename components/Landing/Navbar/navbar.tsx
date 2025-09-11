@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Moon, Sun, Menu, X, Briefcase } from "lucide-react";
+import { Moon, Sun, Menu, X, Briefcase, GraduationCap, Info } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "/public/images/prometlogo.png";
 import Image from "next/image";
@@ -15,8 +15,10 @@ const Navbar = () => {
 
   const menuItems = [
     { name: "Início", href: "/", icon: Briefcase },
-    { name: "Benefícios", href: "/#beneficios", icon: Briefcase },
     { name: "Sobre", href: "/#sobre", icon: Briefcase },
+    { name: "Áreas de Formação", href: "/#areas", icon: GraduationCap  },
+    { name: "Como Funciona", href: "/#funcionamneto", icon: Info  },
+    { name: "Benefícios", href: "/#beneficios", icon: Briefcase },
     { name: "Contacto", href: "/#contacto", icon: Briefcase },
   ];
 
