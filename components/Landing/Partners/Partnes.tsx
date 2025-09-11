@@ -21,6 +21,7 @@ const PartnerSlider = () => {
     { id: 12, name: "Xiphefu", image: "/images/XPF.png" },
     { id: 13, name: "PRI", image: "/images/PRI.png" },
     { id: 14, name: "TC", image: "/images/TC.png" },
+    { id: 15, name: "Enviro Works - Solucões ambientais", image: "/images/enviroWorks.jpg" },
   ];
 
   // Duplicar a lista para o efeito de loop infinito
@@ -32,7 +33,7 @@ const PartnerSlider = () => {
 
     let animationId: number;
     let startTime: number | null = null;
-    const duration = 30000; // 30 segundos
+    const duration = 40000; // 30 segundos
     const totalWidth = slider.scrollWidth / 2; // Metade da largura total (já que duplicamos)
 
     const animate = (timestamp: number) => {
