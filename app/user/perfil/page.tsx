@@ -10,8 +10,8 @@ export const metadata: Metadata =
 export default function page() {
   return (
     <div>
-      {/* <UserProfile /> */}
       <CandidatoHeader />
+      <UserProfile />
     </div>
   )
 }

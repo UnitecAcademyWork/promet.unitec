@@ -55,11 +55,15 @@ function validateExperienceData(data: Experience): void {
 // ➕ Adicionar experiência
 export async function addExperience(data: Experience): Promise<ApiResponse> {
   try {
+    const token = (await cookies()).get("auth_token")?.value;
     validateExperienceData(data);
     
-    const res = await fetch(`${API_URL}/add-experiencia-profissional`, {
+    const res = await fetch(routes.addexperienciaprofissional, {
       method: "POST",
-      headers: await authHeaders(),
+       headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      }, 
       body: JSON.stringify(data),
     });
 

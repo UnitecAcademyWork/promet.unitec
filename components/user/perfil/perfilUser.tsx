@@ -6,14 +6,11 @@ import Tabs from "./Tabs";
 import DadosPessoais from "./tabs/DadosPessoais";
 import Experiencia from "./tabs/ExperienceTab";
 import Formacao from "./tabs/Formacao";
-// import Idiomas from "./tabs/Idiomas";
 import VisaoGeral from "./tabs/OverviewTab";
-// import Habilidades from "./tabs/SkillsTab";
 import { UserData } from "../types/user-types";
 import CandidatoHeader from "./UserHeader";
 import { getCandidato } from "../../../lib/candidato-actions";
 import { Candidato } from "../../../lib/candidato-actions";
-import MainProfile from "./Loading/MainProfile";
 
 const tabs = ["Dados Pessoais", "Visão Geral", "Experiência", "Formação"];
 
@@ -37,15 +34,6 @@ export default function ProfilePage() {
     fetchData();
   }, []);
 
-  if (!candidato) {
-    // Skeleton Loader
-    return (
-      <div className="p-6 max-w-6xl mx-auto">
-        <MainProfile />
-      </div>
-    );
-  }
-
   const renderTabContent = () => {
     switch (activeTab) {
       case "Dados Pessoais":
@@ -62,10 +50,6 @@ export default function ProfilePage() {
         return <Experiencia isEditing={isEditing} />;
       case "Formação":
         return <Formacao />;
-      // case "Idiomas":
-      //   return <Idiomas />;
-      // case "Habilidades":
-      //   return <Habilidades />;
       default:
         return null;
     }
@@ -79,7 +63,7 @@ export default function ProfilePage() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-6"
       >
-      <CandidatoHeader />
+        {/* <CandidatoHeader candidato={candidato} /> */}
       </motion.div>
 
       {/* Tabs */}

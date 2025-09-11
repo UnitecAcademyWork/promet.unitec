@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import { adicionarCandidato } from "../../../../lib/candidatura";
 import { getCandidato, Candidato } from "../../../../lib/candidato-actions";
-import DadosSkeleton from "../Loading/DadosSketelton";
 
 // Províncias de Moçambique
 const PROVINCIAS = [
@@ -55,8 +54,16 @@ interface CandidateData {
 }
 
 export default function DadosPessoais() {
-  const [data, setData] = useState<CandidateData | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
+  // Inicializa com campos vazios
+  const [data, setData] = useState<CandidateData>({
+    provincia: "",
+    morada: "",
+    dataNascimento: "",
+    numeroBi: "",
+    nivelAcademico: "",
+    contacto: "",
+  });
+  const [isEditing, setIsEditing] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -66,27 +73,27 @@ export default function DadosPessoais() {
       const candidato: Candidato | null = await getCandidato();
       if (candidato) {
         setData({
-          provincia: candidato.provincia,
-          morada: candidato.morada,
-          dataNascimento: candidato.dataNascimento,
-          numeroBi: candidato.numeroBi,
-          nivelAcademico: candidato.nivelAcademico,
-          contacto: candidato.contacto,
+          provincia: candidato.provincia || "",
+          morada: candidato.morada || "",
+          dataNascimento: candidato.dataNascimento || "",
+          numeroBi: candidato.numeroBi || "",
+          nivelAcademico: candidato.nivelAcademico || "",
+          contacto: candidato.contacto || "",
         });
+        setIsEditing(false); // Se existir candidato, não edita inicialmente
+      } else {
+        setIsEditing(true); // Se não existir, permite edição
       }
     };
     fetchData();
   }, []);
 
   const handleChange = (field: keyof CandidateData, value: string) => {
-    if (data) {
-      setData({ ...data, [field]: value });
-    }
+    setData({ ...data, [field]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!data) return;
     setIsSaving(true);
 
     try {
@@ -104,12 +111,6 @@ export default function DadosPessoais() {
       setIsSaving(false);
     }
   };
-
-  if (!data) {
-    return <div>
-      <DadosSkeleton />
-    </div>;
-  }
 
   return (
     <motion.div
@@ -131,36 +132,15 @@ export default function DadosPessoais() {
 
         <div className="flex gap-3">
           {!isEditing ? (
-            <>
-              <motion.button
-                onClick={() => setIsEditing(true)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all bg-brand-main/10 dark:bg-brand-lime/20 text-brand-main dark:text-white hover:bg-blue-200 shadow-sm"
-              >
-                <Edit className="w-4 h-4" />
-                Editar
-              </motion.button>
-              <motion.button
-                onClick={() => {
-                  setData({
-                    provincia: "",
-                    morada: "",
-                    dataNascimento: "",
-                    numeroBi: "",
-                    nivelAcademico: "",
-                    contacto: "",
-                  });
-                  setIsEditing(true);
-                }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all bg-green-100 text-green-600 hover:bg-green-200 shadow-sm"
-              >
-                <Plus className="w-4 h-4" />
-                Adicionar
-              </motion.button>
-            </>
+            <motion.button
+              onClick={() => setIsEditing(true)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all bg-brand-main/10 dark:bg-brand-lime/20 text-brand-main dark:text-white hover:bg-blue-200 shadow-sm"
+            >
+              <Edit className="w-4 h-4" />
+              Editar
+            </motion.button>
           ) : (
             <motion.button
               onClick={() => setIsEditing(false)}

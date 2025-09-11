@@ -30,13 +30,13 @@ export default function RootLayout({
           />
         </head>
       <body className={`h-full text-white${outfit.className} dark:bg-gray-900`}>
-        <ThemeProvider>
+        {/* <ThemeProvider> */}
           <div className="sticky top-0 mb-[75px] z-50 bg-white dark:bg-gray-800 shadow-md">
           <Navbar />
           </div>
           <SidebarProvider>{children}</SidebarProvider>
           <Footer />
-        </ThemeProvider>
+        {/* </ThemeProvider> */}
       </body>
     </html>
   );

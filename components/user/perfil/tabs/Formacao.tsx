@@ -47,15 +47,24 @@ export default function Formacao() {
 
   // carregar formações do backend
   useEffect(() => {
-    (async () => {
-      try {
-        const data = await getFormations();
-        setFormacoes(data);
-      } catch (err) {
-        toast.error("Erro ao carregar formações");
+  (async () => {
+    try {
+      const data = await getFormations();
+
+      // Se vier null ou vazio, abre o formulário automaticamente
+      if (!data || data.length === 0) {
+        setShowForm(true);
       }
-    })();
-  }, []);
+
+      setFormacoes(data || []);
+    } catch (err) {
+      toast.error("Erro ao carregar formações");
+      // mesmo em caso de erro, abrir o formulário
+      setShowForm(true);
+    }
+  })();
+}, []);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

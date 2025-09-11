@@ -9,6 +9,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import GoogleLoginButton from "../../../components/common/google-login-button";
+import router from "next/router";
 
 export default function LoginForm() {
   const [form, setForm] = useState({ identifier: "", password: "" });
@@ -36,9 +37,7 @@ export default function LoginForm() {
         toast.success("Login realizado com sucesso!");
         console.log("Token salvo:", result.token);
 
-        setTimeout(() => {
-          window.location.href = "/user/perfil";
-        }, 1500);
+        router.push("/user/perfil");
       } else {
         toast.error("Token não encontrado na resposta");
       }
