@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { routes } from "../config/routes";
 
 export type Experience = {
   id?: string;
@@ -17,7 +18,7 @@ export type ApiResponse<T = any> = {
   error?: string;
 };
 
-const API_URL = "https://backend-promet.unitec.academy";
+const API_URL = routes.backend_url;
 
 async function authHeaders() {
   try {

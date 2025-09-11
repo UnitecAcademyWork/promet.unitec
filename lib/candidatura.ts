@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { routes } from "../config/routes";
 
 export type NovoCandidato = {
   provincia: string;
@@ -16,7 +17,7 @@ export async function adicionarCandidato(candidato: NovoCandidato) {
 
   try {
     const res = await fetch(
-      `https://backend-promet.unitec.academy/adicionar-candidato`,
+      routes.adicionarcandidato,
       {
         method: "POST",
         headers: {

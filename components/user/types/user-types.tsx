@@ -2,8 +2,8 @@
 export type Experience = {
   id: string;
   cargo: string;
-  empresa: string;
-  periodo: string;
+  organizacao: string;
+  dataFim: string;
   descricao?: string; // agora opcional
 };
 

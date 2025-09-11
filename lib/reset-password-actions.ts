@@ -1,8 +1,10 @@
 "use server";
 
+import { routes } from "../config/routes";
+
 export async function forgotPassword(email: string) {
   try {
-    const res = await fetch("https://backend-promet.unitec.academy/auth/forgot-password", {
+    const res = await fetch(routes.forgotpassword, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

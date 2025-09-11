@@ -5,8 +5,14 @@ const LOCAL_SERVER = "http://192.168.43.177:5000";
 export const routes = {
   backend_url: `${API_BASE_URL}`,
   register: `${API_BASE_URL}/auth/register`,
+  login: `${API_BASE_URL}/auth/login`,
+  forgotpassword: `${API_BASE_URL}/auth/forgot-password`,
   userprofile: `${API_BASE_URL}/user-perfil`,
   usereditprofile: `${API_BASE_URL}/editar-perfil`,
   adicionarcandidato: `${API_BASE_URL}/adicionar-candidato`,
   candidato: `${API_BASE_URL}/candidato`,
+  cursos: `${API_BASE_URL}/cursos`,
+  adicionarformacao: `${API_BASE_URL}/adicionar-formacao`,
+  formacoescandidato: `${API_BASE_URL}/formacoes-candidato`,
+  actualizarformacao: `${API_BASE_URL}/actualizar-formacao`,
 };

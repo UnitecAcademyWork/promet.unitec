@@ -1,11 +1,13 @@
 "use server";
 
+import { routes } from "../config/routes";
+
 export async function loginUser(credentials: {
   identifier: string; // pode ser username ou email
   password: string;
 }) {
   try {
-    const response = await fetch("https://backend-promet.unitec.academy/auth/login", {
+    const response = await fetch(routes.login, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

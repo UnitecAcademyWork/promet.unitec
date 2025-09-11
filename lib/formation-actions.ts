@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { routes } from "../config/routes";
 
 export type Formation = {
   id?: string;
@@ -12,7 +13,7 @@ export type Formation = {
   dataFim?: string;   // formato YYYY-MM-DD
 };
 
-const API_URL = "https://backend-promet.unitec.academy";
+const API_URL = routes.backend_url;
 
 // Função para pegar headers com token
 async function authHeaders() {
@@ -27,7 +28,7 @@ async function authHeaders() {
 // ➕ Adicionar formação
 export async function addFormation(data: Formation) {
   try {
-    const res = await fetch(`${API_URL}/adicionar-formacao`, {
+    const res = await fetch(routes.adicionarformacao, {
       method: "POST",
       headers: await authHeaders(),
       body: JSON.stringify(data),
@@ -45,7 +46,7 @@ export async function addFormation(data: Formation) {
 // 📋 Listar todas formações
 export async function getFormations() {
   try {
-    const res = await fetch(`${API_URL}/formacoes-candidato`, {
+    const res = await fetch(routes.formacoescandidato, {
       method: "GET",
       headers: await authHeaders(),
     });
