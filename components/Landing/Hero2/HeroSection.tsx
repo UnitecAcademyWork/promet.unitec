@@ -118,7 +118,7 @@ const Hero2 = () => {
             }} 
             className="inline-block"
           >
-            Conectar,
+            Conectando
           </motion.span>{' '}
           <motion.span 
             variants={{
@@ -152,7 +152,7 @@ const Hero2 = () => {
             }} 
             className="inline-block"
           >
-            , Oportunidades
+            a Oportunidades
           </motion.span>
         </motion.h1>
         
