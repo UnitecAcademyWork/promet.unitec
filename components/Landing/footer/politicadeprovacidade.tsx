@@ -166,7 +166,7 @@ export default function PrivacyPolicyModal() {
                   <ul className="mt-3 space-y-2">
                     <li className="flex items-center text-blue-700">
                       <Mail className="w-4 h-4 mr-2" />
-                      suporte@unitec.co
+                      promet@unitec.ac.mz
                     </li>
                     <li className="flex items-start text-blue-700">
                       <MapPin className="w-4 h-4 mr-2 mt-0.5" />
@@ -174,7 +174,7 @@ export default function PrivacyPolicyModal() {
                     </li>
                     <li className="flex items-center text-blue-700">
                       <Phone className="w-4 h-4 mr-2" />
-                      +258 870 088 787
+                      +258 870 088 787 || 834303184
                     </li>
                   </ul>
                 </div>

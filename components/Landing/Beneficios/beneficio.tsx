@@ -49,8 +49,8 @@ const Beneficios = () => {
     },
     {
       icon: <BadgeCheck size={20} />,
-      title: "Possibilidade de Estágio",
-      description: "Chance de ser selecionado por empresas parceiras para programas de estágio."
+      title: "Possibilidade de Estágio ou Emprego",
+      description: "Chance de ser selecionado por empresas parceiras para programas de estágio ou emprego."
     },
     {
       icon: <Users size={20} />,
