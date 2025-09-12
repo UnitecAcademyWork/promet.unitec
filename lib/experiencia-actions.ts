@@ -113,11 +113,15 @@ export async function updateExperience(id: string, data: Experience): Promise<Ap
 
 // 📋 Listar todas experiências do candidato
 export async function getExperiences(): Promise<ApiResponse<Experience[]>> {
+      const token = (await cookies()).get("auth_token")?.value;
+
   try {
     const res = await fetch(`${API_URL}/experiencias-candidato`, {
       method: "GET",
-      headers: await authHeaders(),
-      cache: 'no-store' // Para dados frequentemente atualizados
+       headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      }, 
     });
 
     if (!res.ok) {
@@ -138,13 +142,17 @@ export async function getExperiences(): Promise<ApiResponse<Experience[]>> {
 
 // ❌ Deletar experiência por ID
 export async function deleteExperience(id: string): Promise<ApiResponse> {
+        const token = (await cookies()).get("auth_token")?.value;
   try {
-    if (!id) throw new Error("ID é obrigatório para exclusão");
+    if (!id) throw new Error("A Experiência não existe");
     
     // Verifique qual endpoint está correto: /experiencia ou /experiencia-profissional
     const res = await fetch(`${API_URL}/experiencia-profissional/${id}`, {
       method: "DELETE",
-      headers: await authHeaders(),
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      }, 
     });
 
     if (!res.ok) {

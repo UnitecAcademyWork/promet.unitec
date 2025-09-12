@@ -6,7 +6,7 @@ import { routes } from "../config/routes";
 export type NovoCandidato = {
   provincia: string;
   morada: string;
-  dataNascimento: string; // formato: YYYY-MM-DD
+  dataNascimento: string; 
   numeroBi: string;
   nivelAcademico: string;
   contacto: string;
@@ -21,8 +21,8 @@ export async function adicionarCandidato(candidato: NovoCandidato) {
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json", // 👈 faltava isso
-          Accept: "application/json", // 👈 bom incluir também
+          "Content-Type": "application/json",
+          Accept: "application/json", 
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(candidato),

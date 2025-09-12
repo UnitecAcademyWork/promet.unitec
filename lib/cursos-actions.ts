@@ -3,6 +3,11 @@ import { routes } from "../config/routes";
 export type Curso = {
   id: string;
   nome: string;
+  createdAt: string;
+  imgUrl: string;
+  precoTeste: string;
+  preco: string;
+  desconto: string;
 };
 
 export async function getCursos(): Promise<Curso[]> {

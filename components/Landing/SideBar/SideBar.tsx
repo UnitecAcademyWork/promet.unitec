@@ -23,10 +23,10 @@ const Sidebar = () => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
   const menuItems = [
-    { name: 'Perfil', icon: User, href: '/perfil' },
-    { name: 'Minhas Candituras', icon: Briefcase, href: '/vagas' },
-    { name: 'Notificações', icon: Bell, href: '/notificacoes' },
-    { name: 'Configurações', icon: Settings, href: '/configuracoes' },
+    { name: 'Perfil', icon: User, href: '/user/perfil' },
+    { name: 'Minhas Candituras', icon: Briefcase, href: '/user/candidaturas' },
+    // { name: 'Notificações', icon: Bell, href: '/user/notificacoes' },
+    // { name: 'Configurações', icon: Settings, href: '/user/configuracoes' },
   ];
 
   const toggleSidebar = () => {

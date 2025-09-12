@@ -88,7 +88,7 @@ const Hero2 = () => {
       {/* Conteúdo principal */}
       <div className="text-center px-6 max-w-3xl relative z-10">
         <motion.h1 
-          className="text-5xl sm:text-5xl font-extrabold tracking-tight text-brand-main dark:text-white leading-tight"
+          className="text-4xl sm:text-4xl font-extrabold tracking-tight text-brand-main dark:text-white leading-tight"
           initial="hidden"
           animate="visible"
           variants={{
@@ -118,7 +118,7 @@ const Hero2 = () => {
             }} 
             className="inline-block"
           >
-            Amplie,
+            Conectar,
           </motion.span>{' '}
           <motion.span 
             variants={{
@@ -136,7 +136,7 @@ const Hero2 = () => {
             whileHover={{ scale: 1.05, rotate: [0, -2, 0, 2, 0] }}
             transition={{ duration: 0.5 }}
           >
-            Desenvolva
+            Talentos
           </motion.span>
           <motion.span 
             variants={{
@@ -152,7 +152,7 @@ const Hero2 = () => {
             }} 
             className="inline-block"
           >
-            , Conquiste
+            , Oportunidades
           </motion.span>
         </motion.h1>
         

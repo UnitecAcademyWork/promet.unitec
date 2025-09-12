@@ -4,10 +4,14 @@ import { ThemeProvider } from '../context/ThemeContext';
 import { SidebarProvider } from '../context/SidebarContext';
 import Navbar from '../components/Landing/Navbar/navbar';
 import Footer from '../components/Landing/footer/footer';
+import { Metadata } from 'next';
 const outfit = Outfit({
   subsets: ["latin"],
 });
 
+export const metadata: Metadata = {
+  title: "Promet",
+};
 export default function RootLayout({
   children,
 }: Readonly<{

@@ -29,8 +29,8 @@ const Navbar = () => {
 
   useEffect(() => {
     // Tema
-    if (localStorage.getItem("theme") === "dark") {
-      document.documentElement.classList.add("dark");
+    if (localStorage.getItem("theme") === "light") {
+      document.documentElement.classList.add("light");
       setDarkMode(true);
     }
 
@@ -43,12 +43,12 @@ const Navbar = () => {
 
   const toggleDarkMode = () => {
     if (darkMode) {
-      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.remove("light");
       localStorage.setItem("theme", "light");
       setDarkMode(false);
     } else {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
+      document.documentElement.classList.add("light");
+      localStorage.setItem("theme", "light");
       setDarkMode(true);
     }
   };
@@ -103,7 +103,7 @@ const Navbar = () => {
           )}
 
           {/* Botão de dark mode */}
-          <button
+          {/* <button
             onClick={toggleDarkMode}
             className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:scale-105 transition"
           >
@@ -112,7 +112,7 @@ const Navbar = () => {
             ) : (
               <Moon className="w-5 h-5 text-gray-700 dark:text-gray-200" />
             )}
-          </button>
+          </button> */}
 
           {/* Botão menu mobile */}
           <button
@@ -133,7 +133,7 @@ const Navbar = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+              className="fixed inset-0 bg-white bg-opacity-90 z-40 md:hidden"
               onClick={() => setIsMobileOpen(false)}
             />
             {/* Sidebar */}

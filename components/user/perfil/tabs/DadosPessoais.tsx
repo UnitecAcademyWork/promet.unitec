@@ -54,7 +54,12 @@ interface CandidateData {
 }
 
 export default function DadosPessoais() {
-  // Inicializa com campos vazios
+  const [isClient, setIsClient] = useState(false);
+
+useEffect(() => {
+  setIsClient(true);
+}, []);
+
   const [data, setData] = useState<CandidateData>({
     provincia: "",
     morada: "",
@@ -80,9 +85,9 @@ export default function DadosPessoais() {
           nivelAcademico: candidato.nivelAcademico || "",
           contacto: candidato.contacto || "",
         });
-        setIsEditing(false); // Se existir candidato, não edita inicialmente
+        setIsEditing(false);
       } else {
-        setIsEditing(true); // Se não existir, permite edição
+        setIsEditing(true);
       }
     };
     fetchData();
@@ -111,6 +116,9 @@ export default function DadosPessoais() {
       setIsSaving(false);
     }
   };
+
+  // Verifica se todos os dados do candidato estão preenchidos
+  const isCandidateDataComplete = Object.values(data).every((value) => value.trim() !== "");
 
   return (
     <motion.div
@@ -285,9 +293,9 @@ export default function DadosPessoais() {
           </div>
         </div>
 
-        {/* Botão Salvar */}
-        {isEditing && (
-          <div className="pt-4 flex justify-end">
+        {/* Botões */}
+        <div className="pt-4 flex justify-end gap-3">
+          {isEditing && (
             <motion.button
               type="submit"
               disabled={isSaving}
@@ -307,8 +315,26 @@ export default function DadosPessoais() {
                 </>
               )}
             </motion.button>
-          </div>
+          )}
+
+          {/* Botão Candidatar-se sempre visível */}
+          {isClient && (
+          <motion.button
+            type="button"
+            disabled={!isCandidateDataComplete}
+            whileHover={{ scale: isCandidateDataComplete ? 1.03 : 1 }}
+            whileTap={{ scale: isCandidateDataComplete ? 0.97 : 1 }}
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white shadow-md transition-all ${
+              isCandidateDataComplete ? "bg-green-500 hover:bg-green-600" : "bg-gray-400 cursor-not-allowed"
+            }`}
+            onClick={() => alert("Candidatura enviada!")}
+          >
+            <Plus className="w-4 h-4" />
+            Candidatar-se
+          </motion.button>
         )}
+
+        </div>
       </form>
     </motion.div>
   );

@@ -80,11 +80,11 @@ export default function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link 
-                  href="/formulario" 
+                  href="/user/candidaturas" 
                   className="text-gray-400 hover:text-blue-300 transition-colors duration-300 flex items-center py-1"
                 >
                   <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                  Formulário
+                  Candidaturas
                 </Link>
               </li>
               <li>
@@ -107,11 +107,11 @@ export default function Footer() {
               </li>
               <li>
                 <Link 
-                  href="/promet/cursos" 
+                  href="/cursos" 
                   className="text-gray-400 hover:text-blue-300 transition-colors duration-300 flex items-center py-1"
                 >
                   <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                  Cursos
+                  Formações
                 </Link>
               </li>
             </ul>
@@ -141,20 +141,20 @@ export default function Footer() {
               </li>
               <li>
                 <Link 
-                  href="https://unimentor.unitec.ac.mz/" 
+                  href="https://unitec.ac.mz/language" 
                   className="text-gray-400 hover:text-blue-300 transition-colors duration-300 flex items-center py-1"
                 >
                   <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                  Unitec Mentoria
+                  Unitec Language
                 </Link>
               </li>
               <li>
                 <Link 
-                  href="https://univents.unitec.ac.mz/" 
+                  href="https://bpartner.unitec.ac.mz/" 
                   className="text-gray-400 hover:text-blue-300 transition-colors duration-300 flex items-center py-1"
                 >
                   <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                  Unitec Eventos
+                  Unitec B-Partner
                 </Link>
               </li>
             </ul>
@@ -170,25 +170,33 @@ export default function Footer() {
               </li>
               <li className="flex items-center transition-colors duration-300 hover:text-blue-300 text-gray-400">
                 <span className="text-blue-400 mr-3"><Phone className="w-4 h-4" /></span>
-                <span>+258 870 088 787</span>
+                <span>(+258) 870088787 | 834303184</span>
               </li>
               <li className="flex items-center transition-colors duration-300 hover:text-blue-300 text-gray-400">
                 <span className="text-blue-400 mr-3"><Mail className="w-4 h-4" /></span>
                 <span>promet@unitec.ac.mz</span>
               </li>
               <li className="flex items-center transition-colors duration-300 hover:text-green-400 text-gray-400">
-              <span className="text-green-500 mr-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                  className="w-5 h-5"
-                >
-                  <path d="M12 .5C5.648.5.5 5.648.5 12c0 2.1.549 4.152 1.588 5.963L.542 23.5l5.722-1.497A11.46 11.46 0 0 0 12 23.5c6.352 0 11.5-5.148 11.5-11.5S18.352.5 12 .5Zm0 20.418c-1.883 0-3.721-.5-5.325-1.448l-.38-.225-3.397.889.905-3.307-.248-.394A9.462 9.462 0 0 1 2.542 12c0-5.206 4.252-9.458 9.458-9.458 5.205 0 9.458 4.252 9.458 9.458 0 5.205-4.253 9.458-9.458 9.458Zm5.184-7.065c-.283-.142-1.676-.828-1.936-.923-.26-.095-.449-.142-.638.142s-.732.923-.896 1.111c-.165.189-.331.213-.614.071-.283-.142-1.195-.44-2.275-1.402-.84-.749-1.407-1.672-1.572-1.955-.165-.283-.017-.437.124-.579.127-.127.283-.331.425-.496.142-.165.189-.283.283-.472.094-.189.047-.354-.024-.496-.071-.142-.638-1.538-.874-2.106-.23-.553-.465-.478-.638-.487l-.544-.01c-.189 0-.496.071-.756.354s-.99.968-.99 2.361 1.013 2.739 1.155 2.926c.142.189 1.994 3.042 4.83 4.263.676.292 1.202.467 1.612.598.678.216 1.295.185 1.783.112.544-.081 1.676-.685 1.912-1.348.236-.661.236-1.228.165-1.348-.071-.119-.26-.189-.543-.331Z" />
-                </svg>
-              </span>
-              <span>+258 84 123 4567</span>
-            </li>
+                  <a 
+                    href="https://wa.me/258834303184" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center"
+                  >
+                    <span className="text-green-500 mr-3">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                        className="w-5 h-5"
+                      >
+                        <path d="M12 .5C5.648.5.5 5.648.5 12c0 2.1.549 4.152 1.588 5.963L.542 23.5l5.722-1.497A11.46 11.46 0 0 0 12 23.5c6.352 0 11.5-5.148 11.5-11.5S18.352.5 12 .5Zm0 20.418c-1.883 0-3.721-.5-5.325-1.448l-.38-.225-3.397.889.905-3.307-.248-.394A9.462 9.462 0 0 1 2.542 12c0-5.206 4.252-9.458 9.458-9.458 5.205 0 9.458 4.252 9.458 9.458 0 5.205-4.253 9.458-9.458 9.458Zm5.184-7.065c-.283-.142-1.676-.828-1.936-.923-.26-.095-.449-.142-.638.142s-.732.923-.896 1.111c-.165.189-.331.213-.614.071-.283-.142-1.195-.44-2.275-1.402-.84-.749-1.407-1.672-1.572-1.955-.165-.283-.017-.437.124-.579.127-.127.283-.331.425-.496.142-.165.189-.283.283-.472.094-.189.047-.354-.024-.496-.071-.142-.638-1.538-.874-2.106-.23-.553-.465-.478-.638-.487l-.544-.01c-.189 0-.496.071-.756.354s-.99.968-.99 2.361 1.013 2.739 1.155 2.926c.142.189 1.994 3.042 4.83 4.263.676.292 1.202.467 1.612.598.678.216 1.295.185 1.783.112.544-.081 1.676-.685 1.912-1.348.236-.661.236-1.228.165-1.348-.071-.119-.26-.189-.543-.331Z" />
+                      </svg>
+                    </span>
+                    <span>Whatsapp</span>
+                  </a>
+                </li>
+
             </ul>
           </div>
         </div>

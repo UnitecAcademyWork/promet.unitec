@@ -17,4 +17,5 @@ export const routes = {
   formacoescandidato: `${API_BASE_URL}/formacoes-candidato`,
   actualizarformacao: `${API_BASE_URL}/actualizar-formacao`,
   addexperienciaprofissional: `${API_BASE_URL}/add-experiencia-profissional`,
+  candidaturascandidato: `${API_BASE_URL}/candidaturas-candidato`,
 };

@@ -1,6 +1,9 @@
 "use client";
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Curso, getCursos } from "../../../lib/cursos-actions";
+import { criarParceria, ParceriaData } from "../../../lib/parceria-actions";
+
 import { 
   Building, 
   User, 
@@ -10,8 +13,6 @@ import {
   Globe, 
   CheckSquare, 
   FileText, 
-  ChevronRight,
-  ChevronLeft,
   Award,
   Users,
   GraduationCap,
@@ -20,15 +21,9 @@ import {
   ArrowLeft,
   CheckCircle,
   HeartHandshake,
-  Briefcase,
   X
 } from 'lucide-react';
-
-const provinces = [
-  "Maputo Cidade", "Maputo Província", "Gaza", "Inhambane", 
-  "Sofala", "Manica", "Tete", "Zambézia", 
-  "Nampula", "Cabo Delgado", "Niassa"
-];
+import toast, { Toaster } from 'react-hot-toast';
 
 const businessSectors = [
   "Tecnologia e Informática",
@@ -46,19 +41,6 @@ const businessSectors = [
   "Outro"
 ];
 
-const interestAreas = [
-  "Eletricidade Industrial",
-  "Mecânica Auto",
-  "Informática",
-  "Inglês",
-  "Contabilidade/Auditoria",
-  "Higiene, Segurança e Saúde no Trabalho",
-  "Recursos Humanos",
-  "Programação Web",
-  "Secretariado",
-  "Marketing e Vendas"
-];
-
 const partnershipTypes = [
   "Participar nos workshops do PROMET",
   "Apadrinhar estudantes (patrocínio de bolsas)",
@@ -66,50 +48,49 @@ const partnershipTypes = [
   "Aceder à base de dados de currículos PROMET"
 ];
 
-const vacancyTypes = [
-  "Estágio",
-  "Emprego efetivo",
-  "Freelancer"
-];
-
 interface FormData {
-  companyName: string;
-  nuit: string;
-  businessSector: string;
-  address: string;
-  website: string;
-  contactPerson: string;
-  position: string;
-  phone: string;
-  email: string;
-  interestAreas: string[];
-  vacancyTypes: string[];
-  partnershipTypes: string[];
-  responsibleName: string;
-  responsiblePosition: string;
-  locationDate: string;
+  nomeEmpresa: string;
+  local: string;
+  ramoActividade: string;
+  webSite: string;
+  isDisponivelVagaEstagio: boolean;
+  descricao: string;
+  logoUrl: string;
+  responsavel: {
+    nomeCompleto: string;
+    email: string;
+    telefone: string;
+    whatsapp: string;
+    cargo: string;
+  };
   termsAgreed: boolean;
   dataVerified: boolean;
 }
 
 const PartnershipForm = () => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [cursos, setCursos] = useState<Curso[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [interestAreas, setInterestAreas] = useState<string[]>([]);
+  const [selectedPartnershipTypes, setSelectedPartnershipTypes] = useState<string[]>([]);
+  
   const [formData, setFormData] = useState<FormData>({
-    companyName: '',
-    nuit: '',
-    businessSector: '',
-    address: '',
-    website: '',
-    contactPerson: '',
-    position: '',
-    phone: '',
-    email: '',
-    interestAreas: [],
-    vacancyTypes: [],
-    partnershipTypes: [],
-    responsibleName: '',
-    responsiblePosition: '',
-    locationDate: '',
+    nomeEmpresa: '',
+    local: '',
+    ramoActividade: '',
+    webSite: '',
+    isDisponivelVagaEstagio: false,
+    descricao: '',
+    logoUrl: '',
+    responsavel: {
+      nomeCompleto: '',
+      email: '',
+      telefone: '',
+      whatsapp: '',
+      cargo: ''
+    },
     termsAgreed: false,
     dataVerified: false
   });
@@ -119,7 +100,6 @@ const PartnershipForm = () => {
     { id: 'Contacto', icon: <User className="w-5 h-5" /> },
     { id: 'Interesses', icon: <CheckSquare className="w-5 h-5" /> },
     { id: 'Colaboração', icon: <HeartHandshake className="w-5 h-5" /> },
-    { id: 'Confirmação', icon: <FileText className="w-5 h-5" /> }
   ];
 
   const benefits = [
@@ -145,32 +125,70 @@ const PartnershipForm = () => {
     }
   ];
 
+  useEffect(() => {
+    const fetchCursos = async () => {
+      const data = await getCursos();
+      setCursos(data);
+    };
+    fetchCursos();
+  }, []);
+
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    if (name.startsWith('responsavel.')) {
+      const field = name.split('.')[1];
+      setFormData(prev => ({
+        ...prev,
+        responsavel: {
+          ...prev.responsavel,
+          [field]: value
+        }
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
-  const handleCheckboxChange = (name: keyof FormData, value: string) => {
-    setFormData(prev => {
-      const currentArray = prev[name] as string[];
-      if (Array.isArray(currentArray)) {
-        if (currentArray.includes(value)) {
-          return { 
-            ...prev, 
-            [name]: currentArray.filter(item => item !== value) 
-          };
-        } else {
-          return { 
-            ...prev, 
-            [name]: [...currentArray, value] 
-          };
-        }
-      }
-      return prev;
-    });
+  const handleCheckboxChange = (name: keyof FormData, value: string | boolean) => {
+    if (name === 'isDisponivelVagaEstagio') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: !prev[name]
+      }));
+    } else if (name === 'termsAgreed' || name === 'dataVerified') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: !prev[name]
+      }));
+    }
+  };
+
+  const handleInterestAreaChange = (value: string) => {
+    setInterestAreas(prev => 
+      prev.includes(value) 
+        ? prev.filter(item => item !== value) 
+        : [...prev, value]
+    );
+  };
+
+  const handlePartnershipTypeChange = (value: string) => {
+    setSelectedPartnershipTypes(prev => 
+      prev.includes(value) 
+        ? prev.filter(item => item !== value) 
+        : [...prev, value]
+    );
+    
+    // Se selecionar "Apadrinhar estudantes", marca como disponível para vaga de estágio
+    if (value === "Apadrinhar estudantes (patrocínio de bolsas)") {
+      setFormData(prev => ({
+        ...prev,
+        isDisponivelVagaEstagio: true
+      }));
+    }
   };
 
   const nextStep = () => {
@@ -184,31 +202,87 @@ const PartnershipForm = () => {
   };
 
   const validateStep = (step: number): boolean => {
-    if (step === 1 && (!formData.companyName || !formData.nuit || !formData.businessSector || !formData.address)) {
-      alert('Por favor, preencha todos os campos obrigatórios da seção de informações da empresa');
-      return false;
-    }
-    
-    if (step === 2 && (!formData.contactPerson || !formData.position || !formData.phone || !formData.email)) {
-      alert('Por favor, preencha todos os campos obrigatórios da seção de contacto');
-      return false;
-    }
-    
-    if (step === 5 && (!formData.termsAgreed || !formData.dataVerified)) {
-      alert('Por favor, aceite os termos e declare a veracidade dos dados');
-      return false;
-    }
-    
-    return true;
-  };
+  if (step === 1 && (!formData.nomeEmpresa || !formData.ramoActividade || !formData.local)) {
+    toast.error("Por favor, preencha todos os campos obrigatórios da empresa");
+    return false;
+  }
+  
+  if (step === 2 && (!formData.responsavel.nomeCompleto || !formData.responsavel.cargo || !formData.responsavel.telefone || !formData.responsavel.email)) {
+    toast.error("Por favor, preencha todos os campos obrigatórios do contacto");
+    return false;
+  }
+  
+  if (step === 4 && (!formData.termsAgreed || !formData.dataVerified)) {
+    toast.error("Por favor, aceite os termos e declare a veracidade dos dados");
+    return false;
+  }
+  
+  return true;
+};
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (validateStep(currentStep)) {
-      console.log('Dados do formulário:', formData);
-      alert('Candidatura de parceria submetida com sucesso! Entraremos em contacto em breve.');
-    }
-  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  console.log("handleSubmit disparado 🚀", formData);
+
+  if (!validateStep(currentStep)) {
+    return;
+  }
+
+  setIsSubmitting(true);
+  setSubmitStatus("idle");
+
+  try {
+    const parceriaData: ParceriaData = {
+      nomeEmpresa: formData.nomeEmpresa,
+      local: formData.local,
+      ramoActividade: formData.ramoActividade,
+      webSite: formData.webSite.startsWith("http")
+        ? formData.webSite
+        : `https://${formData.webSite}`, // 👈 garante URL válida
+      isDisponivelVagaEstagio: formData.isDisponivelVagaEstagio,
+      descricao: `Interesses: ${interestAreas.join(", ")}. Formas de colaboração: ${selectedPartnershipTypes.join(", ")}`,
+      responsavel: { ...formData.responsavel }
+    };
+
+    const response = await criarParceria(parceriaData);
+    console.log("Parceria criada com sucesso:", response);
+
+    setSubmitStatus("success");
+    toast.success("Candidatura de parceria submetida com sucesso!");
+
+    // Resetar o form
+    setFormData({
+      nomeEmpresa: "",
+      local: "",
+      ramoActividade: "",
+      webSite: "",
+      isDisponivelVagaEstagio: false,
+      descricao: "",
+      logoUrl: "",
+      responsavel: {
+        nomeCompleto: "",
+        email: "",
+        telefone: "",
+        whatsapp: "",
+        cargo: ""
+      },
+      termsAgreed: false,
+      dataVerified: false
+    });
+    setInterestAreas([]);
+    setSelectedPartnershipTypes([]);
+
+  } catch (error) {
+    console.error("Erro ao submeter a parceria:", error);
+    setSubmitStatus("error");
+    setErrorMessage(error instanceof Error ? error.message : "Erro inesperado");
+    toast.error("Erro ao submeter a candidatura. Tente novamente.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -240,8 +314,8 @@ const PartnershipForm = () => {
             transition={{ delay: 0.4, duration: 0.5 }}
           >
             {steps.map((step, index) => (
-              <div key={step.id} className="md:flex hidden   items-center">
-                <div className="flex flex-col  items-center">
+              <div key={step.id} className="md:flex hidden items-center">
+                <div className="flex flex-col items-center">
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
                     currentStep > index ? 'bg-white text-brand-main' : 
                     currentStep === index + 1 ? 'bg-white text-brand-main bg-opacity-90' : 
@@ -309,7 +383,7 @@ const PartnershipForm = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.5 }}
-            >
+          >
             {/* Linha de fundo */}
             <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                 {/* Barra de progresso animada */}
@@ -373,7 +447,20 @@ const PartnershipForm = () => {
                 </motion.div>
                 ))}
             </div>
-            </motion.div>
+          </motion.div>
+          
+          {/* Status de submissão */}
+          {submitStatus === 'success' && (
+            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
+              <p>Formulário submetido com sucesso! Entraremos em contacto em breve.</p>
+            </div>
+          )}
+          
+          {submitStatus === 'error' && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+              <p>Erro ao submeter o formulário: {errorMessage}</p>
+            </div>
+          )}
           
           {/* Passos do Formulário */}
           <div className="relative dark:bg-gray-100 p-4 rounded-xl text-gray-900 overflow-hidden">
@@ -385,20 +472,20 @@ const PartnershipForm = () => {
                 transition={{ duration: 0.3 }}
                 className={currentStep === 1 ? 'block space-y-6' : 'hidden'}
               >
-                <h3 className="text-xl font-semibold  text-gray-800 mb-6 flex items-center">
+                <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
                   <Building className="w-6 h-6 mr-2 text-brand-main" />
                   Informações da Instituição
                 </h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-2">Nome da Empresa</label>
+                    <label htmlFor="nomeEmpresa" className="block text-sm font-medium text-gray-700 mb-2">Nome da Empresa/Organização*</label>
                     <input
                       type="text"
-                      id="companyName"
-                      name="companyName"
+                      id="nomeEmpresa"
+                      name="nomeEmpresa"
                       required
-                      value={formData.companyName}
+                      value={formData.nomeEmpresa}
                       onChange={handleChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
                       placeholder="Nome da empresa/organização"
@@ -406,30 +493,16 @@ const PartnershipForm = () => {
                   </div>
                   
                   <div>
-                    <label htmlFor="nuit" className="block text-sm font-medium text-gray-700 mb-2">NUIT</label>
-                    <input
-                      type="text"
-                      id="nuit"
-                      name="nuit"
-                      required
-                      value={formData.nuit}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
-                      placeholder="Número de Identificação Tributária"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="businessSector" className="block text-sm font-medium text-gray-700 mb-2">Setor de Atividade</label>
+                    <label htmlFor="ramoActividade" className="block text-sm font-medium text-gray-700 mb-2">Sector de Actividade*</label>
                     <select
-                      id="businessSector"
-                      name="businessSector"
+                      id="ramoActividade"
+                      name="ramoActividade"
                       required
-                      value={formData.businessSector}
+                      value={formData.ramoActividade}
                       onChange={handleChange}
                       className="w-full px-4 py-3 border text-gray-700 border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
                     >
-                      <option value="">Selecione o setor de atividade</option>
+                      <option value="">Selecione o sector de actividade</option>
                       {businessSectors.map(sector => (
                         <option key={sector} value={sector}>{sector}</option>
                       ))}
@@ -437,16 +510,16 @@ const PartnershipForm = () => {
                   </div>
                   
                   <div>
-                    <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-2">Website</label>
+                    <label htmlFor="webSite" className="block text-sm font-medium text-gray-700 mb-2">Website</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Globe className="h-5 w-5 text-gray-400" />
                       </div>
                       <input
-                        type="url"
-                        id="website"
-                        name="website"
-                        value={formData.website}
+                        type="tex"
+                        id="webSite"
+                        name="webSite"
+                        value={formData.webSite}
                         onChange={handleChange}
                         className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
                         placeholder="https://..."
@@ -455,17 +528,17 @@ const PartnershipForm = () => {
                   </div>
                   
                   <div className="md:col-span-2">
-                    <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">Endereço Físico</label>
+                    <label htmlFor="local" className="block text-sm font-medium text-gray-700 mb-2">Endereço Físico*</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <MapPin className="h-5 w-5 text-gray-400" />
                       </div>
                       <input
                         type="text"
-                        id="address"
-                        name="address"
+                        id="local"
+                        name="local"
                         required
-                        value={formData.address}
+                        value={formData.local}
                         onChange={handleChange}
                         className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
                         placeholder="Endereço completo da empresa"
@@ -489,13 +562,13 @@ const PartnershipForm = () => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="contactPerson" className="block text-sm font-medium text-gray-700 mb-2">Nome Completo</label>
+                    <label htmlFor="responsavel.nomeCompleto" className="block text-sm font-medium text-gray-700 mb-2">Nome Completo*</label>
                     <input
                       type="text"
-                      id="contactPerson"
-                      name="contactPerson"
+                      id="responsavel.nomeCompleto"
+                      name="responsavel.nomeCompleto"
                       required
-                      value={formData.contactPerson}
+                      value={formData.responsavel.nomeCompleto}
                       onChange={handleChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
                       placeholder="Nome do ponto focal"
@@ -503,13 +576,13 @@ const PartnershipForm = () => {
                   </div>
                   
                   <div>
-                    <label htmlFor="position" className="block text-sm font-medium text-gray-700 mb-2">Cargo</label>
+                    <label htmlFor="responsavel.cargo" className="block text-sm font-medium text-gray-700 mb-2">Cargo*</label>
                     <input
                       type="text"
-                      id="position"
-                      name="position"
+                      id="responsavel.cargo"
+                      name="responsavel.cargo"
                       required
-                      value={formData.position}
+                      value={formData.responsavel.cargo}
                       onChange={handleChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
                       placeholder="Cargo/função"
@@ -517,17 +590,17 @@ const PartnershipForm = () => {
                   </div>
                   
                   <div>
-                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">Telefone (WhatsApp)</label>
+                    <label htmlFor="responsavel.telefone" className="block text-sm font-medium text-gray-700 mb-2">Telefone*</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Phone className="h-5 w-5 text-gray-400" />
                       </div>
                       <input
                         type="tel"
-                        id="phone"
-                        name="phone"
+                        id="responsavel.telefone"
+                        name="responsavel.telefone"
                         required
-                        value={formData.phone}
+                        value={formData.responsavel.telefone}
                         onChange={handleChange}
                         className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
                         placeholder="+258 8X XXX XXXX"
@@ -536,17 +609,36 @@ const PartnershipForm = () => {
                   </div>
                   
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email de Contacto</label>
+                    <label htmlFor="responsavel.whatsapp" className="block text-sm font-medium text-gray-700 mb-2">WhatsApp*</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Phone className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="tel"
+                        id="responsavel.whatsapp"
+                        name="responsavel.whatsapp"
+                        required
+                        value={formData.responsavel.whatsapp}
+                        onChange={handleChange}
+                        className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
+                        placeholder="+258 8X XXX XXXX"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="md:col-span-2">
+                    <label htmlFor="responsavel.email" className="block text-sm font-medium text-gray-700 mb-2">Email*</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Mail className="h-5 w-5 text-gray-400" />
                       </div>
                       <input
                         type="email"
-                        id="email"
-                        name="email"
+                        id="responsavel.email"
+                        name="responsavel.email"
                         required
-                        value={formData.email}
+                        value={formData.responsavel.email}
                         onChange={handleChange}
                         className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
                         placeholder="seu@email.com"
@@ -567,36 +659,24 @@ const PartnershipForm = () => {
                   <CheckSquare className="w-6 h-6 mr-2 text-brand-main" />
                   Interesses da Empresa
                 </h3>
-                
+
                 <div>
-                  <h4 className="text-md font-medium text-gray-700 mb-4">Áreas em que a empresa gostaria de recrutar:</h4>
+                  <h4 className="text-md font-medium text-gray-700 mb-4">
+                    Áreas/Cursos em que a empresa gostaria de recrutar:
+                  </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {interestAreas.map((area, index) => (
-                      <label key={index} className="flex items-center p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                    {cursos.map((curso, index) => (
+                      <label
+                        key={index}
+                        className="flex items-center p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+                      >
                         <input
                           type="checkbox"
-                          checked={formData.interestAreas.includes(area)}
-                          onChange={() => handleCheckboxChange('interestAreas', area)}
+                          checked={interestAreas.includes(curso.nome)}
+                          onChange={() => handleInterestAreaChange(curso.nome)}
                           className="rounded text-brand-main focus:ring-brand-main"
                         />
-                        <span className="ml-3 text-gray-700">{area}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                
-                <div className="mt-6">
-                  <h4 className="text-md font-medium text-gray-700 mb-4">Pretende disponibilizar vagas de:</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {vacancyTypes.map((type, index) => (
-                      <label key={index} className="flex items-center p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
-                        <input
-                          type="checkbox"
-                          checked={formData.vacancyTypes.includes(type)}
-                          onChange={() => handleCheckboxChange('vacancyTypes', type)}
-                          className="rounded text-brand-main focus:ring-brand-main"
-                        />
-                        <span className="ml-3 text-gray-700">{type}</span>
+                        <span className="ml-3 text-gray-700">{curso.nome}</span>
                       </label>
                     ))}
                   </div>
@@ -620,71 +700,19 @@ const PartnershipForm = () => {
                     <label key={index} className="flex items-start p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
                       <input
                         type="checkbox"
-                        checked={formData.partnershipTypes.includes(type)}
-                        onChange={() => handleCheckboxChange('partnershipTypes', type)}
+                        checked={selectedPartnershipTypes.includes(type)}
+                        onChange={() => handlePartnershipTypeChange(type)}
                         className="mt-1 rounded text-brand-main focus:ring-brand-main"
                       />
                       <span className="ml-3 text-gray-700">{type}</span>
                     </label>
                   ))}
                 </div>
-              </motion.div>
-              
-              {/* Passo 5: Confirmação */}
-              <motion.div
-                initial={currentStep === 5 ? { opacity: 1 } : { opacity: 0 }}
-                animate={currentStep === 5 ? { opacity: 1 } : { opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-                className={currentStep === 5 ? 'block space-y-6' : 'hidden'}
-              >
+                
                 <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
                   <FileText className="w-6 h-6 mr-2 text-brand-main" />
                   Confirmação
                 </h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label htmlFor="responsibleName" className="block text-sm font-medium text-gray-700 mb-2">Nome do Responsável</label>
-                    <input
-                      type="text"
-                      id="responsibleName"
-                      name="responsibleName"
-                      required
-                      value={formData.responsibleName}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
-                      placeholder="Nome completo do responsável"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="responsiblePosition" className="block text-sm font-medium text-gray-700 mb-2">Cargo do Responsável</label>
-                    <input
-                      type="text"
-                      id="responsiblePosition"
-                      name="responsiblePosition"
-                      required
-                      value={formData.responsiblePosition}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
-                      placeholder="Cargo/função do responsável"
-                    />
-                  </div>
-                  
-                  <div className="md:col-span-2">
-                    <label htmlFor="locationDate" className="block text-sm font-medium text-gray-700 mb-2">Local e Data</label>
-                    <input
-                      type="text"
-                      id="locationDate"
-                      name="locationDate"
-                      required
-                      value={formData.locationDate}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-visible:outline-none focus:ring-brand-main focus:border-transparent transition-all"
-                      placeholder="Ex: Maputo, 15 de Outubro de 2023"
-                    />
-                  </div>
-                </div>
                 
                 <div className="mt-6 space-y-4">
                   <label className="flex items-start">
@@ -692,7 +720,7 @@ const PartnershipForm = () => {
                       type="checkbox"
                       name="termsAgreed"
                       checked={formData.termsAgreed}
-                      onChange={(e) => setFormData({...formData, termsAgreed: e.target.checked})}
+                      onChange={() => handleCheckboxChange('termsAgreed', true)}
                       className="mt-1 rounded text-brand-main focus:ring-brand-main"
                       required
                     />
@@ -708,7 +736,7 @@ const PartnershipForm = () => {
                       type="checkbox"
                       name="dataVerified"
                       checked={formData.dataVerified}
-                      onChange={(e) => setFormData({...formData, dataVerified: e.target.checked})}
+                      onChange={() => handleCheckboxChange('dataVerified', true)}
                       className="mt-1 rounded text-brand-main focus:ring-brand-main"
                       required
                     />
@@ -725,7 +753,8 @@ const PartnershipForm = () => {
                   <button
                     type="button"
                     onClick={prevStep}
-                    className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors flex items-center"
+                    disabled={isSubmitting}
+                    className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors flex items-center disabled:opacity-50"
                   >
                     <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
                   </button>
@@ -742,13 +771,24 @@ const PartnershipForm = () => {
                 ) : (
                   <button
                     type="submit"
-                    className="ml-auto px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
+                    disabled={isSubmitting}
+                    className="ml-auto px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center disabled:opacity-50"
                   >
-                    <CheckCircle className="w-4 h-4 mr-2" /> Submeter Candidatura
+                    {isSubmitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        A processar...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="w-4 h-4 mr-2" /> Submeter Candidatura
+                      </>
+                    )}
                   </button>
                 )}
               </div>
             </form>
+              <Toaster position="top-right" reverseOrder={false} />
           </div>
         </div>
       </div>

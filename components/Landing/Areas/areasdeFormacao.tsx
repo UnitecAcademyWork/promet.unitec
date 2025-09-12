@@ -2,21 +2,32 @@
 import React, { useEffect, useState } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import { BookOpen } from "lucide-react";
+import { BookOpen, ArrowRight } from "lucide-react";
 import { Curso, getCursos } from "../../../lib/cursos-actions";
+import Link from "next/link";
 
 const TrainingAreas = () => {
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [visibleCount, setVisibleCount] = useState(10);
 
-  useEffect(() => {
-    AOS.init({ duration: 800, once: true });
-    const fetchCursos = async () => {
-      const data = await getCursos();
-      setCursos(data);
-    };
-    fetchCursos();
-  }, []);
+  // Dentro do useEffect
+useEffect(() => {
+  AOS.init({ duration: 800, once: true });
+  const fetchCursos = async () => {
+    const data = await getCursos();
+
+    // Ordenar por data de criação ou id (mais antigos primeiro, mais recentes no fim)
+    const sortedData = data.sort((a, b) => {
+  const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+  const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+  return aTime - bTime; // sempre retorna number
+});
+
+
+    setCursos(sortedData);
+  };
+  fetchCursos();
+}, []);
 
   const handleShowMore = () => {
     setVisibleCount((prev) => prev + 10);
@@ -27,14 +38,15 @@ const TrainingAreas = () => {
   };
 
   return (
-    <section id="areas" className="relative py-20 bg-gradient-to-br from-brand-main-light/5 via-white to-brand-main-light/10 dark:from-gray-900 dark:via-gray-800 dark:to-brand-main/10">
+    <section
+      id="areas"
+      className="relative py-20 bg-gradient-to-br from-brand-main-light/5 via-white to-brand-main-light/10 dark:from-gray-900 dark:via-gray-800 dark:to-brand-main/10"
+    >
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-16" data-aos="fade-up">
           <h2 className="text-4xl md:text-5xl font-bold text-brand-bgdark dark:text-white mb-6">
             Áreas de{" "}
-            <span className="text-brand-main dark:text-brand-lime">
-              Formação
-            </span>
+            <span className="text-brand-main dark:text-brand-lime">Formação</span>
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             Principais áreas disponíveis na plataforma.
@@ -57,6 +69,14 @@ const TrainingAreas = () => {
                 <h3 className="text-sm font-medium text-gray-800 dark:text-white group-hover:text-brand-main transition-colors duration-300 leading-tight">
                   {curso.nome}
                 </h3>
+
+                {/* Botão discreto */}
+                {/* <Link
+                  href={`/cursos/${curso.id}`}
+                  className="mt-3 inline-flex items-center text-xs text-brand-main dark:text-brand-lime hover:underline"
+                >
+                  Ver mais <ArrowRight className="ml-1 w-3 h-3" />
+                </Link> */}
               </div>
             </div>
           ))}
@@ -64,14 +84,12 @@ const TrainingAreas = () => {
 
         {/* Botões de navegação */}
         <div className="text-center mt-10 space-x-4">
-          {visibleCount < cursos.length && (
-            <button
-              onClick={handleShowMore}
+            <Link 
+            href="/cursos"
               className="px-6 py-2 rounded-lg bg-brand-main text-white font-medium hover:bg-brand-lime transition-colors duration-300"
             >
               Mostrar mais
-            </button>
-          )}
+            </Link>
           {visibleCount > 10 && (
             <button
               onClick={handleShowLess}
