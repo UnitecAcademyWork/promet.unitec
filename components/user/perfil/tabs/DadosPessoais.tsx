@@ -1,5 +1,5 @@
 "use client";
-
+import Link from "next/link"
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -327,10 +327,11 @@ useEffect(() => {
             className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white shadow-md transition-all ${
               isCandidateDataComplete ? "bg-green-500 hover:bg-green-600" : "bg-gray-400 cursor-not-allowed"
             }`}
-            onClick={() => alert("Candidatura enviada!")}
           >
+            <Link href="/curos">
             <Plus className="w-4 h-4" />
             Candidatar-se
+            </Link>
           </motion.button>
         )}
 
