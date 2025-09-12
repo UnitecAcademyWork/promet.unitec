@@ -136,7 +136,7 @@ const Hero2 = () => {
             whileHover={{ scale: 1.05, rotate: [0, -2, 0, 2, 0] }}
             transition={{ duration: 0.5 }}
           >
-            Talentos
+            Talentos {""}
           </motion.span>
           <motion.span 
             variants={{
