@@ -179,7 +179,7 @@ const Hero2 = () => {
         </motion.h1>
         
         <motion.p 
-          className="mt-6 text-xs sm:text-2xl leading-8 text-gray-500 dark:text-gray-300"
+          className="mt-6 text-xl sm:text-2xl leading-8 text-gray-500 dark:text-gray-300"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.5, ease: "easeOut" }}

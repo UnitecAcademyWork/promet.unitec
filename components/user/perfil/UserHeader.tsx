@@ -104,7 +104,7 @@ export default function CandidatoHeader() {
             )}
 
             <div className="flex flex-wrap gap-3 mt-2">
-              <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+              {/* <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                 <Phone className="w-4 h-4 mr-1 text-brand-main dark:text-brand-lime flex-shrink-0" />
                 {isEditing ? (
                   <input
@@ -117,7 +117,7 @@ export default function CandidatoHeader() {
                 ) : (
                   <span>{candidatodados.email || "-"}</span>
                 )}
-              </div>
+              </div> */}
               <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                 <Mail className="w-4 h-4 mr-1 text-brand-main dark:text-brand-lime flex-shrink-0" />
                 <span>{candidatodados.email}</span>

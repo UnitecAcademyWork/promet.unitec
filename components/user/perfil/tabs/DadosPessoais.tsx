@@ -319,6 +319,7 @@ useEffect(() => {
 
           {/* Botão Candidatar-se sempre visível */}
           {isClient && (
+            <Link href="/curos">
           <motion.button
             type="button"
             disabled={!isCandidateDataComplete}
@@ -328,11 +329,10 @@ useEffect(() => {
               isCandidateDataComplete ? "bg-green-500 hover:bg-green-600" : "bg-gray-400 cursor-not-allowed"
             }`}
           >
-            <Link href="/curos">
             <Plus className="w-4 h-4" />
             Candidatar-se
-            </Link>
           </motion.button>
+            </Link>
         )}
 
         </div>

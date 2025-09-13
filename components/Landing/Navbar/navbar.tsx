@@ -6,6 +6,7 @@ import { Moon, Sun, Menu, X, Briefcase, GraduationCap, Info } from "lucide-react
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "/public/images/prometlogo.png";
 import Image from "next/image";
+import LogoutButton from "../../common/LogoutButton";
 
 const Navbar = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -27,6 +28,14 @@ const Navbar = () => {
     closed: { x: "-100%" },
   };
 
+  // Função para verificar se existe token
+  const checkAuthToken = () => {
+    const hasAuthToken = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("auth_token="));
+    return !!hasAuthToken;
+  };
+
   useEffect(() => {
     // Tema
     if (localStorage.getItem("theme") === "light") {
@@ -35,10 +44,25 @@ const Navbar = () => {
     }
 
     // Verificar se existe sessão pelo cookie
-    const hasAuthToken = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("auth_token="));
-    setIsLoggedIn(!!hasAuthToken);
+    setIsLoggedIn(checkAuthToken());
+
+    // Configurar verificação contínua do token
+    const authCheckInterval = setInterval(() => {
+      setIsLoggedIn(checkAuthToken());
+    }, 1000); // Verifica a cada segundo
+
+    // Limpar intervalo quando componente desmontar
+    return () => clearInterval(authCheckInterval);
+  }, []);
+
+  // Escutar mudanças no storage (caso logout em outra aba)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setIsLoggedIn(checkAuthToken());
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const toggleDarkMode = () => {
@@ -85,7 +109,7 @@ const Navbar = () => {
         {/* Ações */}
         <div className="flex items-center space-x-4">
           {/* Só aparece se NÃO estiver logado */}
-          {!isLoggedIn && (
+          {!isLoggedIn ? (
             <>
               <Link
                 href="/login"
@@ -100,6 +124,8 @@ const Navbar = () => {
                 Registro
               </Link>
             </>
+          ) : (
+            <LogoutButton />
           )}
 
           {/* Botão de dark mode */}
@@ -128,7 +154,7 @@ const Navbar = () => {
       <AnimatePresence>
         {isMobileOpen && (
           <>
-                {/* Fundo escuro */}
+            {/* Fundo escuro */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

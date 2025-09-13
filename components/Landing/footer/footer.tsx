@@ -28,42 +28,61 @@ export default function Footer() {
             <p className="text-gray-300 mb-6">Conectando o Presente ao Futuro.</p>
             <div className="flex space-x-4">
               <Link 
-                href="https://facebook.com/unitecm" 
+                href="https://facebook.com/promet.unitec" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-blue-400 transition-colors duration-300 p-2 rounded-full bg-gray-800 hover:bg-gray-700"
               >
                 <Facebook className="w-5 h-5" />
               </Link>
+
               <Link 
-                href="https://instagram.com/unitecs_" 
+                href="https://instagram.com/promet.unitec" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-pink-400 transition-colors duration-300 p-2 rounded-full bg-gray-800 hover:bg-gray-700"
               >
                 <Instagram className="w-5 h-5" />
               </Link>
+
+              {/* TikTok */}
               <Link
-                href="https://x.com/unitec_go"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-gray-200 transition-colors duration-300 p-2 rounded-full bg-gray-800 hover:bg-gray-700"
-                aria-label="X (Twitter)"
-                title="X (Twitter)"
+              href="https://tiktok.com/@promet.unitec"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center group transition-all duration-300"
+              aria-label="TikTok"
+              title="TikTok"
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="20" 
+                height="20" 
+                viewBox="0 0 24 24"
+                className="group-hover:scale-110 transition-transform duration-300"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                </svg>
-              </Link>
+                <path 
+                  d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"
+                  className="fill-gray-400 group-hover:fill-[#ff0050] transition-colors duration-300"
+                />
+              </svg>
+            </Link>
+
+
+              {/* LinkedIn */}
               <Link 
-                href="https://youtube.com/@unitec_go" 
+                href="https://linkedin.com/company/prometunitec" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-red-400 transition-colors duration-300 p-2 rounded-full bg-gray-800 hover:bg-gray-700"
+                className="text-gray-400 hover:text-blue-700 transition-colors duration-300 p-2 rounded-full bg-gray-800 hover:bg-gray-700"
               >
-                <Youtube className="w-5 h-5" />
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M4.98 3.5C4.98 5 3.93 6 2.49 6S0 5 0 3.5 1.05 1 2.49 1s2.49 1 2.49 2.5zM.14 8h4.7v16H.14V8zm7.34 0h4.5v2.5h.06c.62-1.17 2.14-2.4 4.4-2.4 4.7 0 5.56 3.1 5.56 7.12V24h-4.71v-7.95c0-1.9-.03-4.35-2.65-4.35-2.65 0-3.05 2.07-3.05 4.21V24H7.48V8z"/>
+                </svg>
               </Link>
+
             </div>
+
             <div className="md:flex hidden flex-col mb-2 items-left mt-6">
               <p className="text-gray-500 text-sm mb-4 md:mb-0">
                 &copy; {new Date().getFullYear()} Unitec. Todos os direitos reservados.
@@ -119,7 +138,7 @@ export default function Footer() {
           
           {/* Services */}
           <div className="mb-8">
-            <h3 className="text-lg font-semibold mb-4 text-gray-200">Ecosistema</h3>
+            <h3 className="text-lg font-semibold mb-4 text-gray-200">Ecossistema</h3>
             <ul className="space-y-3">
               <li>
                 <Link 

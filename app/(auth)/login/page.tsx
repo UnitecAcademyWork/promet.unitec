@@ -9,7 +9,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import GoogleLoginButton from "../../../components/common/google-login-button";
-import router from "next/router";
+import { useRouter } from "next/navigation"; // ✅ correto para app router
 
 export default function LoginForm() {
   const [form, setForm] = useState({ identifier: "", password: "" });
@@ -19,7 +19,7 @@ export default function LoginForm() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-
+const router = useRouter()
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -38,6 +38,7 @@ export default function LoginForm() {
         console.log("Token salvo:", result.token);
 
         router.push("/user/perfil");
+        router.refresh();
       } else {
         toast.error("Token não encontrado na resposta");
       }
