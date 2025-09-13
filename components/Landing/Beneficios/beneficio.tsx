@@ -116,7 +116,7 @@ const Beneficios = () => {
   return (
     <motion.section 
       id="beneficios" 
-      className="py-12 px-4 md:px-8 bg-gray-50 dark:bg-gray-900"
+      className="py-20 px-4 md:px-8 bg-gray-50 dark:bg-gray-900"
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: "-100px" }}
