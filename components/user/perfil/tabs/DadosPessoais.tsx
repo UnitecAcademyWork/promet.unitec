@@ -319,7 +319,7 @@ useEffect(() => {
 
   {/* Botão Candidatar-se sempre visível */}
   {isClient && (
-    <Link href="/curos" className="w-full md:w-auto">
+    <Link href="/cursos" className="w-full md:w-auto">
       <motion.button
         type="button"
         disabled={!isCandidateDataComplete}
