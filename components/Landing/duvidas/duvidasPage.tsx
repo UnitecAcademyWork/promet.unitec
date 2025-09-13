@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 const FAQPage = () => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -134,12 +135,12 @@ const FAQPage = () => {
             Entre em contato conosco para mais informações. Nossa equipe está pronta para ajudá-lo.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
+            <Link
               href="/#contacto"
               className="px-6 py-3 border border-brand-main text-brand-main dark:border-brand-lime dark:text-brand-lime font-medium rounded-lg hover:bg-brand-main/5 transition-colors"
             >
               Ver Contatos
-            </a>
+            </Link>
           </div>
         </motion.div>
       </div>
