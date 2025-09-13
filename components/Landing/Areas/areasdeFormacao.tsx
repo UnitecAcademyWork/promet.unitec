@@ -62,6 +62,7 @@ useEffect(() => {
               data-aos="fade-up"
               data-aos-delay={index * 50}
             >
+            <Link href="/cursos/[id]" as={`/cursos/${curso.id}`} passHref>
               <div className="flex flex-col items-center text-center">
                 <div className="p-2 rounded-lg bg-gray-50 dark:bg-gray-700/50 group-hover:bg-brand-main/5 transition-colors duration-300 mb-3">
                   <BookOpen className="w-6 h-6 text-gray-500 dark:text-gray-400 group-hover:text-brand-main transition-colors duration-300" />
@@ -69,7 +70,11 @@ useEffect(() => {
                 <h3 className="text-sm font-medium text-gray-800 dark:text-white group-hover:text-brand-main transition-colors duration-300 leading-tight">
                   {curso.nome}
                 </h3>
-
+                <div className="flex justify-end items-end">
+                  <Link href="/cursos/[id]" as={`/cursos/${curso.id}`} passHref>
+                  <ArrowRight className="w-4 h-4 text-brand-main mt-1 ml-1 duration-300" />
+                </Link>
+                </div>
                 {/* Botão discreto */}
                 {/* <Link
                   href={`/cursos/${curso.id}`}
@@ -78,6 +83,7 @@ useEffect(() => {
                   Ver mais <ArrowRight className="ml-1 w-3 h-3" />
                 </Link> */}
               </div>
+              </Link>
             </div>
           ))}
         </div>

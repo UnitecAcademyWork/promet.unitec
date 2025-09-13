@@ -170,7 +170,7 @@ const CursoCandidatura = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-800 dark:text-white">{curso.nome}</h1>
-                <p className="text-gray-600 text-sm dark:text-gray-300 mt-1">Teste de Diagnóstico <span className="text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full mb-2">{curso.precoTeste}</span></p>
+                <p className="text-gray-600 text-sm dark:text-gray-300 mt-1">Teste de Diagnóstico <span className="text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full mb-2">{curso.precoTeste}MT</span></p>
               </div>
             </div>
             
@@ -194,10 +194,6 @@ const CursoCandidatura = () => {
             <div className="flex items-center text-sm">
               <Clock className="w-4 h-4 text-brand-main mr-2" />
               <span className="text-gray-600 dark:text-gray-300">Duração: 30 Dias</span>
-            </div>
-            <div className="flex items-center text-sm">
-              <DollarSign className="w-4 h-4 text-brand-main mr-2" />
-              <span className="text-gray-600 dark:text-gray-300">Teste: {curso.precoTeste} MT</span>
             </div>
             <div className="flex items-center text-sm">
               <User className="w-4 h-4 text-brand-main mr-2" />
