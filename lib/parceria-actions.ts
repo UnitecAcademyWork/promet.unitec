@@ -42,16 +42,11 @@ export interface ParceriaResponse {
 
 export const criarParceria = async (data: ParceriaData): Promise<ParceriaResponse> => {
   try {
-    const token = Cookies.get("auth_token");
-    if (!token) {
-      throw new Error("Token de autenticação não encontrado.");
-    }
 
     const response = await fetch("https://backend-promet.unitec.academy/empresa-parceira", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
       },
       body: JSON.stringify(data),
     });

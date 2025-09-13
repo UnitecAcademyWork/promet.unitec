@@ -236,7 +236,7 @@ const Beneficios = () => {
                 ease: "easeOut"
               }
             }}}>
-            <Link href="/registro">
+            <Link href="/cursos">
               <motion.button 
                 className="w-full md:w-auto bg-brand-main hover:bg-brand-main/90 text-white font-medium py-2.5 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center"
                 variants={buttonVariants}

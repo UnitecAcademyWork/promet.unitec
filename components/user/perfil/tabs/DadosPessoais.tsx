@@ -202,14 +202,14 @@ useEffect(() => {
           <div className="flex flex-col gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border">
             <label className="text-sm font-medium flex items-center gap-2">
               <Home className="w-4 h-4 text-green-500" />
-              Morada
+              Bairro
             </label>
             <input
               type="text"
               value={data.morada}
               onChange={(e) => handleChange("morada", e.target.value)}
               className="mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500"
-              placeholder="Av. 24 de Julho, nº 345"
+              placeholder="Polana Cimento"
               required
               disabled={!isEditing}
             />
@@ -250,8 +250,14 @@ useEffect(() => {
               className="mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500"
               required
               disabled={!isEditing}
+              max={new Date(
+                new Date().setFullYear(new Date().getFullYear() - 18)
+              )
+                .toISOString()
+                .split("T")[0]} // Só permite datas até hoje - 18 anos
             />
           </div>
+
 
           {/* Número do BI */}
           <div className="flex flex-col gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border">
@@ -327,7 +333,7 @@ useEffect(() => {
         whileTap={{ scale: isCandidateDataComplete ? 0.97 : 1 }}
         className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-white shadow-md transition-all w-full md:w-auto ${
           isCandidateDataComplete
-            ? "bg-green-500 hover:bg-green-600"
+            ? "bg-green-500 hover:bg-brand-lime"
             : "bg-gray-400 cursor-not-allowed"
         }`}
       >

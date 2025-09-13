@@ -107,19 +107,22 @@ const CursoCandidatura = () => {
   }, [params.id]);
 
   const handleCandidatarSe = async () => {
-    if (!curso) return;
+  if (!curso) return;
 
-    try {
-      const data = {
-        idCurso: curso.id,
-      };
-      await enviarCandidatura(data);
-      toast.success("Candidatura enviada com sucesso!");
-      router.push("/user/candidaturas");
-    } catch (error) {
-      toast.error("Erro ao enviar candidatura. Tente novamente.");
-    }
-  };
+  try {
+    const data = {
+      idCurso: curso.id,
+    };
+    await enviarCandidatura(data);
+    toast.success("Candidatura enviada com sucesso!");
+    router.push("/user/candidaturas");
+  } catch (error: any) {
+    const errorMessage =
+      error?.message || "Erro ao enviar candidatura. Tente novamente.";
+    toast.error(errorMessage);
+  }
+};
+
 
   if (loading) {
     return (
