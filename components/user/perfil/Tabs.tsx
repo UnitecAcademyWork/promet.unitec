@@ -1,5 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 
 type TabsProps = {
   tabs: string[];
@@ -10,13 +11,27 @@ type TabsProps = {
 };
 
 export default function Tabs({ tabs, activeTab, setActiveTab, showCount = false, counts = {} }: TabsProps) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detecta tamanho da tela
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
-    <div className="flex space-x-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
+    <div
+      className={`flex ${
+        isMobile ? "overflow-x-auto space-x-2 px-2" : "space-x-1 p-1"
+      } bg-gray-100 dark:bg-gray-800 rounded-lg scrollbar-none`}
+    >
       {tabs.map((tab) => (
         <button
           key={tab}
           onClick={() => setActiveTab(tab)}
-          className={`relative py-3 px-5 font-medium transition-all duration-300 group rounded-md ${
+          className={`relative py-3 px-5 font-medium transition-all duration-300 group rounded-md flex-shrink-0 ${
             activeTab === tab
               ? "text-white shadow-sm"
               : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
@@ -25,26 +40,24 @@ export default function Tabs({ tabs, activeTab, setActiveTab, showCount = false,
           <span className="flex items-center gap-2 relative z-10">
             {tab}
             {showCount && counts[tab] > 0 && (
-              <span className={`text-xs px-2 py-1 rounded-full transition-colors ${
-                activeTab === tab
-                  ? "bg-white/20 text-white"
-                  : "bg-gray-200 dark:bg-gray-700 group-hover:bg-gray-300 dark:group-hover:bg-gray-600"
-              }`}>
+              <span
+                className={`text-xs px-2 py-1 rounded-full transition-colors ${
+                  activeTab === tab
+                    ? "bg-white/20 text-white"
+                    : "bg-gray-200 dark:bg-gray-700 group-hover:bg-gray-300 dark:group-hover:bg-gray-600"
+                }`}
+              >
                 {counts[tab]}
               </span>
             )}
           </span>
-          
+
           {activeTab === tab && (
             <motion.div
               layoutId="underline"
               className="absolute inset-0 bg-brand-main rounded-md shadow-sm z-0"
               initial={false}
-              transition={{
-                type: "spring",
-                stiffness: 500,
-                damping: 35
-              }}
+              transition={{ type: "spring", stiffness: 500, damping: 35 }}
             />
           )}
         </button>

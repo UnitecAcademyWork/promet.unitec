@@ -4,12 +4,12 @@ import { SidebarProvider } from "../../context/SidebarContext";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="min-h-screen flex bg-gray-100 dark:bg-gray-900">
+    <div className="min-h-screen md:flex lg:flex bg-gray-100 dark:bg-gray-900">
       {/* Sidebar fixa à esquerda */}
 
       {/* Conteúdo principal */}
         <Sidebar />
-      <main className="flex-1 transition-all duration-300">
+      <main className="md:flex-1 lg:flex-1 transition-all duration-300">
         <div className="p-6">
           {children}
         </div>
