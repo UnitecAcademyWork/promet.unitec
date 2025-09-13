@@ -10,11 +10,11 @@ const FAQPage = () => {
   const faqItems = [
     {
       question: "Como posso me inscrever no programa PROMET?",
-      answer: "Para se inscrever, basta clicar no botão 'Quero Participar' no topo da página e preencher o formulário de candidatura com suas informações básicas e currículo. Nosso processo de seleção é gratuito na fase inicial."
+      answer: "Para se inscrever, basta clicar no botão 'Quero Participar' ou clica no botão 'Registro' no topo da página e preencher o formulário para criar a sua conta."
     },
     {
       question: "Quanto custa participar do programa?",
-      answer: "O programa tem um custo total de 3,000 MT, dividido em: 500 MT para o exame de diagnóstico e 2,500 MT para a formação intensiva de 30 dias. As demais etapas como candidatura, pré-seleção, teste de perfil, workshop de empregabilidade e inclusão na base de talentos são gratuitas."
+      answer: "As etapas como candidatura, pré-seleção, teste de perfil, workshop de empregabilidade e inclusão na base de talentos são gratuitas. Apenas a formação intensiva de 30 dias tem um custo de 2.500 Mt e o teste de diagnóstico que custa 500MT."
     },
     {
       question: "Quais são os requisitos para participar?",

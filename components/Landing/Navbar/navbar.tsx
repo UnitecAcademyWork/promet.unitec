@@ -159,13 +159,13 @@ const Navbar = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/70 z-40 md:hidden"
+              className="fixed inset-0 h-screen bg-black/70 z-40 md:hidden"
               onClick={() => setIsMobileOpen(false)}
             />
 
             {/* Sidebar */}
             <motion.div
-              className="fixed top-0 left-0 h-full w-80 bg-white dark:bg-gray-900 shadow-xl z-50 md:hidden"
+              className="fixed top-0 left-0 h-screen w-80 bg-white dark:bg-gray-900 shadow-xl z-50 md:hidden"
               initial="closed"
               animate="open"
               exit="closed"

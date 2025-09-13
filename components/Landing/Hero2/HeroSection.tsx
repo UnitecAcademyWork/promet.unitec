@@ -88,7 +88,7 @@ const Hero2 = () => {
       {/* Conteúdo principal */}
       <div className="text-center  max-w-3xl relative z-10">
         <motion.h1 
-          className="text-4xl sm:text-4xl font-extrabold tracking-tight text-brand-main dark:text-white leading-tight"
+          className="text-4xl px-6 md:px-0 sm:text-4xl font-extrabold tracking-tight text-brand-main dark:text-white leading-tight"
           initial="hidden"
           animate="visible"
           variants={{
@@ -179,7 +179,7 @@ const Hero2 = () => {
         </motion.h1>
         
         <motion.p 
-          className="mt-6 text-xl sm:text-2xl leading-8 text-gray-500 dark:text-gray-300"
+          className="mt-6 px-6 md:px-0 text-xl sm:text-2xl leading-8 text-gray-500 dark:text-gray-300"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.5, ease: "easeOut" }}
