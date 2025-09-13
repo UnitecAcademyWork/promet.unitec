@@ -35,10 +35,7 @@ const router = useRouter()
         });
         
         toast.success("Login realizado com sucesso!");
-        console.log("Token salvo:", result.token);
-
         router.push("/user/perfil");
-        router.refresh();
       } else {
         toast.error("Token não encontrado na resposta");
       }

@@ -294,48 +294,50 @@ useEffect(() => {
         </div>
 
         {/* Botões */}
-        <div className="pt-4 flex justify-end gap-3">
-          {isEditing && (
-            <motion.button
-              type="submit"
-              disabled={isSaving}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold bg-brand-main text-white shadow-md hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-70"
-            >
-              {isSaving ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4" />
-                  Salvar Alterações
-                </>
-              )}
-            </motion.button>
-          )}
+        <div className="pt-4 flex flex-col md:flex-row justify-end gap-3">
+  {isEditing && (
+    <motion.button
+      type="submit"
+      disabled={isSaving}
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.97 }}
+      className="flex flex-row items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold bg-brand-main text-white shadow-md hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-70"
+    >
+      {isSaving ? (
+        <>
+          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          Salvando...
+        </>
+      ) : (
+        <>
+          <Save className="w-4 h-4" />
+          Salvar
+        </>
+      )}
+    </motion.button>
+  )}
 
-          {/* Botão Candidatar-se sempre visível */}
-          {isClient && (
-            <Link href="/curos">
-          <motion.button
-            type="button"
-            disabled={!isCandidateDataComplete}
-            whileHover={{ scale: isCandidateDataComplete ? 1.03 : 1 }}
-            whileTap={{ scale: isCandidateDataComplete ? 0.97 : 1 }}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white shadow-md transition-all ${
-              isCandidateDataComplete ? "bg-green-500 hover:bg-green-600" : "bg-gray-400 cursor-not-allowed"
-            }`}
-          >
-            <Plus className="w-4 h-4" />
-            Candidatar-se
-          </motion.button>
-            </Link>
-        )}
+  {/* Botão Candidatar-se sempre visível */}
+  {isClient && (
+    <Link href="/curos" className="w-full md:w-auto">
+      <motion.button
+        type="button"
+        disabled={!isCandidateDataComplete}
+        whileHover={{ scale: isCandidateDataComplete ? 1.03 : 1 }}
+        whileTap={{ scale: isCandidateDataComplete ? 0.97 : 1 }}
+        className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-white shadow-md transition-all w-full md:w-auto ${
+          isCandidateDataComplete
+            ? "bg-green-500 hover:bg-green-600"
+            : "bg-gray-400 cursor-not-allowed"
+        }`}
+      >
+        <Plus className="w-4 h-4" />
+        Candidatar-se
+      </motion.button>
+    </Link>
+  )}
+</div>
 
-        </div>
       </form>
     </motion.div>
   );
