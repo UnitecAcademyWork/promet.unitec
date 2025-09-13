@@ -120,7 +120,7 @@ const MainCandidatura = () => {
                       <Icon className={`w-4 h-4 ${color}`} />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-800 dark:text-white">Curso #{c.idCurso}</h3>
+                      {/* <h3 className="font-semibold text-gray-800 dark:text-white">Curso #{c.idCurso}</h3> */}
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         {new Date(c.createdAt).toLocaleDateString("pt-BR")}
                       </p>

@@ -22,6 +22,8 @@ import {
   HeartHandshake
 } from "lucide-react";
 import { enviarCandidatura } from "../../../lib/enviar-candidatura-actions";
+import toast from "react-hot-toast";
+import CursoCandidaturaSkeleton from "../../../components/common/CursosSkeleton";
 
 interface CursoReal {
   id: string;
@@ -112,17 +114,17 @@ const CursoCandidatura = () => {
         idCurso: curso.id,
       };
       await enviarCandidatura(data);
-      alert("Candidatura enviada com sucesso!");
-      router.push("/candidatura-concluida");
+      toast.success("Candidatura enviada com sucesso!");
+      router.push("/user/candidaturas");
     } catch (error) {
-      alert("Erro ao enviar candidatura. Tente novamente.");
+      toast.error("Erro ao enviar candidatura. Tente novamente.");
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <p className="text-gray-600 dark:text-gray-300">Carregando informações do curso...</p>
+       <CursoCandidaturaSkeleton />
       </div>
     );
   }
