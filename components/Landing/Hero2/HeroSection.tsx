@@ -86,7 +86,7 @@ const Hero2 = () => {
       </motion.div>
 
       {/* Conteúdo principal */}
-      <div className="text-center px-6 max-w-3xl relative z-10">
+      <div className="text-center  max-w-3xl relative z-10">
         <motion.h1 
           className="text-4xl sm:text-4xl font-extrabold tracking-tight text-brand-main dark:text-white leading-tight"
           initial="hidden"
@@ -132,7 +132,7 @@ const Hero2 = () => {
                 }
               }
             }} 
-            className="text-transparent bg-clip-text bg-brand-lime inline-block"
+            className="text-transparent mr-2 bg-clip-text bg-brand-lime inline-block"
             whileHover={{ scale: 1.05, rotate: [0, -2, 0, 2, 0] }}
             transition={{ duration: 0.5 }}
           >
@@ -152,12 +152,34 @@ const Hero2 = () => {
             }} 
             className="inline-block"
           >
-            a Oportunidades
+            a
+          </motion.span>
+          <span 
+            
+            className="text-sm inline-block opacity-0"
+          >
+            a
+          </span>
+          <motion.span 
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: {
+                opacity: 1,
+                y: 0,
+                transition: {
+                  duration: 0.5,
+                  ease: [0.25, 0.46, 0.45, 0.94] // easeOutQuad
+                }
+              }
+            }} 
+            className="inline-block"
+          >
+            Oportunidades
           </motion.span>
         </motion.h1>
         
         <motion.p 
-          className="mt-6 text-xs sm:text-xl leading-8 text-gray-500 dark:text-gray-300"
+          className="mt-6 text-xs sm:text-2xl leading-8 text-gray-500 dark:text-gray-300"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.5, ease: "easeOut" }}

@@ -223,7 +223,6 @@ const PartnershipForm = () => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
   e.preventDefault();
-  console.log("handleSubmit disparado 🚀", formData);
 
   if (!validateStep(currentStep)) {
     return;
@@ -295,7 +294,7 @@ const PartnershipForm = () => {
             transition={{ duration: 0.5 }}
             className="md:text-4xl text-2xl font-bold mb-6"
           >
-            Seja uma Empresa Parceira PROMET
+            Seja uma Instituição Parceira PROMET
           </motion.h1>
           
           <motion.p

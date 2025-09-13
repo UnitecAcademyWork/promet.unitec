@@ -128,14 +128,15 @@ const Navbar = () => {
       <AnimatePresence>
         {isMobileOpen && (
           <>
-            {/* Fundo escuro */}
+                {/* Fundo escuro */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-white bg-opacity-90 z-40 md:hidden"
+              className="fixed inset-0 bg-black/70 z-40 md:hidden"
               onClick={() => setIsMobileOpen(false)}
             />
+
             {/* Sidebar */}
             <motion.div
               className="fixed top-0 left-0 h-full w-80 bg-white dark:bg-gray-900 shadow-xl z-50 md:hidden"
@@ -145,7 +146,7 @@ const Navbar = () => {
               variants={mobileSidebarVariants}
               transition={{ duration: 0.3, ease: "easeInOut" }}
             >
-              <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex items-center bg-white justify-between p-6 border-b border-gray-100 dark:border-gray-800">
                 <div className="flex items-center">
                   <div className="w-8 h-8 rounded-lg bg-brand-lime flex items-center justify-center">
                     <Briefcase className="w-5 h-5 text-white" />
@@ -162,7 +163,7 @@ const Navbar = () => {
                 </button>
               </div>
 
-              <nav className="flex-1 px-4 py-6">
+              <nav className="flex-1 bg-white px-4 py-6">
                 <ul className="space-y-2">
                   {menuItems.map((item) => {
                     const Icon = item.icon;

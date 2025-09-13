@@ -1,7 +1,25 @@
-import React from "react";
-import Link from "next/link";
-
+"use client";
+import React, { useEffect, useState } from "react";
+import { Curso, getCursos } from "../../../lib/cursos-actions";
 const WhatIsPromet = () => {
+  const [cursos, setCursos] = useState<Curso[]>([]);
+    const [visibleCount, setVisibleCount] = useState(10);
+  
+   useEffect(() => {
+     const fetchCursos = async () => {
+       const data = await getCursos();
+   
+       const sortedData = data.sort((a, b) => {
+     const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+     const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+     return aTime - bTime; 
+   });
+   
+   
+       setCursos(sortedData);
+     };
+     fetchCursos();
+   }, []);
   return (
     <section id="sobre" className="relative py-16 bg-white dark:bg-gray-900 overflow-hidden">
       <div className="absolute top-0 right-0 -mt-16 mr-16 opacity-10">
@@ -85,7 +103,7 @@ const WhatIsPromet = () => {
                 
                 <div className="grid grid-cols-3 gap-4 mb-6">
                   <div className="text-center p-3 bg-brand-main/5 rounded-lg">
-                    <div className="text-2xl font-bold text-brand-main">5</div>
+                    <div className="text-2xl font-bold text-brand-main">{cursos.length}</div>
                     <div className="text-xs text-gray-600 dark:text-gray-400">Áreas</div>
                   </div>
                   <div className="text-center p-3 bg-brand-lime/5 rounded-lg">

@@ -14,6 +14,50 @@ import {
   ArrowRight
 } from 'lucide-react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
+
+// Variantes de animação para reutilização
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut"
+    }
+  }
+};
+
+const buttonVariants = {
+  hidden: { scale: 0.9, opacity: 0 },
+  visible: {
+    scale: 1,
+    opacity: 1,
+    transition: {
+      duration: 0.4
+    }
+  },
+  hover: {
+    scale: 1.05,
+    transition: {
+      duration: 0.2
+    }
+  },
+  tap: {
+    scale: 0.98
+  }
+};
 
 const Beneficios = () => {
   const beneficiosCandidatos = [
@@ -70,23 +114,57 @@ const Beneficios = () => {
   ];
 
   return (
-    <section id="beneficios" className="py-12 px-4 md:px-8 bg-gray-50 dark:bg-gray-900">
+    <motion.section 
+      id="beneficios" 
+      className="py-12 px-4 md:px-8 bg-gray-50 dark:bg-gray-900"
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-100px" }}
+      variants={containerVariants}
+    >
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-3">
+        <motion.div 
+          className="text-center mb-12"
+          variants={{hidden: { y: 20, opacity: 0 },
+            visible: {
+              y: 0,
+              opacity: 1,
+              transition: {
+                duration: 0.5,
+                ease: "easeOut"
+              }
+            }}}
+        >
+          <h2 className="text-2xl md:text-3xl font-bold text-brand-main dark:text-white mb-3">
             Benefícios para Candidatos
           </h2>
           <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             Descubra as vantagens exclusivas que oferecemos aos nossos candidatos
           </p>
-        </div>
+        </motion.div>
         
         {/* Primeira linha com 5 cartões */}
-        <div className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-5 gap-4 mb-4">
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-5 gap-4 mb-4"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+        >
           {beneficiosCandidatos.slice(0, 5).map((beneficio, index) => (
-            <div 
+            <motion.div 
               key={index}
               className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-200"
+              variants={{hidden: { y: 20, opacity: 0 },
+            visible: {
+              y: 0,
+              opacity: 1,
+              transition: {
+                duration: 0.5,
+                ease: "easeOut"
+              }
+            }}}
+              whileHover={{ y: -5 }}
             >
               <div className="text-center">
                 <div className="w-10 h-10 bg-brand-main/10 dark:bg-brand-lime/20 rounded-full flex items-center justify-center mx-auto mb-3 text-brand-main dark:text-brand-lime">
@@ -99,16 +177,32 @@ const Beneficios = () => {
                   {beneficio.description}
                 </p>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
         
         {/* Segunda linha com 5 cartões */}
-        <div className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-5 gap-4 mb-8">
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-5 gap-4 mb-8"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+        >
           {beneficiosCandidatos.slice(5, 10).map((beneficio, index) => (
-            <div 
+            <motion.div 
               key={index + 5}
               className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-200"
+              variants={{hidden: { y: 20, opacity: 0 },
+            visible: {
+              y: 0,
+              opacity: 1,
+              transition: {
+                duration: 0.5,
+                ease: "easeOut"
+              }
+            }}}
+              whileHover={{ y: -5 }}
             >
               <div className="text-center">
                 <div className="w-10 h-10 bg-brand-main/10 dark:bg-brand-lime/20 rounded-full flex items-center justify-center mx-auto mb-3 text-brand-main dark:text-brand-lime">
@@ -121,27 +215,63 @@ const Beneficios = () => {
                   {beneficio.description}
                 </p>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
         
         {/* Botões de ação centralizados */}
-        <div className="text-center space-y-3 md:space-y-0 md:flex md:justify-center md:space-x-4">
-          <Link href="/registro">
-            <button className="w-full md:w-auto bg-brand-main hover:bg-brand-main/90 text-white font-medium py-2.5 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center">
-              Quero me Candidatar
-              <ArrowRight size={16} className="ml-2" />
-            </button>
-          </Link>
-          <Link href="/formulario/parceiro">
-            <button className="w-full md:w-auto border border-brand-main text-brand-main hover:bg-brand-main/5 font-medium py-2.5 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center dark:border-brand-lime dark:text-brand-lime dark:hover:bg-brand-lime/5">
-              Quero ser Parceiro
-              <ArrowRight size={16} className="ml-2" />
-            </button>
-          </Link>
-        </div>
+        <motion.div 
+          className="text-center space-y-3 md:space-y-0 md:flex md:justify-center md:space-x-4"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={containerVariants}
+        >
+          <motion.div variants={{hidden: { y: 20, opacity: 0 },
+            visible: {
+              y: 0,
+              opacity: 1,
+              transition: {
+                duration: 0.5,
+                ease: "easeOut"
+              }
+            }}}>
+            <Link href="/registro">
+              <motion.button 
+                className="w-full md:w-auto bg-brand-main hover:bg-brand-main/90 text-white font-medium py-2.5 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center"
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                Quero me Candidatar
+                <ArrowRight size={16} className="ml-2" />
+              </motion.button>
+            </Link>
+          </motion.div>
+          <motion.div variants={{hidden: { y: 20, opacity: 0 },
+            visible: {
+              y: 0,
+              opacity: 1,
+              transition: {
+                duration: 0.5,
+                ease: "easeOut"
+              }
+            }}}>
+            <Link href="/formulario/parceiro">
+              <motion.button 
+                className="w-full md:w-auto border border-brand-main text-brand-main hover:bg-brand-main/5 font-medium py-2.5 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center dark:border-brand-lime dark:text-brand-lime dark:hover:bg-brand-lime/5"
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                Quero ser Parceiro
+                <ArrowRight size={16} className="ml-2" />
+              </motion.button>
+            </Link>
+          </motion.div>
+        </motion.div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 
