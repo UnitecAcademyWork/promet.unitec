@@ -71,9 +71,9 @@ useEffect(() => {
                   {curso.nome}
                 </h3>
                 <div className="flex justify-end items-end">
-                  <Link href="/cursos/[id]" as={`/cursos/${curso.id}`} passHref>
+                  {/* <Link href="/cursos/[id]" as={`/cursos/${curso.id}`} passHref> */}
                   <ArrowRight className="w-4 h-4 text-brand-main mt-1 ml-1 duration-300" />
-                </Link>
+                {/* </Link> */}
                 </div>
                 {/* Botão discreto */}
                 {/* <Link

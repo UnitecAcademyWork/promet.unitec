@@ -3,6 +3,7 @@ import { useRef, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Briefcase, Calendar, Building, X, Trash2 } from "lucide-react";
 import { getExperiences, addExperience, deleteExperience } from "../../../../lib/experiencia-actions";
+import toast from "react-hot-toast";
 
 export type Experience = {
   id: number;
@@ -37,39 +38,47 @@ export default function Experiencia({ isEditing }: ExperienciaProps) {
   }, []);
 
   const loadExperiences = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  try {
+    setLoading(true);
+    setError(null);
 
-      const result = await getExperiences();
+    const result = await getExperiences();
+    const dataArray = result?.data || [];
 
-      // Se data for undefined ou vazio, abrir formulário automaticamente
-      const dataArray = result?.data || [];
-      if (!dataArray.length) setShowForm(true);
-
-      if (result?.success && dataArray.length > 0) {
-        const formatted: Experience[] = dataArray.map((exp: any) => ({
-          id: exp.id,
-          position: exp.cargo,
-          company: exp.organizacao,
-          startDate: exp.dataInicio,
-          endDate: exp.dataFim || undefined,
-          current: !exp.dataFim,
-          description: exp.descricao || undefined,
-        }));
-        setExperiences(formatted);
-      } else if (!result?.success) {
-        setError(result.error || "Erro ao carregar experiências");
-      }
-    } catch (err) {
-      setError("Erro ao carregar experiências");
-      console.error("Erro ao carregar experiências:", err);
-      // mesmo em caso de erro, abrir o formulário
+    if (result?.success && dataArray.length > 0) {
+      const formatted: Experience[] = dataArray.map((exp: any) => ({
+        id: exp.id,
+        position: exp.cargo,
+        company: exp.organizacao,
+        startDate: exp.dataInicio,
+        endDate: exp.dataFim || undefined,
+        current: !exp.dataFim,
+        description: exp.descricao || undefined,
+      }));
+      setExperiences(formatted);
+    } else if (result?.success && dataArray.length === 0) {
+      toast.error("Ainda sem Experiências");
       setShowForm(true);
-    } finally {
-      setLoading(false);
+    } else if (!result?.success) {
+      setError(result.error || "Erro ao carregar experiências");
+      setShowForm(true);
     }
-  };
+  } catch (err: any) {
+    console.error("Erro ao carregar experiências:", err);
+
+    
+    if (err?.response?.status === 404) {
+      toast.error("Ainda sem Experiências");
+      setShowForm(true);
+    } else {
+      setError("Erro ao carregar experiências");
+      setShowForm(true);
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleAddExperience = async (exp: Experience) => {
     try {

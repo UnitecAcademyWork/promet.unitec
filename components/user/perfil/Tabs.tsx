@@ -1,6 +1,6 @@
 "use client";
-import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, ReactNode } from "react";
 
 type TabsProps = {
   tabs: string[];
@@ -8,9 +8,17 @@ type TabsProps = {
   setActiveTab: (tab: string) => void;
   showCount?: boolean;
   counts?: Record<string, number>;
+  renderTabContent: (tab: string) => ReactNode;
 };
 
-export default function Tabs({ tabs, activeTab, setActiveTab, showCount = false, counts = {} }: TabsProps) {
+export default function Tabs({
+  tabs,
+  activeTab,
+  setActiveTab,
+  showCount = false,
+  counts = {},
+  renderTabContent,
+}: TabsProps) {
   const [isMobile, setIsMobile] = useState(false);
 
   // Detecta tamanho da tela
@@ -22,46 +30,66 @@ export default function Tabs({ tabs, activeTab, setActiveTab, showCount = false,
   }, []);
 
   return (
-    <div
-      className={`flex ${
-        isMobile ? "overflow-x-auto space-x-2 px-2" : "space-x-1 p-1"
-      } bg-gray-100 dark:bg-gray-800 rounded-lg scrollbar-none`}
-    >
-      {tabs.map((tab) => (
-        <button
-          key={tab}
-          onClick={() => setActiveTab(tab)}
-          className={`relative py-3 px-5 font-medium transition-all duration-300 group rounded-md flex-shrink-0 ${
-            activeTab === tab
-              ? "text-white shadow-sm"
-              : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-          }`}
-        >
-          <span className="flex items-center gap-2 relative z-10">
-            {tab}
-            {showCount && counts[tab] > 0 && (
-              <span
-                className={`text-xs px-2 py-1 rounded-full transition-colors ${
-                  activeTab === tab
-                    ? "bg-white/20 text-white"
-                    : "bg-gray-200 dark:bg-gray-700 group-hover:bg-gray-300 dark:group-hover:bg-gray-600"
-                }`}
-              >
-                {counts[tab]}
-              </span>
-            )}
-          </span>
+    <div className={`flex flex-col w-full ${isMobile ? "space-y-2" : "space-y-3"}`}>
+      {tabs.map((tab) => {
+        const isActive = activeTab === tab;
 
-          {activeTab === tab && (
-            <motion.div
-              layoutId="underline"
-              className="absolute inset-0 bg-brand-main rounded-md shadow-sm z-0"
-              initial={false}
-              transition={{ type: "spring", stiffness: 500, damping: 35 }}
-            />
-          )}
-        </button>
-      ))}
+        return (
+          <div
+            key={tab}
+            className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
+          >
+            {/* Cabeçalho do Accordion */}
+            <button
+              // 👇 Se já estiver ativo, não fecha (mantém aberto)
+              onClick={() => setActiveTab(tab)}
+              className={`w-full flex justify-between items-center px-5 py-3 font-medium text-left transition-all duration-300 ${
+                isActive
+                  ? "bg-brand-main text-white"
+                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                {tab}
+                {showCount && counts[tab] > 0 && (
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full ${
+                      isActive
+                        ? "bg-white/20 text-white"
+                        : "bg-gray-300 dark:bg-gray-700"
+                    }`}
+                  >
+                    {counts[tab]}
+                  </span>
+                )}
+              </span>
+
+              <motion.span
+                animate={{ rotate: isActive ? 90 : 0 }}
+                transition={{ duration: 0.2 }}
+                className="ml-2"
+              >
+                ▶
+              </motion.span>
+            </button>
+
+            {/* Conteúdo expansível */}
+            <AnimatePresence>
+              {isActive && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="p-4 bg-white dark:bg-gray-900"
+                >
+                  {renderTabContent(tab)}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        );
+      })}
     </div>
   );
 }

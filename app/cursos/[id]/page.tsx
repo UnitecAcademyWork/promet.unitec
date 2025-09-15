@@ -24,6 +24,7 @@ import {
 import { enviarCandidatura } from "../../../lib/enviar-candidatura-actions";
 import toast from "react-hot-toast";
 import CursoCandidaturaSkeleton from "../../../components/common/CursosSkeleton";
+import { getCandidato } from "../../../lib/candidato-actions";
 
 interface CursoReal {
   id: string;
@@ -106,23 +107,29 @@ const CursoCandidatura = () => {
     fetchCurso();
   }, [params.id]);
 
-  const handleCandidatarSe = async () => {
-  if (!curso) return;
+  const handleCandidatarSe = async (cursoId: string) => {
 
   try {
-    const data = {
-      idCurso: curso.id,
-    };
-    await enviarCandidatura(data);
+    // 1️⃣ Verifica se o usuário tem perfil de candidato
+    const candidato = await getCandidato();
+    if (!candidato) {
+      toast.error("Preencha os dados do seu perfil para candidatar-se.");
+      return;
+    }
+
+    // 3️⃣ Envia a candidatura
+    await enviarCandidatura({ idCurso: cursoId });
+
+    // 4️⃣ Toast de sucesso
     toast.success("Candidatura enviada com sucesso!");
     router.push("/user/candidaturas");
+    
   } catch (error: any) {
-    const errorMessage =
-      error?.message || "Erro ao enviar candidatura. Tente novamente.";
-    toast.error(errorMessage);
+    // 5️⃣ Tratamento de erros do backend
+    console.error("Erro ao candidatar-se:", error);
+    toast.error(error?.message || "Erro ao enviar candidatura. Tente novamente.");
   }
 };
-
 
   if (loading) {
     return (
@@ -181,7 +188,7 @@ const CursoCandidatura = () => {
               <div className="flex flex-col items-end mb-3">
               </div>
               <button
-                onClick={handleCandidatarSe}
+                onClick={() => handleCandidatarSe(curso.id)}
                 className="px-6 py-3 bg-brand-main text-white font-semibold rounded-lg hover:bg-brand-main/70 transition-colors duration-300 flex items-center"
               >
                 Candidatar-se
@@ -325,7 +332,7 @@ const CursoCandidatura = () => {
         {/* CTA Final */}
         <div className="text-center mt-10">
           <button
-            onClick={handleCandidatarSe}
+            onClick={() => handleCandidatarSe(curso.id)}
             className="px-8 py-4 bg-brand-main text-white font-bold rounded-lg hover:bg-brand-lime transition-colors duration-300 text-lg"
           >
             Quero me Candidatar Agora

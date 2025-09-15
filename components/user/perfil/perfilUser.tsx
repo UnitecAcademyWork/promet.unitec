@@ -8,9 +8,7 @@ import Experiencia from "./tabs/ExperienceTab";
 import Formacao from "./tabs/Formacao";
 import VisaoGeral from "./tabs/OverviewTab";
 import { UserData } from "../types/user-types";
-import CandidatoHeader from "./UserHeader";
-import { getCandidato } from "../../../lib/candidato-actions";
-import { Candidato } from "../../../lib/candidato-actions";
+import { getCandidato, Candidato } from "../../../lib/candidato-actions";
 
 const tabs = ["Dados Pessoais", "Visão Geral", "Experiência", "Formação"];
 
@@ -25,7 +23,6 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(true);
   const [candidato, setCandidato] = useState<Candidato | null>(null);
 
-  // Buscar candidato no client
   useEffect(() => {
     const fetchData = async () => {
       const data = await getCandidato();
@@ -34,8 +31,8 @@ export default function ProfilePage() {
     fetchData();
   }, []);
 
-  const renderTabContent = () => {
-    switch (activeTab) {
+  const renderTabContent = (tab: string) => {
+    switch (tab) {
       case "Dados Pessoais":
         return <DadosPessoais />;
       case "Visão Geral":
@@ -57,7 +54,6 @@ export default function ProfilePage() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      {/* Header com dados do candidato */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -66,19 +62,12 @@ export default function ProfilePage() {
         {/* <CandidatoHeader candidato={candidato} /> */}
       </motion.div>
 
-      {/* Tabs */}
-      <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
-
-      {/* Conteúdo das tabs */}
-      <motion.div
-        key={activeTab}
-        initial={{ opacity: 0, x: 40 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.4 }}
-        className="mt-6"
-      >
-        {renderTabContent()}
-      </motion.div>
+      <Tabs
+        tabs={tabs}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        renderTabContent={renderTabContent} 
+      />
     </div>
   );
 }
