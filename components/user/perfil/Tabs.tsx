@@ -4,22 +4,19 @@ import { useState, useEffect, ReactNode } from "react";
 
 type TabsProps = {
   tabs: string[];
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
   showCount?: boolean;
   counts?: Record<string, number>;
-  renderTabContent: (tab: string) => ReactNode; // 🔑 nova prop para renderizar o conteúdo
+  renderTabContent: (tab: string) => ReactNode;
 };
 
 export default function Tabs({
   tabs,
-  activeTab,
-  setActiveTab,
   showCount = false,
   counts = {},
   renderTabContent,
 }: TabsProps) {
   const [isMobile, setIsMobile] = useState(false);
+  const [openTabs, setOpenTabs] = useState<string[]>([]); // 🔑 agora é array
 
   // Detecta tamanho da tela
   useEffect(() => {
@@ -29,10 +26,18 @@ export default function Tabs({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const toggleTab = (tab: string) => {
+    setOpenTabs((prev) =>
+      prev.includes(tab)
+        ? prev.filter((t) => t !== tab) // fecha se já estiver aberto
+        : [...prev, tab] // abre junto com os outros
+    );
+  };
+
   return (
     <div className={`flex flex-col w-full ${isMobile ? "space-y-2" : "space-y-3"}`}>
       {tabs.map((tab) => {
-        const isActive = activeTab === tab;
+        const isActive = openTabs.includes(tab);
 
         return (
           <div
@@ -41,7 +46,7 @@ export default function Tabs({
           >
             {/* Cabeçalho do Accordion */}
             <button
-              onClick={() => setActiveTab(isActive ? "" : tab)}
+              onClick={() => toggleTab(tab)}
               className={`w-full flex justify-between items-center px-5 py-3 font-medium text-left transition-all duration-300 ${
                 isActive
                   ? "bg-brand-main text-white"

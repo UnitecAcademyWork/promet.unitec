@@ -64,8 +64,6 @@ export default function ProfilePage() {
 
       <Tabs
         tabs={tabs}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
         renderTabContent={renderTabContent} 
       />
     </div>
