@@ -8,7 +8,7 @@ type TabsProps = {
   setActiveTab: (tab: string) => void;
   showCount?: boolean;
   counts?: Record<string, number>;
-  renderTabContent: (tab: string) => ReactNode;
+  renderTabContent: (tab: string) => ReactNode; // 🔑 nova prop para renderizar o conteúdo
 };
 
 export default function Tabs({
@@ -41,12 +41,11 @@ export default function Tabs({
           >
             {/* Cabeçalho do Accordion */}
             <button
-              // 👇 Se já estiver ativo, não fecha (mantém aberto)
-              onClick={() => setActiveTab(tab)}
+              onClick={() => setActiveTab(isActive ? "" : tab)}
               className={`w-full flex justify-between items-center px-5 py-3 font-medium text-left transition-all duration-300 ${
                 isActive
                   ? "bg-brand-main text-white"
-                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  : "bg-white text-brand-main dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
               }`}
             >
               <span className="flex items-center gap-2">
