@@ -1,6 +1,11 @@
 "use client";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, ReactNode } from "react";
+import { toast, Toaster } from "react-hot-toast";
+import { Candidato, getCandidato } from "../../../lib/candidato-actions";
+import { getFormations } from "../../../lib/formation-actions";
+import ApplyButton from "./tabs/buttonAplly";
 
 type TabsProps = {
   tabs: string[];
@@ -9,14 +14,16 @@ type TabsProps = {
   renderTabContent: (tab: string) => ReactNode;
 };
 
-export default function Tabs({
+export default function TabsWithApply({
   tabs,
   showCount = false,
   counts = {},
   renderTabContent,
 }: TabsProps) {
   const [isMobile, setIsMobile] = useState(false);
-  const [openTabs, setOpenTabs] = useState<string[]>([]); // 🔑 agora é array
+  const [openTabs, setOpenTabs] = useState<string[]>([tabs[0]]);
+  const [isCandidate, setIsCandidate] = useState(false);
+  const [hasFormation, setHasFormation] = useState(false);
 
   // Detecta tamanho da tela
   useEffect(() => {
@@ -26,16 +33,61 @@ export default function Tabs({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Verifica candidato e formações
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const candidato: Candidato | null = await getCandidato();
+        setIsCandidate(!!candidato);
+        if (!candidato) {
+          toast.error("Preencha seus dados pessoais antes de se candidatar!");
+        }
+
+        const formations = await getFormations();
+        const hasForm = !!formations && formations.length > 0;
+        setHasFormation(hasForm);
+
+        if (!hasForm) {
+          toast.error("Coloque uma Formação!");
+        }
+      } catch (err: any) {
+        // Caso de erro 403/404 ou outro
+        if (err?.response?.status === 403 || err?.response?.status === 404) {
+          toast.error("Coloque uma Formação!");
+        } else {
+          toast.error("Erro ao carregar dados");
+        }
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const toggleTab = (tab: string) => {
     setOpenTabs((prev) =>
       prev.includes(tab)
-        ? prev.filter((t) => t !== tab) // fecha se já estiver aberto
-        : [...prev, tab] // abre junto com os outros
+        ? prev.filter((t) => t !== tab)
+        : [...prev, tab]
     );
+  };
+
+  const handleApply = () => {
+    if (!isCandidate) {
+      toast.error("Preencha seus dados pessoais antes de se candidatar!");
+      return;
+    }
+    if (!hasFormation) {
+      toast.error("Preencha o formulário de Formação antes de se candidatar!");
+      return;
+    }
+    toast.success("Você pode se candidatar agora!");
+    // Aqui você pode redirecionar ou abrir modal
   };
 
   return (
     <div className={`flex flex-col w-full ${isMobile ? "space-y-2" : "space-y-3"}`}>
+      <Toaster position="top-right" reverseOrder={false} />
+
       {tabs.map((tab) => {
         const isActive = openTabs.includes(tab);
 
@@ -94,6 +146,13 @@ export default function Tabs({
           </div>
         );
       })}
+
+      {/* Botão Candidatar-se no final */}
+      <div className="mt-4 flex justify-end">
+        <ApplyButton
+          isEnabled={isCandidate && hasFormation}
+          onClick={handleApply} href={""}        />
+      </div>
     </div>
   );
 }

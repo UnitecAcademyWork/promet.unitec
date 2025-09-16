@@ -42,7 +42,6 @@ export async function addFormation(data: Formation) {
     throw err;
   }
 }
-
 // 📋 Listar todas formações
 export async function getFormations() {
   try {
@@ -51,14 +50,27 @@ export async function getFormations() {
       headers: await authHeaders(),
     });
 
-    if (!res.ok) throw new Error("Erro ao buscar formações");
+    const data = await res.json();
 
-    return await res.json();
-  } catch (err) {
+    if (!res.ok) {
+      // Se a API retornou mensagem, use ela
+      const message = data?.message || "Erro ao buscar formações";
+      throw new Error(message);
+    }
+
+    // Se a API retornou apenas mensagem de "Nenhuma formação encontrada", retorna array vazio
+    if (data?.message && data.message.includes("Nenhuma formação")) {
+      return [];
+    }
+
+    return data; // array de formações
+  } catch (err: any) {
     console.error("getFormations error:", err);
-    throw err;
+    // Mantém a mensagem original do erro para usar no toast
+    throw new Error(err?.message || "Erro ao buscar formações");
   }
 }
+
 
 // ✏️ Atualizar formação
 export async function updateFormation(id: string, data: Formation) {

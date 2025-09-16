@@ -45,79 +45,87 @@ export default function Experiencia({ isEditing }: ExperienciaProps) {
     const result = await getExperiences();
     const dataArray = result?.data || [];
 
-    if (result?.success && dataArray.length > 0) {
-      const formatted: Experience[] = dataArray.map((exp: any) => ({
-        id: exp.id,
-        position: exp.cargo,
-        company: exp.organizacao,
-        startDate: exp.dataInicio,
-        endDate: exp.dataFim || undefined,
-        current: !exp.dataFim,
-        description: exp.descricao || undefined,
-      }));
-      setExperiences(formatted);
-    } else if (result?.success && dataArray.length === 0) {
+    if (!result.success) {
+      // Mostra toast apenas aqui
+      toast.error(result.error || "Preencha seus dados pessoais!");
+      setShowForm(true);
+      setExperiences([]);
+      return;
+    }
+
+    if (dataArray.length === 0) {
       toast.error("Ainda sem Experiências");
       setShowForm(true);
-    } else if (!result?.success) {
-      setError(result.error || "Erro ao carregar experiências");
-      setShowForm(true);
+      setExperiences([]);
+      return;
     }
+
+    const formatted: Experience[] = dataArray.map((exp: any) => ({
+      id: exp.id,
+      position: exp.cargo,
+      company: exp.organizacao,
+      startDate: exp.dataInicio,
+      endDate: exp.dataFim || undefined,
+      current: !exp.dataFim,
+      description: exp.descricao || undefined,
+    }));
+
+    setExperiences(formatted);
   } catch (err: any) {
     console.error("Erro ao carregar experiências:", err);
 
-    
-    if (err?.response?.status === 404) {
-      toast.error("Ainda sem Experiências");
-      setShowForm(true);
-    } else {
-      setError("Erro ao carregar experiências");
-      setShowForm(true);
-    }
+    // Mostra toast apenas aqui
+    toast.error("Erro ao carregar experiências");
+    setShowForm(true);
+    setExperiences([]);
   } finally {
     setLoading(false);
   }
 };
 
 
+
+
   const handleAddExperience = async (exp: Experience) => {
-    try {
-      setError(null);
-      const serverExperience = {
-        organizacao: exp.company,
-        cargo: exp.position,
-        descricao: exp.description || "",
-        dataInicio: exp.startDate,
-        dataFim: exp.current ? undefined : exp.endDate,
-      };
-      const result = await addExperience(serverExperience);
+  try {
+    const serverExperience = {
+      organizacao: exp.company,
+      cargo: exp.position,
+      descricao: exp.description || "",
+      dataInicio: exp.startDate,
+      dataFim: exp.current ? undefined : exp.endDate,
+    };
 
-      if (result.success) {
-        await loadExperiences();
-        setShowForm(false);
-      } else {
-        setError(result.error || "Erro ao adicionar experiência");
+    await toast.promise(
+      addExperience(serverExperience).then((result) => {
+        if (!result.success) throw new Error(result.error || "Erro ao adicionar experiência");
+        return loadExperiences().then(() => setShowForm(false));
+      }),
+      {
+        loading: "Adicionando experiência...",
+        success: "Experiência adicionada!",
+        error: (err) => err.message,
       }
-    } catch (err) {
-      setError("Erro ao adicionar experiência");
-      console.error(err);
-    }
-  };
+    );
+  } catch (err: any) {
+    console.error(err);
+  }
+};
 
-  const handleRemoveExperience = async (id: number) => {
-    try {
-      setError(null);
-      const result = await deleteExperience(id.toString());
-      if (result.success) {
-        setExperiences((prev) => prev.filter((exp) => exp.id !== id));
-      } else {
-        setError(result.error || "Erro ao remover experiência");
-      }
-    } catch (err) {
-      setError("Erro ao remover experiência");
-      console.error(err);
+const handleRemoveExperience = async (id: number) => {
+  await toast.promise(
+    deleteExperience(id.toString()).then((result) => {
+      if (!result.success) throw new Error(result.error || "Erro ao remover experiência");
+      setExperiences((prev) => prev.filter((exp) => exp.id !== id));
+    }),
+    {
+      loading: "Removendo experiência...",
+      success: "Experiência removida!",
+      error: (err) => err.message,
     }
-  };
+  );
+};
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,7 +159,7 @@ export default function Experiencia({ isEditing }: ExperienciaProps) {
     return (
       <div className="p-6 bg-white rounded-2xl shadow-lg border border-gray-100 dark:bg-gray-900 dark:border-gray-800">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+          <h2 className="text-2xl font-bold text-brand-main dark:text-white">
             Experiência Profissional
           </h2>
         </div>
@@ -175,7 +183,7 @@ export default function Experiencia({ isEditing }: ExperienciaProps) {
             onClick={() => setShowForm(true)}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+            className="flex items-center gap-2 px-4 py-2 bg-brand-main text-white rounded-lg hover:bg-blue-600 transition"
           >
             <Plus className="w-4 h-4" />
             Adicionar Experiência
@@ -227,8 +235,8 @@ export default function Experiencia({ isEditing }: ExperienciaProps) {
               </div>
 
               <div className="flex gap-2">
-                <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:text-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600">Cancelar</button>
-                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">Adicionar Experiência</button>
+                <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 text-white bg-brand-lime rounded-lg hover:bg-gray-300 dark:text-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600">Cancelar</button>
+                <button type="submit" className="px-4 py-2 bg-brand-main text-white rounded-lg hover:bg-blue-600 transition">Adicionar Experiência</button>
               </div>
             </form>
           </motion.div>

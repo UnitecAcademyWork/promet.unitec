@@ -11,31 +11,28 @@ export type NovoCandidato = {
   nivelAcademico: string;
   contacto: string;
 };
-
 export async function adicionarCandidato(candidato: NovoCandidato) {
   const token = (await cookies()).get("auth_token")?.value;
 
   try {
-    const res = await fetch(
-      routes.adicionarcandidato,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json", 
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(candidato),
-      }
-    );
+    const res = await fetch(routes.adicionarcandidato, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json", 
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(candidato),
+    });
 
-    if (!res.ok) {
-      throw new Error(`Erro ao adicionar candidato: ${res.status}`);
-    }
+    const data = await res.json();
 
-    return await res.json();
+    return {
+      success: res.ok && data.success !== false,
+      ...data,
+    };
   } catch (error) {
     console.error("Erro no adicionarCandidato:", error);
-    throw error;
+    return { success: false, error: "Erro ao adicionar candidato" };
   }
 }

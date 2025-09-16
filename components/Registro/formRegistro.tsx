@@ -133,7 +133,7 @@ export default function RegisterForm() {
     try {
       const { confirmPassword, ...userData } = form;
       await registerUser(userData);
-      toast.success("Conta criada com sucesso! 🎉");
+      toast.success("Conta criada com sucesso!");
 
       setForm({ nome: "", apelido: "", email: "", username: "", password: "", confirmPassword: "" });
       setAcceptedTerms(false);

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Moon, Sun, Menu, X, Briefcase, GraduationCap, Info } from "lucide-react";
+import { Moon, Sun, Menu, X, Briefcase, GraduationCap, Info, User, FileText, LogOut } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "/public/images/prometlogo.png";
 import Image from "next/image";
@@ -13,6 +13,7 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [activeLink, setActiveLink] = useState("Início");
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
   const menuItems = [
     { name: "Início", href: "/", icon: Briefcase },
@@ -82,6 +83,10 @@ const Navbar = () => {
     setIsMobileOpen(false);
   };
 
+  const toggleProfileDropdown = () => {
+    setIsProfileDropdownOpen(!isProfileDropdownOpen);
+  };
+
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-sm">
       <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
@@ -125,8 +130,49 @@ const Navbar = () => {
               </Link>
             </>
           ) : (
-            <LogoutButton />
-          )}
+            <div className="flex items-center space-x-4">
+              {/* Dropdown de perfil */}
+              <LogoutButton />
+              <div className="relative">
+                <button
+                  onClick={toggleProfileDropdown}
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+                >
+                  <User className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+                </button>
+                
+                {/* Dropdown menu */}
+                <AnimatePresence>
+                  {isProfileDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 z-50 border border-gray-200 dark:border-gray-700"
+                    >
+                      <Link
+                        href="/user/perfil"
+                        className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                        onClick={() => setIsProfileDropdownOpen(false)}
+                      >
+                        <User className="w-4 h-4 mr-2" />
+                        <span>Meu Perfil</span>
+                      </Link>
+                      <Link
+                        href="/user/candidaturas"
+                        className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                        onClick={() => setIsProfileDropdownOpen(false)}
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        <span>Candidaturas</span>
+                      </Link>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          )} :
 
           {/* Botão de dark mode */}
           {/* <button
@@ -212,6 +258,32 @@ const Navbar = () => {
                       </li>
                     );
                   })}
+                  
+                  {/* Links de perfil na versão mobile */}
+                  {isLoggedIn && (
+                    <>
+                      <li className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                        <Link
+                          href="/perfil"
+                          onClick={() => setIsMobileOpen(false)}
+                          className="flex items-center px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                        >
+                          <User className="w-5 h-5 mr-3" />
+                          <span className="font-medium">Meu Perfil</span>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          href="/minhas-candidaturas"
+                          onClick={() => setIsMobileOpen(false)}
+                          className="flex items-center px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                        >
+                          <FileText className="w-5 h-5 mr-3" />
+                          <span className="font-medium">Minhas Candidaturas</span>
+                        </Link>
+                      </li>
+                    </>
+                  )}
                 </ul>
               </nav>
             </motion.div>

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { adicionarCandidato } from "../../../../lib/candidatura";
 import { getCandidato, Candidato } from "../../../../lib/candidato-actions";
+import toast from "react-hot-toast";
 
 // Províncias de Moçambique
 const PROVINCIAS = [
@@ -98,24 +99,34 @@ useEffect(() => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
+  e.preventDefault();
 
-    try {
+  if (!isEditing) return; // não salvar se não estiver editando
+
+  setIsSaving(true);
+
+  await toast.promise(
+    (async () => {
       const res = await adicionarCandidato(data);
-      console.log("Resposta da API:", res);
-
-      setShowSuccess(true);
-      setTimeout(() => {
-        setShowSuccess(false);
-        setIsEditing(false);
-      }, 2000);
-    } catch (err) {
-      console.error("Erro ao salvar candidato:", err);
-    } finally {
-      setIsSaving(false);
+      if (!res.success) throw new Error(res.error || "Erro ao salvar dados");
+      return res;
+    })(),
+    {
+      loading: "Salvando dados...",
+      success: "Dados salvos com sucesso!",
+      error: (err) => err.message || "Erro ao salvar dados",
     }
-  };
+  );
+
+  setIsSaving(false);
+  setShowSuccess(true);
+
+  setTimeout(() => {
+    setShowSuccess(false);
+    setIsEditing(false);
+  }, 2000);
+};
+
 
   // Verifica se todos os dados do candidato estão preenchidos
   const isCandidateDataComplete = Object.values(data).every((value) => value.trim() !== "");
@@ -133,7 +144,7 @@ useEffect(() => {
           <div className="p-2 bg-brand-main rounded-xl shadow-md">
             <User className="text-white w-6 h-6" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+          <h2 className="text-2xl font-bold text-brand-main dark:text-white">
             Dados Pessoais
           </h2>
         </div>
@@ -197,25 +208,7 @@ useEffect(() => {
               disabled={!isEditing}
             />
           </div>
-
-          {/* Morada */}
-          <div className="flex flex-col gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border">
-            <label className="text-sm font-medium flex items-center gap-2">
-              <Home className="w-4 h-4 text-green-500" />
-              Bairro
-            </label>
-            <input
-              type="text"
-              value={data.morada}
-              onChange={(e) => handleChange("morada", e.target.value)}
-              className="mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500"
-              placeholder="Polana Cimento"
-              required
-              disabled={!isEditing}
-            />
-          </div>
-
-          {/* Província */}
+{/* Província */}
           <div className="flex flex-col gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border">
             <label className="text-sm font-medium flex items-center gap-2">
               <Map className="w-4 h-4 text-purple-500" />
@@ -236,6 +229,25 @@ useEffect(() => {
               ))}
             </select>
           </div>
+          
+          {/* Morada */}
+          <div className="flex flex-col gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border">
+            <label className="text-sm font-medium flex items-center gap-2">
+              <Home className="w-4 h-4 text-green-500" />
+              Bairro
+            </label>
+            <input
+              type="text"
+              value={data.morada}
+              onChange={(e) => handleChange("morada", e.target.value)}
+              className="mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500"
+              placeholder="Polana Cimento"
+              required
+              disabled={!isEditing}
+            />
+          </div>
+
+          
 
           {/* Data de Nascimento */}
           <div className="flex flex-col gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border">
@@ -324,7 +336,7 @@ useEffect(() => {
   )}
 
   {/* Botão Candidatar-se sempre visível */}
-  {isClient && (
+  {/* {isClient && (
     <Link href="/cursos" className="w-full md:w-auto">
       <motion.button
         type="button"
@@ -341,7 +353,7 @@ useEffect(() => {
         Candidatar-se
       </motion.button>
     </Link>
-  )}
+  )} */}
 </div>
 
       </form>

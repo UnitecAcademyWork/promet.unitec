@@ -110,35 +110,49 @@ export async function updateExperience(id: string, data: Experience): Promise<Ap
     };
   }
 }
-
-// 📋 Listar todas experiências do candidato
 export async function getExperiences(): Promise<ApiResponse<Experience[]>> {
-      const token = (await cookies()).get("auth_token")?.value;
+  const token = (await cookies()).get("auth_token")?.value;
 
   try {
-    const res = await fetch(`${API_URL}/experiencias-candidato`, {
+    const res = await fetch(routes.experiencias, {
       method: "GET",
-       headers: {
+      headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
-      }, 
+      },
     });
 
-    if (!res.ok) {
-      throw new Error(`Erro ${res.status}: ${res.statusText}`);
+    const data = await res.json();
+
+    // Caso a API retorne mensagem de candidato não associado
+    if (data?.message === "Candidato não associado ao usuário!") {
+      return {
+        success: false,
+        error: "Preencha os seus dados pessoais!",
+        data: [],
+      };
     }
 
-    const data = await res.json();
+    // Caso o fetch não esteja ok, lançamos erro
+    if (!res.ok) {
+      return {
+        success: false,
+        error: data?.message || `Erro ${res.status}: ${res.statusText}`,
+        data: [],
+      };
+    }
+
     return { success: true, data };
   } catch (err) {
     console.error("getExperiences error:", err);
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: err instanceof Error ? err.message : "Erro desconhecido ao buscar experiências",
-      data: [] 
+      data: [],
     };
   }
 }
+
 
 // ❌ Deletar experiência por ID
 export async function deleteExperience(id: string): Promise<ApiResponse> {

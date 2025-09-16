@@ -45,63 +45,84 @@ export default function Formacao() {
     duracao: "",
   });
 
-  // carregar formações do backend
   useEffect(() => {
-  (async () => {
-    try {
-      const data = await getFormations();
+    (async () => {
+      try {
+        const data = await getFormations();
 
-      // Se vier null ou vazio, abre o formulário automaticamente
-      if (!data || data.length === 0) {
+        // Se vier null, vazio ou sem permissao, dispara toast
+        if (!data || data.length === 0) {
+          toast.error("Coloque uma Formação!");
+          setShowForm(true);
+          setFormacoes([]);
+          return;
+        }
+
+        setFormacoes(data);
+      } catch (err: any) {
+        // Se o fetch lançar erro, verifica status
+        const status = err?.response?.status;
+        if (status === 403 || status === 404) {
+          toast.error("Coloque uma Formação!");
+        } else {
+          toast.error(err?.message || "Erro ao carregar formações");
+        }
         setShowForm(true);
+        setFormacoes([]);
       }
+    })();
+  }, []);
 
-      setFormacoes(data || []);
-    } catch (err) {
-      toast.error("Erro ao carregar formações");
-      // mesmo em caso de erro, abrir o formulário
-      setShowForm(true);
-    }
-  })();
-}, []);
 
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (editId) {
-      // atualizar
-      try {
-        const updated = await updateFormation(editId, form);
+  if (editId) {
+    // atualizar formação
+    setShowForm(false);
+    await toast.promise(
+      updateFormation(editId, form).then((updated) => {
         setFormacoes((prev) =>
           prev.map((f) => (f.id === editId ? { ...updated } : f))
         );
-        toast.success("Formação atualizada!");
         setEditId(null);
-      } catch (err) {
-        toast.error("Erro ao atualizar formação");
+      }),
+      {
+        loading: "Atualizando formação...",
+        success: "Formação atualizada!",
+        error: "Erro ao atualizar formação",
       }
-    } else {
-      // adicionar
-      try {
-        const created = await addFormation(form);
-        setFormacoes([...formacoes, created]);
-        toast.success("Formação adicionada!");
-      } catch (err) {
-        toast.error("Erro ao adicionar formação");
-      }
-    }
+    );
+  } else {
+    // adicionar formação
+    // adicionar formação
+      setShowForm(false);
+      await toast.promise(
+        addFormation(form).then((created) => {
+          setFormacoes((prev) => [...prev, created]); 
+          // 👉 ou [created, ...prev] se quiser mostrar no topo
+        }),
+        {
+          loading: "Adicionando formação...",
+          success: "Formação adicionada!",
+          error: "Erro ao adicionar formação",
+        }
+      );
 
-    setForm({
-      nome: "",
-      local: "",
-      dataInicio: "",
-      dataFim: "",
-      descricao: "",
-      duracao: "",
-    });
-    setShowForm(false);
-  };
+  }
+
+  // Resetar form
+  setForm({
+    nome: "",
+    local: "",
+    dataInicio: "",
+    dataFim: "",
+    descricao: "",
+    duracao: "",
+  });
+};
+
 
   const handleDelete = async (id: string) => {
     try {
@@ -136,7 +157,7 @@ export default function Formacao() {
       <Toaster position="top-right" />
 
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+        <h2 className="text-2xl font-bold text-brand-main dark:text-white">
           Formação Acadêmica
         </h2>
 
@@ -145,7 +166,7 @@ export default function Formacao() {
             onClick={() => setShowForm(true)}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+            className="flex items-center gap-2 px-4 py-2 bg-brand-main text-white rounded-lg hover:bg-blue-800 transition"
           >
             <Plus className="w-4 h-4" />
             Adicionar Formação
@@ -188,7 +209,7 @@ export default function Formacao() {
                   </label>
                   <input
                     type="text"
-                    placeholder="Ex: Inglês para Iniciantes"
+                    placeholder=""
                     value={form.nome}
                     onChange={(e) => setForm({ ...form, nome: e.target.value })}
                     required
@@ -202,7 +223,7 @@ export default function Formacao() {
                   </label>
                   <input
                     type="text"
-                    placeholder="Ex: Instituto de Línguas"
+                    placeholder=""
                     value={form.local}
                     onChange={(e) =>
                       setForm({ ...form, local: e.target.value })
@@ -280,13 +301,13 @@ export default function Formacao() {
                     setShowForm(false);
                     setEditId(null);
                   }}
-                  className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:text-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
+                  className="px-4 py-2 text-white bg-brand-lime rounded-lg hover:bg-gray-300 dark:text-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+                  className="px-4 py-2 rounded-xl font-semibold bg-brand-main text-white shadow-md hover:bg-blue-900 transition"
                 >
                   {editId ? "Salvar Alterações" : "Adicionar Formação"}
                 </button>
@@ -304,13 +325,13 @@ export default function Formacao() {
             <p className="text-sm">Clique em Adicionar Formação para começar.</p>
           </div>
         ) : (
-          formacoes.map((f) => (
-            <motion.div
-              key={f.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="p-4 bg-white border rounded-xl shadow-sm flex justify-between items-start dark:bg-gray-800"
-            >
+          formacoes.map((f, index) => (
+          <motion.div
+            key={f.id || `form-${index}`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 bg-white border rounded-xl shadow-sm flex justify-between items-start dark:bg-gray-800"
+          >
               <div className="flex items-start gap-3">
                 <div className="p-2 bg-green-100 rounded-lg dark:bg-green-900/30">
                   <GraduationCap className="w-5 h-5 text-green-600 dark:text-green-400" />

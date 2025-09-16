@@ -9,8 +9,9 @@ import Formacao from "./tabs/Formacao";
 import VisaoGeral from "./tabs/OverviewTab";
 import { UserData } from "../types/user-types";
 import { getCandidato, Candidato } from "../../../lib/candidato-actions";
+import Idiomas from "./tabs/Idiomas";
 
-const tabs = ["Dados Pessoais", "Visão Geral", "Experiência", "Formação"];
+const tabs = ["Dados Pessoais", "Idiomas", "Experiência", "Formação"];
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState(tabs[0]);
@@ -35,12 +36,9 @@ export default function ProfilePage() {
     switch (tab) {
       case "Dados Pessoais":
         return <DadosPessoais />;
-      case "Visão Geral":
+      case "Idiomas":
         return (
-          <VisaoGeral
-            userData={userData}
-            isEditing={isEditing}
-            setUserData={setUserData}
+          <Idiomas
           />
         );
       case "Experiência":
@@ -54,14 +52,6 @@ export default function ProfilePage() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className=""
-      >
-        {/* <CandidatoHeader candidato={candidato} /> */}
-      </motion.div>
-
       <Tabs
         tabs={tabs}
         renderTabContent={renderTabContent} 
