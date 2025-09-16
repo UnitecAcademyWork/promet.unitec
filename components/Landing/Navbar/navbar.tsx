@@ -172,7 +172,7 @@ const Navbar = () => {
                 </AnimatePresence>
               </div>
             </div>
-          )} :
+          )}
 
           {/* Botão de dark mode */}
           {/* <button

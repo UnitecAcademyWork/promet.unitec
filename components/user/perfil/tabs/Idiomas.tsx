@@ -1,12 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import { toast, Toaster } from "react-hot-toast";
-import { ChevronDown, Edit2, Trash2, Plus, Check, X, Languages } from "lucide-react";
-import { Idioma, NovoIdioma, getIdiomas, deleteIdioma, addUserIdiomas } from "../../../../lib/idioma-actions";
+import { ChevronDown, Plus, Check, X, Languages } from "lucide-react";
+import { Idioma, NovoIdioma, addUserIdiomas } from "../../../../lib/idioma-actions";
 
 export default function Idiomas() {
   const [idiomas, setIdiomas] = useState<Idioma[]>([]);
-  const [loading, setLoading] = useState(true);
   const [form, setForm] = useState<NovoIdioma>({ nome: "", fluencia: "" });
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showIdiomaDropdown, setShowIdiomaDropdown] = useState(false);
@@ -23,20 +22,18 @@ export default function Idiomas() {
     "Básico", "Intermediário", "Avançado", "Fluente", "Nativo"
   ];
 
+  // --- Carregar do localStorage ao montar ---
   useEffect(() => {
-    loadIdiomas();
+    const stored = localStorage.getItem("idiomas");
+    if (stored) {
+      setIdiomas(JSON.parse(stored));
+    }
   }, []);
 
-  const loadIdiomas = async () => {
-    setLoading(true);
-    const result = await getIdiomas();
-    if (result.success) {
-      setIdiomas(result.data);
-    } else {
-      toast.error(result.error || "Erro ao carregar idiomas");
-    }
-    setLoading(false);
-  };
+  // --- Atualiza localStorage sempre que idiomas mudarem ---
+  useEffect(() => {
+    localStorage.setItem("idiomas", JSON.stringify(idiomas));
+  }, [idiomas]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,41 +42,29 @@ export default function Idiomas() {
       return;
     }
 
-    // Para edição futura: se editingId existir, podemos implementar update
-    const novoIdioma = { nome: form.nome, fluencia: form.fluencia };
+    const novoIdioma = { nome: form.nome, fluencia: form.fluencia, id: Date.now() };
 
-await toast.promise(
-  addUserIdiomas([novoIdioma]), // agora existe
-  {
-    loading: "Salvando idioma...",
-    success: "Idioma adicionado com sucesso!",
-    error: (err) => err.message || "Erro ao salvar idioma",
-  }
-);
+    await toast.promise(
+      addUserIdiomas([novoIdioma]), // futuro: substituir por API real
+      {
+        loading: "Salvando idioma...",
+        success: "Idioma adicionado com sucesso!",
+        error: (err) => err.message || "Erro ao salvar idioma",
+      }
+    );
 
-// Atualizar lista imediatamente
-setIdiomas((prev) => [...prev, { ...novoIdioma, id: Date.now() }]);
-
+    // Atualizar estado e localStorage
+    setIdiomas(prev => [...prev, novoIdioma]);
     setForm({ nome: "", fluencia: "" });
     setEditingId(null);
     setShowIdiomaDropdown(false);
     setShowFluenciaDropdown(false);
   };
 
-  const handleEdit = (idioma: Idioma) => {
-    setForm({ nome: idioma.nome, fluencia: idioma.fluencia });
-    setEditingId(idioma.id);
-  };
-
-  const handleDelete = async (id: number) => {
+  const handleDelete = (id: number) => {
     if (!confirm("Deseja realmente deletar este idioma?")) return;
-    const result = await deleteIdioma(id);
-    if (result.success) {
-      toast.success("Idioma removido!");
-      setIdiomas((prev) => prev.filter((i) => i.id !== id));
-    } else {
-      toast.error(result.error || "Erro ao remover idioma");
-    }
+    setIdiomas(prev => prev.filter(i => i.id !== id));
+    toast.success("Idioma removido!");
   };
 
   const selectIdioma = (idioma: string) => {
@@ -104,9 +89,7 @@ setIdiomas((prev) => [...prev, { ...novoIdioma, id: Date.now() }]);
       <Toaster position="top-right" reverseOrder={false} />
 
       <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white flex items-center">
-        <span className="bg-brand-main bg-clip-text text-transparent">
-          Idiomas
-        </span>
+        <span className="bg-brand-main bg-clip-text text-transparent">Idiomas</span>
       </h2>
 
       <form onSubmit={handleSubmit} className="mb-8 space-y-4">
@@ -184,11 +167,7 @@ setIdiomas((prev) => [...prev, { ...novoIdioma, id: Date.now() }]);
         </div>
       </form>
 
-      {loading ? (
-        <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-main"></div>
-        </div>
-      ) : idiomas.length === 0 ? (
+      {idiomas.length === 0 ? (
         <div className="text-center py-8 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
           <Languages className="w-12 h-12 mx-auto mb-4 opacity-50" />
           <p className="text-gray-500 dark:text-gray-400">Nenhum idioma adicionado ainda.</p>
@@ -202,7 +181,7 @@ setIdiomas((prev) => [...prev, { ...novoIdioma, id: Date.now() }]);
               key={idioma.id}
               className="border border-gray-200 dark:border-gray-700 p-4 rounded-lg bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-sm flex justify-between items-center transition-all hover:shadow-md"
             >
-                            <div className="flex-1">
+              <div className="flex-1">
                 <p className="font-bold text-lg text-brand-main dark:text-brand-lime">{idioma.nome}</p>
                 <div className="flex items-center mt-1">
                   <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
@@ -221,23 +200,15 @@ setIdiomas((prev) => [...prev, { ...novoIdioma, id: Date.now() }]);
                   </span>
                 </div>
               </div>
-
-              {/* <div className="flex gap-2 ml-4">
-                <button
-                  onClick={() => handleEdit(idioma)}
-                  className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                  title="Editar idioma"
-                >
-                  <Edit2 size={18} />
-                </button>
+              <div className="flex gap-2 ml-4">
                 <button
                   onClick={() => handleDelete(idioma.id)}
                   className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                   title="Remover idioma"
                 >
-                  <Trash2 size={18} />
+                  <X size={18} />
                 </button>
-              </div> */}
+              </div>
             </div>
           ))}
         </div>
