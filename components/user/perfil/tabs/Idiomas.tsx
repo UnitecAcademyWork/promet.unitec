@@ -2,25 +2,23 @@
 import { useState, useEffect } from "react";
 import { toast, Toaster } from "react-hot-toast";
 import { ChevronDown, Edit2, Trash2, Plus, Check, X, Languages } from "lucide-react";
-import { Idioma, getIdiomas, updateIdioma, deleteIdioma, addUserIdioma } from "../../../../lib/idioma-actions";
+import { Idioma, NovoIdioma, getIdiomas, deleteIdioma, addUserIdiomas } from "../../../../lib/idioma-actions";
 
 export default function Idiomas() {
   const [idiomas, setIdiomas] = useState<Idioma[]>([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState<Omit<Idioma, "id">>({ nome: "", fluencia: "" });
+  const [form, setForm] = useState<NovoIdioma>({ nome: "", fluencia: "" });
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showIdiomaDropdown, setShowIdiomaDropdown] = useState(false);
   const [showFluenciaDropdown, setShowFluenciaDropdown] = useState(false);
 
-  // Lista de idiomas comuns
   const idiomasComuns = [
-    "Português", "Inglês", "Espanhol", "Francês", 
+    "Português", "Inglês", "Espanhol", "Francês",
     "Mandarim", "Changana","Cisena","Xichuwabu",
     "Elomwe","Macua","Nhungue","Tsonga","Chuwabo",
     "Makonde","Chisena","Ronga","Chiyao",
   ];
 
-  // Níveis de proficiência
   const niveisProficiencia = [
     "Básico", "Intermediário", "Avançado", "Fluente", "Nativo"
   ];
@@ -41,41 +39,32 @@ export default function Idiomas() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  if (!form.nome.trim() || !form.fluencia.trim()) {
-    toast.error("Selecione um idioma e um nível!");
-    return;
-  }
-
-  const userIdioma = {
-    idiomaId: idiomasComuns.indexOf(form.nome),
-    nivel: form.fluencia,
-  };
-
-  await toast.promise(
-    (async () => {
-      const result = await addUserIdioma(userIdioma);
-      if (!result.success) throw new Error(result.error || "Erro ao salvar idioma do usuário");
-      return result;
-    })(),
-    {
-      loading: "Salvando idioma...",
-      success: "Idioma adicionado com sucesso!",
-      error: (err) => err.message || "Erro ao salvar idioma",
+    e.preventDefault();
+    if (!form.nome.trim() || !form.fluencia.trim()) {
+      toast.error("Selecione um idioma e um nível!");
+      return;
     }
-  );
 
-  // Limpar form
-  setForm({ nome: "", fluencia: "" });
-  setEditingId(null);
-  setShowIdiomaDropdown(false);
-  setShowFluenciaDropdown(false);
+    // Para edição futura: se editingId existir, podemos implementar update
+    const novoIdioma = { nome: form.nome, fluencia: form.fluencia };
 
-  // Recarregar lista de idiomas do usuário
-  loadIdiomas();
-};
+await toast.promise(
+  addUserIdiomas([novoIdioma]), // agora existe
+  {
+    loading: "Salvando idioma...",
+    success: "Idioma adicionado com sucesso!",
+    error: (err) => err.message || "Erro ao salvar idioma",
+  }
+);
 
+// Atualizar lista imediatamente
+setIdiomas((prev) => [...prev, { ...novoIdioma, id: Date.now() }]);
+
+    setForm({ nome: "", fluencia: "" });
+    setEditingId(null);
+    setShowIdiomaDropdown(false);
+    setShowFluenciaDropdown(false);
+  };
 
   const handleEdit = (idioma: Idioma) => {
     setForm({ nome: idioma.nome, fluencia: idioma.fluencia });
@@ -99,7 +88,7 @@ export default function Idiomas() {
   };
 
   const selectNivel = (fluencia: string) => {
-    setForm({ ...form, fluencia: fluencia });
+    setForm({ ...form, fluencia });
     setShowFluenciaDropdown(false);
   };
 
@@ -124,30 +113,22 @@ export default function Idiomas() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Dropdown de Idiomas */}
           <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Idioma
-            </label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Idioma</label>
             <button
               type="button"
               onClick={() => setShowIdiomaDropdown(!showIdiomaDropdown)}
               className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:border-brand-main dark:hover:border-brand-lime transition-colors"
             >
               <span>{form.nome || "Selecione um idioma"}</span>
-              <ChevronDown 
-                size={16} 
-                className={`transform transition-transform ${showIdiomaDropdown ? 'rotate-180' : ''}`} 
-              />
+              <ChevronDown size={16} className={`transform transition-transform ${showIdiomaDropdown ? 'rotate-180' : ''}`} />
             </button>
-            
             {showIdiomaDropdown && (
               <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                 {idiomasComuns.map((idioma) => (
                   <div
                     key={idioma}
                     onClick={() => selectIdioma(idioma)}
-                    className={`px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                      form.nome === idioma ? 'bg-brand-main/10 text-brand-main dark:text-brand-lime' : ''
-                    }`}
+                    className={`px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${form.nome === idioma ? 'bg-brand-main/10 text-brand-main dark:text-brand-lime' : ''}`}
                   >
                     {idioma}
                   </div>
@@ -158,30 +139,22 @@ export default function Idiomas() {
 
           {/* Dropdown de Níveis */}
           <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Nível de Proficiência
-            </label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nível de Proficiência</label>
             <button
               type="button"
               onClick={() => setShowFluenciaDropdown(!showFluenciaDropdown)}
               className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:border-brand-main dark:hover:border-brand-lime transition-colors"
             >
               <span>{form.fluencia || "Selecione o nível"}</span>
-              <ChevronDown 
-                size={16} 
-                className={`transform transition-transform ${showFluenciaDropdown ? 'rotate-180' : ''}`} 
-              />
+              <ChevronDown size={16} className={`transform transition-transform ${showFluenciaDropdown ? 'rotate-180' : ''}`} />
             </button>
-            
             {showFluenciaDropdown && (
               <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
                 {niveisProficiencia.map((nivel) => (
                   <div
                     key={nivel}
                     onClick={() => selectNivel(nivel)}
-                    className={`px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                      form.fluencia === nivel ? 'bg-brand-main/10 text-brand-main dark:text-brand-lime' : ''
-                    }`}
+                    className={`px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${form.fluencia === nivel ? 'bg-brand-main/10 text-brand-main dark:text-brand-lime' : ''}`}
                   >
                     {nivel}
                   </div>
@@ -196,17 +169,7 @@ export default function Idiomas() {
             type="submit"
             className="flex items-center gap-2 bg-brand-main text-white px-4 py-2 rounded-lg hover:bg-brand-main/90 transition-colors font-medium"
           >
-            {editingId ? (
-              <>
-                <Check size={16} />
-                Atualizar
-              </>
-            ) : (
-              <>
-                <Plus size={16} />
-                Adicionar
-              </>
-            )}
+            {editingId ? (<><Check size={16} /> Atualizar</>) : (<><Plus size={16} /> Adicionar</>)}
           </button>
           
           {editingId && (
@@ -215,8 +178,7 @@ export default function Idiomas() {
               onClick={cancelEdit}
               className="flex items-center gap-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium"
             >
-              <X size={16} />
-              Cancelar
+              <X size={16} /> Cancelar
             </button>
           )}
         </div>
@@ -240,7 +202,7 @@ export default function Idiomas() {
               key={idioma.id}
               className="border border-gray-200 dark:border-gray-700 p-4 rounded-lg bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-sm flex justify-between items-center transition-all hover:shadow-md"
             >
-              <div className="flex-1">
+                            <div className="flex-1">
                 <p className="font-bold text-lg text-brand-main dark:text-brand-lime">{idioma.nome}</p>
                 <div className="flex items-center mt-1">
                   <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
@@ -259,7 +221,8 @@ export default function Idiomas() {
                   </span>
                 </div>
               </div>
-              <div className="flex gap-2 ml-4">
+
+              {/* <div className="flex gap-2 ml-4">
                 <button
                   onClick={() => handleEdit(idioma)}
                   className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
@@ -274,7 +237,7 @@ export default function Idiomas() {
                 >
                   <Trash2 size={18} />
                 </button>
-              </div>
+              </div> */}
             </div>
           ))}
         </div>

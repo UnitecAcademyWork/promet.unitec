@@ -1,4 +1,5 @@
-"use server"
+"use server";
+
 import { cookies } from "next/headers";
 import { routes } from "../config/routes";
 
@@ -8,9 +9,9 @@ export type Idioma = {
   fluencia: string;
 };
 
-export type UserIdioma = {
-  idiomaId: number;
-  nivel: string;
+export type NovoIdioma = {
+  nome: string;
+  fluencia: string;
 };
 
 export type ApiResponse<T> = {
@@ -21,80 +22,49 @@ export type ApiResponse<T> = {
 
 const API_URL = routes.backend_url;
 
-// POST idioma do usuário
-export async function addUserIdioma(userIdioma: UserIdioma): Promise<ApiResponse<UserIdioma>> {
+// GET - Lista de idiomas do candidato
+export async function getIdiomas(): Promise<ApiResponse<Idioma[]>> {
   try {
     const token = (await cookies()).get("auth_token")?.value;
+    const res = await fetch(`${API_URL}/candidatoIdiomas`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-    const res = await fetch(`${API_URL}/user-idiomas`, {
+    if (!res.ok) throw new Error(`Erro ${res.status}: ${res.statusText}`);
+    const data: Idioma[] = await res.json();
+    return { success: true, data };
+  } catch (err: any) {
+    console.error("getIdiomas error:", err);
+    return { success: false, data: [], error: err.message || "Erro ao carregar idiomas" };
+  }
+}
+// POST - Adicionar idiomas ao usuário (array)
+export async function addUserIdiomas(idiomas: { nome: string; fluencia: string }[]): Promise<ApiResponse<Idioma[]>> {
+  try {
+    const token = (await cookies()).get("auth_token")?.value;
+    const res = await fetch(`${API_URL}/candidatoIdiomas`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(userIdioma),
+      body: JSON.stringify({ idiomas }), // envia como { idiomas: [...] }
     });
 
     if (!res.ok) throw new Error(`Erro ${res.status}: ${res.statusText}`);
-
-    const data = await res.json();
+    const data: Idioma[] = await res.json();
     return { success: true, data };
   } catch (err: any) {
-    console.error("addUserIdioma error:", err);
-    return { success: false, data: {} as UserIdioma, error: err.message || "Erro ao adicionar idioma do usuário" };
+    console.error("addUserIdiomas error:", err);
+    return { success: false, data: [], error: err.message || "Erro ao adicionar idiomas do usuário" };
   }
 }
 
-// GET todos os idiomas
-export async function getIdiomas(): Promise<ApiResponse<Idioma[]>> {
+// DELETE - Remover idioma por id
+export async function deleteIdioma(id: number | string): Promise<ApiResponse<Record<string, never>>> {
   try {
     const token = (await cookies()).get("auth_token")?.value;
-    const res = await fetch(`${API_URL}/idiomas`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
 
-    if (!res.ok) throw new Error(`Erro ${res.status}: ${res.statusText}`);
-    const data = await res.json();
-    return { success: true, data };
-  } catch (err: any) {
-    console.error("getIdiomas error:", err);
-    return { success: false, data: [], error: err.message || "Erro ao buscar idiomas" };
-  }
-}
-
-// ADD ou UPDATE idioma
-export async function updateIdioma(idioma: Partial<Idioma> & { id?: number }): Promise<ApiResponse<Idioma>> {
-  try {
-    const token = (await cookies()).get("auth_token")?.value;
-    const method = idioma.id ? "PUT" : "POST";
-    const url = idioma.id ? `${API_URL}/idiomas/${idioma.id}` : `${API_URL}/idiomas`;
-
-    const res = await fetch(url, {
-      method,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(idioma),
-    });
-
-    if (!res.ok) throw new Error(`Erro ${res.status}: ${res.statusText}`);
-    const data = await res.json();
-    return { success: true, data };
-  } catch (err: any) {
-    console.error("updateIdioma error:", err);
-    return { success: false, data: {} as Idioma, error: err.message || "Erro ao atualizar idioma" };
-  }
-}
-
-// DELETE idioma
-export async function deleteIdioma(id: number | string): Promise<ApiResponse<{}>> {
-  try {
-    const token = (await cookies()).get("auth_token")?.value;
     const res = await fetch(`${API_URL}/idiomas/${id}`, {
       method: "DELETE",
       headers: {
