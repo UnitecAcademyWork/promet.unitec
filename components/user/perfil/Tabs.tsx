@@ -174,10 +174,6 @@ export default function TabsWithApply({
         />
       </div>
       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-4">
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="font-medium text-gray-800 dark:text-white">Progresso da Candidatura</h3>
-          <span className="text-sm font-semibold text-brand-main">{progress}%</span>
-        </div>
 
         {/* Lista de requisitos */}
         <div className="space-y-3">
