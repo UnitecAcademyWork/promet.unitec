@@ -6,6 +6,7 @@ import { toast, Toaster } from "react-hot-toast";
 import { Candidato, getCandidato } from "../../../lib/candidato-actions";
 import { getFormations } from "../../../lib/formation-actions";
 import ApplyButton from "./tabs/buttonAplly";
+import { useRouter } from "next/navigation";
 
 type TabsProps = {
   tabs: string[];
@@ -25,6 +26,8 @@ export default function TabsWithApply({
   const [isCandidate, setIsCandidate] = useState(false);
   const [hasFormation, setHasFormation] = useState(false);
 
+  const router = useRouter();
+
   // Detecta tamanho da tela
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -33,41 +36,34 @@ export default function TabsWithApply({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Verifica candidato e formações
+  // Função de checagem de status do usuário
+  const checkUserStatus = async () => {
+    try {
+      const candidato: Candidato | null = await getCandidato();
+      setIsCandidate(!!candidato);
+
+      const formations = await getFormations();
+      setHasFormation(!!formations && formations.length > 0);
+    } catch (err: any) {
+      // Apenas log, não interrompe o componente
+      console.error("Erro ao verificar status do usuário:", err);
+    }
+  };
+
+  // Checagem inicial e polling a cada 5 segundos
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const candidato: Candidato | null = await getCandidato();
-        setIsCandidate(!!candidato);
-        if (!candidato) {
-          toast.error("Preencha seus dados pessoais antes de se candidatar!");
-        }
+    checkUserStatus(); // primeira verificação
 
-        const formations = await getFormations();
-        const hasForm = !!formations && formations.length > 0;
-        setHasFormation(hasForm);
+    const interval = setInterval(() => {
+      checkUserStatus();
+    }, 5000); // a cada 5 segundos
 
-        if (!hasForm) {
-          toast.error("Coloque uma Formação!");
-        }
-      } catch (err: any) {
-        // Caso de erro 403/404 ou outro
-        if (err?.response?.status === 403 || err?.response?.status === 404) {
-          toast.error("Coloque uma Formação!");
-        } else {
-          toast.error("Erro ao carregar dados");
-        }
-      }
-    };
-
-    fetchData();
+    return () => clearInterval(interval);
   }, []);
 
   const toggleTab = (tab: string) => {
     setOpenTabs((prev) =>
-      prev.includes(tab)
-        ? prev.filter((t) => t !== tab)
-        : [...prev, tab]
+      prev.includes(tab) ? prev.filter((t) => t !== tab) : [...prev, tab]
     );
   };
 
@@ -80,8 +76,8 @@ export default function TabsWithApply({
       toast.error("Preencha o formulário de Formação antes de se candidatar!");
       return;
     }
-    toast.success("Você pode se candidatar agora!");
-    // Aqui você pode redirecionar ou abrir modal
+    toast.success("Redirecionando para cursos...");
+    router.push("/cursos");
   };
 
   return (
@@ -96,7 +92,6 @@ export default function TabsWithApply({
             key={tab}
             className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
           >
-            {/* Cabeçalho do Accordion */}
             <button
               onClick={() => toggleTab(tab)}
               className={`w-full flex justify-between items-center px-5 py-3 font-medium text-left transition-all duration-300 ${
@@ -110,16 +105,13 @@ export default function TabsWithApply({
                 {showCount && counts[tab] > 0 && (
                   <span
                     className={`text-xs px-2 py-1 rounded-full ${
-                      isActive
-                        ? "bg-white/20 text-white"
-                        : "bg-gray-300 dark:bg-gray-700"
+                      isActive ? "bg-white/20 text-white" : "bg-gray-300 dark:bg-gray-700"
                     }`}
                   >
                     {counts[tab]}
                   </span>
                 )}
               </span>
-
               <motion.span
                 animate={{ rotate: isActive ? 90 : 0 }}
                 transition={{ duration: 0.2 }}
@@ -129,7 +121,6 @@ export default function TabsWithApply({
               </motion.span>
             </button>
 
-            {/* Conteúdo expansível */}
             <AnimatePresence>
               {isActive && (
                 <motion.div
@@ -147,11 +138,12 @@ export default function TabsWithApply({
         );
       })}
 
-      {/* Botão Candidatar-se no final */}
       <div className="mt-4 flex justify-end">
         <ApplyButton
           isEnabled={isCandidate && hasFormation}
-          onClick={handleApply} href={""}        />
+          onClick={handleApply}
+          href="/cursos"
+        />
       </div>
     </div>
   );

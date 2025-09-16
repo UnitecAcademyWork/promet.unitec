@@ -120,7 +120,7 @@ const Navbar = () => {
                 href="/login"
                 className="px-4 py-2 rounded-lg border dark:border-brand-lime dark:text-white border-brand-main text-brand-main font-medium hover:bg-brand-main hover:text-white transition"
               >
-                Login
+                Entrar
               </Link>
               <Link
                 href="/registro"
