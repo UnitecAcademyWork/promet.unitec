@@ -39,18 +39,23 @@ export default function Formacao() {
   });
 
   const loadFormacoes = async () => {
-    try {
-      const data = await fetch("/api/formacoes").then(res => res.json());
-      if (data.error) {
-        toast.error(data.error);
-        setFormacoes([]);
-      } else {
-        setFormacoes(data || []);
-      }
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao carregar formações");
+  try {
+    const res = await fetch("/api/formacoes");
+    const data = await res.json();
+
+    // Certifica que formacoes sempre será array
+    if (Array.isArray(data)) {
+      setFormacoes(data);
+    } else {
+      setFormacoes([]);
+      console.error("Resposta inesperada:", data);
     }
-  };
+  } catch (err: any) {
+    toast.error(err.message || "Erro ao carregar formações");
+    setFormacoes([]);
+  }
+};
+
 
   useEffect(() => {
     loadFormacoes();
