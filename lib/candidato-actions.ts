@@ -48,6 +48,9 @@ export type Candidato = {
   numeroBi: string;
   nivelAcademico: string;
   contacto: string;
+  whatsapp: string;
+  genero: string;
+  idiomaNativo: string;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;

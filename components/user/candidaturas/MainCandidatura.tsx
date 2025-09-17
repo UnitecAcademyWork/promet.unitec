@@ -14,6 +14,9 @@ import {
   CreditCard,
   BookOpen,
   X,
+  GraduationCap,
+  RefreshCw,
+  AlertCircle,
 } from "lucide-react";
 import { Teste, getTestesByCandidatura } from "../../../lib/testes-actions";
 import Link from "next/link";
@@ -88,6 +91,27 @@ const MainCandidatura = () => {
       `Redirecionando para pagamento do teste de ${candidatura.cursos.nome} (${candidatura.cursos.precoTeste} MT)`
     );
     // aqui pode colocar o router.push("/pagamento/xxx") se já tiver a rota
+  };
+
+  const pagarCurso = (candidatura: Candidatura) => {
+    toast.success(
+      `Redirecionando para pagamento do curso ${candidatura.cursos.nome} (${candidatura.cursos.preco} MT)`
+    );
+    // aqui pode colocar o router.push("/pagamento/xxx") se já tiver a rota
+  };
+
+  const pagarNovaTentativa = (candidatura: Candidatura) => {
+    toast.success(
+      `Redirecionando para pagamento de nova tentativa do teste (${candidatura.cursos.precoTeste} MT)`
+    );
+    // lógica para pagar nova tentativa
+  };
+
+  const pagarRecorrencia = (candidatura: Candidatura) => {
+    toast.success(
+      `Redirecionando para pagamento de recurso/revisão (${candidatura.cursos.precoTeste * 0.5} MT)`
+    );
+    // lógica para pagar recurso/revisão (50% do valor do teste)
   };
 
   if (loading)
@@ -185,24 +209,89 @@ const MainCandidatura = () => {
                     </span>
                   </div>
 
-                  {/* Preço do teste + botão */}
-                  <div className="flex justify-between items-center mt-3">
-                    <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                      <CreditCard className="w-4 h-4 text-green-500" />
-                      <span>
-                        Teste:{" "}
-                        <span className="font-semibold">
-                          {c.cursos.precoTeste} MT
+                  {/* Preço do teste + botão (mostra apenas se não for aprovado/rejeitado) */}
+                  {c.status === "emAvaliacao" && (
+                    <div className="flex justify-between items-center mt-3">
+                      <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                        <CreditCard className="w-4 h-4 text-green-500" />
+                        <span>
+                          Teste:{" "}
+                          <span className="font-semibold">
+                            {c.cursos.precoTeste} MT
+                          </span>
                         </span>
-                      </span>
+                      </div>
+                      <button
+                        onClick={() => pagarTeste(c)}
+                        className="px-4 py-2 bg-brand-main text-white rounded-lg hover:bg-brand-lime transition-colors text-sm font-medium"
+                      >
+                        Pagar Teste
+                      </button>
                     </div>
-                    <button
-                      onClick={() => pagarTeste(c)}
-                      className="px-4 py-2 bg-brand-main text-white rounded-lg hover:bg-brand-lime transition-colors text-sm font-medium"
-                    >
-                      Pagar Teste
-                    </button>
-                  </div>
+                  )}
+
+                  {/* Preço do curso + botão (mostra apenas se for aprovado) */}
+                  {c.status === "concluido" && (
+                    <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
+                          <GraduationCap className="w-4 h-4" />
+                          <span>
+                            Parabéns! Você foi aprovado no teste. Curso:{" "}
+                            <span className="font-semibold">
+                              {c.cursos.preco} MT
+                            </span>
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => pagarCurso(c)}
+                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                        >
+                          Pagar Curso
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Opções para reprovados (mostra apenas se for rejeitado) */}
+                  {c.status === "rejeitado" && (
+                    <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                      <div className="flex items-center gap-2 text-red-700 dark:text-red-300 mb-3">
+                        <AlertCircle className="w-5 h-5" />
+                        <span className="font-medium">
+                          Infelizmente você não foi aprovado no teste.
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <button
+                          onClick={() => pagarNovaTentativa(c)}
+                          className="flex flex-col items-center p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                        >
+                          <RefreshCw className="w-5 h-5 text-blue-500 mb-1" />
+                          <span className="font-medium text-sm">Nova Tentativa</span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {c.cursos.precoTeste} MT
+                          </span>
+                        </button>
+                        
+                        <button
+                          onClick={() => pagarRecorrencia(c)}
+                          className="flex flex-col items-center p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                        >
+                          <BarChart3 className="w-5 h-5 text-purple-500 mb-1" />
+                          <span className="font-medium text-sm">Recurso/Revisão</span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {c.cursos.precoTeste * 0.5} MT
+                          </span>
+                        </button>
+                      </div>
+                      
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        * O recurso/revisão custa 50% do valor do teste original
+                      </p>
+                    </div>
+                  )}
                 </div>
               );
             })}

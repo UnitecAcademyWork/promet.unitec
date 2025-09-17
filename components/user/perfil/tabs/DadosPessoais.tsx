@@ -14,6 +14,9 @@ import {
   X,
   Edit,
   Plus,
+  MessageCircle,
+  Languages,
+  UserCheck,
 } from "lucide-react";
 import { adicionarCandidato } from "../../../../lib/candidatura";
 import { getCandidato, Candidato } from "../../../../lib/candidato-actions";
@@ -45,6 +48,20 @@ const NIVEL_ACADEMICO = [
   "Doutoramento",
 ];
 
+// Idiomas comuns em Moçambique
+const IDIOMAS = [
+  "Português", "Inglês", "Espanhol", "Francês",
+  "Mandarim", "Changana", "Cisena", "Xichuwabu",
+  "Elomwe", "Macua", "Nhungue", "Tsonga", "Chuwabo",
+  "Makonde", "Chisena", "Ronga", "Chiyao",
+];
+
+// Gêneros
+const GENEROS = [
+  "Masculino",
+  "Feminino"
+];
+
 interface CandidateData {
   provincia: string;
   morada: string;
@@ -52,14 +69,17 @@ interface CandidateData {
   numeroBi: string;
   nivelAcademico: string;
   contacto: string;
+  whatsapp: string;
+  genero: string;
+  idiomaNativo: string;
 }
 
 export default function DadosPessoais() {
   const [isClient, setIsClient] = useState(false);
 
-useEffect(() => {
-  setIsClient(true);
-}, []);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const [data, setData] = useState<CandidateData>({
     provincia: "",
@@ -68,6 +88,9 @@ useEffect(() => {
     numeroBi: "",
     nivelAcademico: "",
     contacto: "",
+    whatsapp: "",
+    genero: "",
+    idiomaNativo: "",
   });
   const [isEditing, setIsEditing] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -85,6 +108,9 @@ useEffect(() => {
           numeroBi: candidato.numeroBi || "",
           nivelAcademico: candidato.nivelAcademico || "",
           contacto: candidato.contacto || "",
+          whatsapp: candidato.whatsapp || "",
+          genero: candidato.genero || "",
+          idiomaNativo: candidato.idiomaNativo || "",
         });
         setIsEditing(false);
       } else {
@@ -99,34 +125,33 @@ useEffect(() => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!isEditing) return; // não salvar se não estiver editando
+    if (!isEditing) return; // não salvar se não estiver editando
 
-  setIsSaving(true);
+    setIsSaving(true);  
 
-  await toast.promise(
-    (async () => {
-      const res = await adicionarCandidato(data);
-      if (!res.success) throw new Error(res.error || "Erro ao salvar dados");
-      return res;
-    })(),
-    {
-      loading: "Salvando dados...",
-      success: "Dados salvos com sucesso!",
-      error: (err) => err.message || "Erro ao salvar dados",
-    }
-  );
+    await toast.promise(
+      (async () => {
+        const res = await adicionarCandidato(data);
+        if (!res.success) throw new Error(res.error || "Erro ao salvar dados");
+        return res;
+      })(),
+      {
+        loading: "Salvando dados...",
+        success: "Dados salvos com sucesso!",
+        error: (err) => err.message || "Erro ao salvar dados",
+      }
+    );
 
-  setIsSaving(false);
-  setShowSuccess(true);
+    setIsSaving(false);
+    setShowSuccess(true);
 
-  setTimeout(() => {
-    setShowSuccess(false);
-    setIsEditing(false);
-  }, 2000);
-};
-
+    setTimeout(() => {
+      setShowSuccess(false);
+      setIsEditing(false);
+    }, 2000);
+  };
 
   // Verifica se todos os dados do candidato estão preenchidos
   const isCandidateDataComplete = Object.values(data).every((value) => value.trim() !== "");
@@ -208,7 +233,25 @@ useEffect(() => {
               disabled={!isEditing}
             />
           </div>
-{/* Província */}
+
+          {/* WhatsApp */}
+          <div className="flex flex-col gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border">
+            <label className="text-sm font-medium flex items-center gap-2">
+              <MessageCircle className="w-4 h-4 text-green-500" />
+              WhatsApp
+            </label>
+            <input
+              type="text"
+              value={data.whatsapp}
+              onChange={(e) => handleChange("whatsapp", e.target.value)}
+              className="mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500"
+              placeholder="+258 84 123 4567"
+              required
+              disabled={!isEditing}
+            />
+          </div>
+
+          {/* Província */}
           <div className="flex flex-col gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border">
             <label className="text-sm font-medium flex items-center gap-2">
               <Map className="w-4 h-4 text-purple-500" />
@@ -247,8 +290,6 @@ useEffect(() => {
             />
           </div>
 
-          
-
           {/* Data de Nascimento */}
           <div className="flex flex-col gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border">
             <label className="text-sm font-medium flex items-center gap-2">
@@ -270,6 +311,27 @@ useEffect(() => {
             />
           </div>
 
+          {/* Gênero */}
+          <div className="flex flex-col gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border">
+            <label className="text-sm font-medium flex items-center gap-2">
+              <UserCheck className="w-4 h-4 text-pink-500" />
+              Gênero
+            </label>
+            <select
+              value={data.genero}
+              onChange={(e) => handleChange("genero", e.target.value)}
+              className="mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 appearance-none"
+              required
+              disabled={!isEditing}
+            >
+              <option value="">Selecione o gênero</option>
+              {GENEROS.map((genero) => (
+                <option key={genero} value={genero}>
+                  {genero}
+                </option>
+              ))}
+            </select>
+          </div>
 
           {/* Número do BI */}
           <div className="flex flex-col gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border">
@@ -309,53 +371,54 @@ useEffect(() => {
               ))}
             </select>
           </div>
+
+          {/* Idioma Nativo */}
+          <div className="flex flex-col gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border">
+            <label className="text-sm font-medium flex items-center gap-2">
+              <Languages className="w-4 h-4 text-orange-500" />
+              Idioma Nativo
+            </label>
+            <select
+              value={data.idiomaNativo}
+              onChange={(e) => handleChange("idiomaNativo", e.target.value)}
+              className="mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 appearance-none"
+              required
+              disabled={!isEditing}
+            >
+              <option value="">Selecione seu idioma nativo</option>
+              {IDIOMAS.map((idioma) => (
+                <option key={idioma} value={idioma}>
+                  {idioma}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Botões */}
         <div className="pt-4 flex flex-col md:flex-row justify-end gap-3">
-  {isEditing && (
-    <motion.button
-      type="submit"
-      disabled={isSaving}
-      whileHover={{ scale: 1.03 }}
-      whileTap={{ scale: 0.97 }}
-      className="flex flex-row items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold bg-brand-main text-white shadow-md hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-70"
-    >
-      {isSaving ? (
-        <>
-          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          Salvando...
-        </>
-      ) : (
-        <>
-          <Save className="w-4 h-4" />
-          Salvar
-        </>
-      )}
-    </motion.button>
-  )}
-
-  {/* Botão Candidatar-se sempre visível */}
-  {/* {isClient && (
-    <Link href="/cursos" className="w-full md:w-auto">
-      <motion.button
-        type="button"
-        disabled={!isCandidateDataComplete}
-        whileHover={{ scale: isCandidateDataComplete ? 1.03 : 1 }}
-        whileTap={{ scale: isCandidateDataComplete ? 0.97 : 1 }}
-        className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-white shadow-md transition-all w-full md:w-auto ${
-          isCandidateDataComplete
-            ? "bg-brand-lime hover:bg-brand-lime"
-            : "bg-gray-400 cursor-not-allowed"
-        }`}
-      >
-        <Plus className="w-4 h-4" />
-        Candidatar-se
-      </motion.button>
-    </Link>
-  )} */}
-</div>
-
+          {isEditing && (
+            <motion.button
+              type="submit"
+              disabled={isSaving}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className="flex flex-row items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold bg-brand-main text-white shadow-md hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-70"
+            >
+              {isSaving ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  Salvar
+                </>
+              )}
+            </motion.button>
+          )}
+        </div>
       </form>
     </motion.div>
   );
