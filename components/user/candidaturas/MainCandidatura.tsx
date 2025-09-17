@@ -13,7 +13,6 @@ import {
   BarChart3,
   CreditCard,
   BookOpen,
-  X,
   GraduationCap,
   RefreshCw,
   AlertCircle,
@@ -26,8 +25,7 @@ const MainCandidatura = () => {
   const [loading, setLoading] = useState(true);
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [pesquisa, setPesquisa] = useState("");
-  const [modalOpen, setModalOpen] = useState(false);
-  const [testesSelecionados, setTestesSelecionados] = useState<Teste[]>([]);
+  const [testesPorCandidatura, setTestesPorCandidatura] = useState<Record<string, Teste[]>>({});
 
   // Busca candidaturas
   useEffect(() => {
@@ -36,6 +34,21 @@ const MainCandidatura = () => {
         if (!Cookies.get("auth_token")) throw new Error("Usuário não autenticado");
         const data = await getCandidaturas();
         setCandidaturas(data);
+
+        // Para cada candidatura concluída, buscar testes
+        for (const candidatura of data) {
+          if (candidatura.status === "concluido") {
+            try {
+              const testesData = await getTestesByCandidatura();
+              setTestesPorCandidatura((prev) => ({
+                ...prev,
+                [candidatura.id]: testesData.flatMap((c) => c.testes),
+              }));
+            } catch (err: any) {
+              toast.error("Erro ao buscar testes do candidato.");
+            }
+          }
+        }
       } catch (err: any) {
         toast.error(err.message || "Erro ao buscar candidaturas");
       } finally {
@@ -75,43 +88,30 @@ const MainCandidatura = () => {
     return statusInfo[status as keyof typeof statusInfo] || statusInfo.emAvaliacao;
   };
 
-  const verDetalhes = async () => {
-    try {
-      const data = await getTestesByCandidatura();
-      const testes = data.flatMap((c) => c.testes);
-      setTestesSelecionados(testes);
-      setModalOpen(true);
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao carregar testes");
-    }
-  };
-
-  const pagarTeste = (candidatura: Candidatura) => {
+  const pagarTeste = (teste: Teste, cursoNome: string) => {
     toast.success(
-      `Redirecionando para pagamento do teste de ${candidatura.cursos.nome} (${candidatura.cursos.precoTeste} MT)`
+      `Redirecionando para pagamento do teste (${cursoNome}) no valor de ${teste.preco} MT`
     );
-    // aqui pode colocar o router.push("/pagamento/xxx") se já tiver a rota
+    // router.push(`/pagamento/teste/${teste.id}`);
   };
 
   const pagarCurso = (candidatura: Candidatura) => {
     toast.success(
       `Redirecionando para pagamento do curso ${candidatura.cursos.nome} (${candidatura.cursos.preco} MT)`
     );
-    // aqui pode colocar o router.push("/pagamento/xxx") se já tiver a rota
+    // router.push(`/pagamento/curso/${candidatura.id}`);
   };
 
   const pagarNovaTentativa = (candidatura: Candidatura) => {
     toast.success(
       `Redirecionando para pagamento de nova tentativa do teste (${candidatura.cursos.precoTeste} MT)`
     );
-    // lógica para pagar nova tentativa
   };
 
   const pagarRecorrencia = (candidatura: Candidatura) => {
     toast.success(
       `Redirecionando para pagamento de recurso/revisão (${candidatura.cursos.precoTeste * 0.5} MT)`
     );
-    // lógica para pagar recurso/revisão (50% do valor do teste)
   };
 
   if (loading)
@@ -196,8 +196,7 @@ const MainCandidatura = () => {
                           {c.cursos.nome}
                         </h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Inscrição:{" "}
-                          {new Date(c.createdAt).toLocaleDateString("pt-BR")}
+                          Inscrição: {new Date(c.createdAt).toLocaleDateString("pt-BR")}
                         </p>
                       </div>
                     </div>
@@ -209,7 +208,7 @@ const MainCandidatura = () => {
                     </span>
                   </div>
 
-                  {/* Preço do teste + botão (mostra apenas se não for aprovado/rejeitado) */}
+                  {/* Teste pendente de pagamento */}
                   {c.status === "emAvaliacao" && (
                     <div className="flex justify-between items-center mt-3">
                       <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
@@ -222,7 +221,7 @@ const MainCandidatura = () => {
                         </span>
                       </div>
                       <button
-                        onClick={() => pagarTeste(c)}
+                        onClick={() => pagarTeste({ id: "novo", preco: c.cursos.precoTeste } as Teste, c.cursos.nome)}
                         className="px-4 py-2 bg-brand-main text-white rounded-lg hover:bg-brand-lime transition-colors text-sm font-medium"
                       >
                         Pagar Teste
@@ -230,30 +229,66 @@ const MainCandidatura = () => {
                     </div>
                   )}
 
-                  {/* Preço do curso + botão (mostra apenas se for aprovado) */}
+                  {/* Candidatura aprovada -> mostrar curso + testes */}
                   {c.status === "concluido" && (
-                    <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
-                          <GraduationCap className="w-4 h-4" />
-                          <span>
-                            Parabéns! Você foi aprovado no teste. Curso:{" "}
-                            <span className="font-semibold">
-                              {c.cursos.preco} MT
+                    <div className="mt-4 space-y-4">
+                      <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
+                            <GraduationCap className="w-4 h-4" />
+                            <span>
+                              Parabéns! Você foi aprovado. Curso:{" "}
+                              <span className="font-semibold">
+                                {c.cursos.preco} MT
+                              </span>
                             </span>
-                          </span>
+                          </div>
+                          <button
+                            onClick={() => pagarCurso(c)}
+                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                          >
+                            Pagar Curso
+                          </button>
                         </div>
-                        <button
-                          onClick={() => pagarCurso(c)}
-                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
-                        >
-                          Pagar Curso
-                        </button>
                       </div>
+
+                      {/* Lista de testes desta candidatura */}
+                      {testesPorCandidatura[c.id] && (
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                          <h4 className="font-semibold text-gray-800 dark:text-white mb-2">
+                            Testes Realizados
+                          </h4>
+                          <ul className="space-y-2">
+                            {testesPorCandidatura[c.id].map((t) => (
+                              <li
+                                key={t.id}
+                                className="flex justify-between items-center bg-white dark:bg-gray-800 p-2 rounded-md shadow-sm"
+                              >
+                                <div>
+                                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                                    {t.status}{" "}
+                                    <span className="text-xs text-gray-500">
+                                      ({t.preco} MT)
+                                    </span>
+                                  </p>
+                                </div>
+                                {t.status !== "concluido" && (
+                                  <button
+                                    onClick={() => pagarTeste(t, c.cursos.nome)}
+                                    className="px-3 py-1 text-xs bg-brand-main text-white rounded-lg hover:bg-brand-lime transition-colors"
+                                  >
+                                    Pagar Teste
+                                  </button>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   )}
 
-                  {/* Opções para reprovados (mostra apenas se for rejeitado) */}
+                  {/* Opções reprovado */}
                   {c.status === "rejeitado" && (
                     <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
                       <div className="flex items-center gap-2 text-red-700 dark:text-red-300 mb-3">
@@ -262,7 +297,7 @@ const MainCandidatura = () => {
                           Infelizmente você não foi aprovado no teste.
                         </span>
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <button
                           onClick={() => pagarNovaTentativa(c)}
@@ -274,7 +309,7 @@ const MainCandidatura = () => {
                             {c.cursos.precoTeste} MT
                           </span>
                         </button>
-                        
+
                         <button
                           onClick={() => pagarRecorrencia(c)}
                           className="flex flex-col items-center p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
@@ -286,7 +321,7 @@ const MainCandidatura = () => {
                           </span>
                         </button>
                       </div>
-                      
+
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                         * O recurso/revisão custa 50% do valor do teste original
                       </p>

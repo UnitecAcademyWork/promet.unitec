@@ -16,7 +16,7 @@ import {
   Briefcase,
   HeartHandshake,
   AlertCircle,
-  XCircle,
+  AlertTriangle,
 } from "lucide-react";
 import { enviarCandidatura } from "../../../lib/enviar-candidatura-actions";
 import toast from "react-hot-toast";
@@ -40,9 +40,8 @@ const CursoCandidatura = () => {
   const params = useParams();
   const [curso, setCurso] = useState<CursoReal | null>(null);
   const [loading, setLoading] = useState(true);
-  const [candidaturas, setCandidaturas] = useState<Candidatura[]>([]);
-  const [candidato, setCandidato] = useState<any>(null);
-  const [jaInscrito, setJaInscrito] = useState(false);
+  const [hasCandidatura, setHasCandidatura] = useState(false);
+  const [candidaturaLoading, setCandidaturaLoading] = useState(true);
 
   // Benefícios do curso (dados estáticos)
   const beneficiosCurso = [
@@ -88,32 +87,16 @@ const CursoCandidatura = () => {
   // Requisitos do curso (dados estáticos)
   const requisitos = ["Idade mínima: 18 anos", "Disponibilidade para formação"];
 
-  // Buscar curso real da API e verificar candidaturas
+  // Buscar curso real da API
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchCurso = async () => {
       try {
-        // Buscar curso
         const response = await fetch(
           `https://backend-promet.unitec.academy/curso/${params.id}`
         );
         if (!response.ok) throw new Error("Erro ao buscar curso");
         const data: CursoReal = await response.json();
         setCurso(data);
-
-        // Buscar candidato e candidaturas
-        const candidatoData = await getCandidato();
-        setCandidato(candidatoData);
-
-        if (candidatoData) {
-          const candidaturasData: Candidatura[] = await getCandidaturas();
-          setCandidaturas(candidaturasData);
-          
-          // Verificar se já está inscrito em algum curso
-          const inscrito = candidaturasData.some(
-            (c) => c.idCandidato === candidatoData.id
-          );
-          setJaInscrito(inscrito);
-        }
       } catch (error) {
         console.error(error);
         setCurso(null);
@@ -121,38 +104,65 @@ const CursoCandidatura = () => {
         setLoading(false);
       }
     };
-    fetchData();
+    fetchCurso();
   }, [params.id]);
 
-  const handleCandidatarSe = async (cursoId: string) => {
-    try {
-      if (jaInscrito) {
-        toast.error("Já estás inscrito num curso.");
-        return;
+  // Verificar se o candidato já tem uma candidatura
+  useEffect(() => {
+    const checkCandidatura = async () => {
+      try {
+        const candidato = await getCandidato();
+        if (!candidato) {
+          setCandidaturaLoading(false);
+          return;
+        }
+
+        const candidaturas: Candidatura[] = await getCandidaturas();
+        const jaInscrito = candidaturas.some((c) => c.idCandidato === candidato.id);
+        setHasCandidatura(jaInscrito);
+      } catch (error) {
+        console.error("Erro ao verificar candidaturas:", error);
+      } finally {
+        setCandidaturaLoading(false);
       }
+    };
 
-      // 1️⃣ Verifica se o usuário tem perfil de candidato
-      if (!candidato) {
-        toast.error("Preencha os dados do seu perfil para candidatar-se.");
-        return;
-      }
+    checkCandidatura();
+  }, []);
 
-      // 2️⃣ Envia a candidatura com toast.promise
-      await toast.promise(enviarCandidatura({ idCurso: cursoId }), {
-        loading: "A enviar candidatura...",
-        success: "Candidatura enviada com sucesso!",
-        error: "Erro ao enviar candidatura. Tente novamente.",
-      });
-
-      // 3️⃣ Redireciona
-      router.push("/user/candidaturas");
-    } catch (error: any) {
-      console.error("Erro ao candidatar-se:", error);
-      toast.error(error?.message || "Erro ao processar candidatura.");
+  const handleCandidatarSe = (cursoId: string) => {
+    if (hasCandidatura) {
+      toast.error("Já tens uma candidatura ativa. Não podes inscrever-te em mais cursos.");
+      return;
     }
+
+    toast.promise(
+      (async () => {
+        // 1️⃣ Verifica se o usuário tem perfil de candidato
+        const candidato = await getCandidato();
+        if (!candidato) {
+          throw new Error("Preencha os dados do seu perfil para candidatar-se.");
+        }
+
+        // 2️⃣ Envia a candidatura
+        await enviarCandidatura({ idCurso: cursoId });
+        setHasCandidatura(true); // Atualiza o estado local
+
+        // 3️⃣ Retorna sucesso para o toast.promise
+        return "Candidatura enviada com sucesso!";
+      })(),
+      {
+        loading: "A enviar candidatura...",
+        success: (msg) => msg,
+        error: (err: any) => err?.message || "Erro ao processar candidatura.",
+      }
+    ).then(() => {
+      // Redireciona só após sucesso
+      router.push("/user/candidaturas");
+    });
   };
 
-  if (loading) {
+  if (loading || candidaturaLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <CursoCandidaturaSkeleton />
@@ -221,23 +231,20 @@ const CursoCandidatura = () => {
             <div className="flex flex-col items-end">
               <button
                 onClick={() => handleCandidatarSe(curso.id)}
-                disabled={jaInscrito}
-                className={`px-6 py-3 text-white font-semibold rounded-lg transition-colors duration-300 flex items-center ${
-                  jaInscrito
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-brand-main hover:bg-brand-main/70"
+                disabled={hasCandidatura}
+                className={`px-6 py-3 font-semibold rounded-lg transition-colors duration-300 flex items-center ${
+                  hasCandidatura
+                    ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                    : "bg-brand-main text-white hover:bg-brand-main/70"
                 }`}
               >
-                {jaInscrito ? "Já Inscrito" : "Candidatar-se"}
+                {hasCandidatura ? "Já Candidatado" : "Finalizar Candidatura"}
               </button>
               
-              {/* Mensagem informativa */}
-              {jaInscrito && (
-                <div className="mt-3 flex items-center gap-2 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-2 rounded-lg border border-yellow-200 dark:border-yellow-700">
-                  <XCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
-                  <span className="text-sm text-yellow-700 dark:text-yellow-300">
-                    Você já está inscrito em um curso
-                  </span>
+              {hasCandidatura && (
+                <div className="mt-2 flex items-center text-sm text-amber-600 dark:text-amber-400">
+                  <AlertTriangle className="w-4 h-4 mr-1" />
+                  <span>Já tens uma candidatura ativa noutro curso</span>
                 </div>
               )}
             </div>
@@ -400,32 +407,25 @@ const CursoCandidatura = () => {
             </ul>
           </div>
         </div>
-
-        {/* CTA Final */}
         <div className="text-center mt-10">
           <button
             onClick={() => handleCandidatarSe(curso.id)}
-            disabled={jaInscrito}
-            className={`px-8 py-4 text-white font-bold rounded-lg transition-colors duration-300 text-lg ${
-              jaInscrito
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-brand-main hover:bg-brand-lime"
+            disabled={hasCandidatura}
+            className={`px-8 py-4 font-bold rounded-lg transition-colors duration-300 text-lg ${
+              hasCandidatura
+                ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                : "bg-brand-main text-white hover:bg-brand-lime"
             }`}
           >
-            {jaInscrito ? "Já Inscrito em um Curso" : "Quero me Candidatar Agora"}
+            {hasCandidatura ? "Já Candidatado a Outro Curso" : "Quero me Candidatar Agora"}
           </button>
           
-          {/* Mensagem informativa */}
-          {jaInscrito && (
-            <div className="mt-4 flex items-center justify-center gap-2 bg-yellow-50 dark:bg-yellow-900/20 px-4 py-3 rounded-lg border border-yellow-200 dark:border-yellow-700 max-w-md mx-auto">
-              <XCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0" />
-              <span className="text-sm text-yellow-700 dark:text-yellow-300">
-                Você já está inscrito em um curso. Só pode candidatar-se a um curso por Edição.
-              </span>
-            </div>
-          )}
-          
-          {!jaInscrito && (
+          {hasCandidatura ? (
+            <p className="text-sm text-amber-600 dark:text-amber-400 mt-3 flex items-center justify-center">
+              <AlertTriangle className="w-4 h-4 mr-1" />
+              Já tens uma candidatura ativa. Espera a próxima Edição.
+            </p>
+          ) : (
             <p className="text-sm text-gray-600 dark:text-gray-300 mt-3">
               Não perca esta oportunidade! Vagas limitadas.
             </p>
