@@ -1,5 +1,17 @@
 import Cookies from "js-cookie";
 
+export interface Curso {
+  id: string;
+  nome: string;
+  preco: number;
+  precoTeste: number;
+  descricao: string | null;
+  imgUrl: string | null;
+  desconto: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Candidatura {
   id: string;
   status: string;
@@ -8,6 +20,7 @@ export interface Candidatura {
   idCurso: string;
   createdAt: string;
   updatedAt: string;
+  cursos: Curso; // adicionamos cursos
 }
 
 /**
@@ -22,7 +35,7 @@ export const getCandidaturas = async (): Promise<Candidatura[]> => {
       `https://backend-promet.unitec.academy/candidaturas-candidato`,
       {
         headers: {
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       }
