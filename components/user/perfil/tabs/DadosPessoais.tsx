@@ -125,33 +125,36 @@ export default function DadosPessoais() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!isEditing) return; // não salvar se não estiver editando
+  // Validação extra para todos os campos
+  const emptyField = Object.entries(data).find(([key, value]) => !value.trim());
+  if (emptyField) {
+    toast.error(`O campo "${emptyField[0]}" é obrigatório.`);
+    return;
+  }
 
-    setIsSaving(true);  
+  if (!isEditing) return; // não salvar se não estiver editando
 
-    await toast.promise(
-      (async () => {
-        const res = await adicionarCandidato(data);
-        if (!res.success) throw new Error(res.error || "Erro ao salvar dados");
-        return res;
-      })(),
-      {
-        loading: "Salvando dados...",
-        success: "Dados salvos com sucesso!",
-        error: (err) => err.message || "Erro ao salvar dados",
-      }
-    );
+  setIsSaving(true);  
 
-    setIsSaving(false);
-    setShowSuccess(true);
+  await toast.promise(
+    (async () => {
+      const res = await adicionarCandidato(data);
+      if (!res.success) throw new Error(res.error || "Erro ao salvar dados");
+      return res;
+    })(),
+    {
+      loading: "Salvando dados...",
+      success: "Dados salvos com sucesso!",
+      error: (err) => err.message || "Erro ao salvar dados",
+    }
+  );
 
-    setTimeout(() => {
-      setShowSuccess(false);
-      setIsEditing(false);
-    }, 2000);
-  };
+  setIsSaving(false);
+  setShowSuccess(true);
+};
+
 
   // Verifica se todos os dados do candidato estão preenchidos
   const isCandidateDataComplete = Object.values(data).every((value) => value.trim() !== "");
