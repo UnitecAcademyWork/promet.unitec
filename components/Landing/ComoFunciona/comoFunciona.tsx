@@ -47,7 +47,7 @@ const HowItWorks = () => {
       icon: <ClipboardList className="w-5 h-5" />,
       title: 'Candidatura',
       description: 'Preencha nosso formulário online com suas informações básicas e currículo.',
-      price: 'Gratuita',
+      price: 'Gratuita | Online',
       free: true
     },
     {
@@ -55,7 +55,7 @@ const HowItWorks = () => {
       icon: <Search className="w-5 h-5" />,
       title: 'Pré-seleção',
       description: 'Análise do perfil e competências pela nossa equipe especializada.',
-      price: "Gratuita",
+      price: "Gratuita | Online",
       free: true
     },
     {
@@ -63,7 +63,7 @@ const HowItWorks = () => {
       icon: <UserCheck className="w-5 h-5" />,
       title: 'Teste de Perfil de Carreira',
       description: 'Pequeno questionário para identificar suas áreas de maior afinidade.',
-      price: 'Gratuita',
+      price: 'Gratuita | Online',
       free: true
     },
     {
@@ -71,7 +71,7 @@ const HowItWorks = () => {
       icon: <BarChart3 className="w-5 h-5" />,
       title: 'Exame de diagnóstico',
       description: 'Avaliação técnica para verificar suas competências na área desejada.',
-      price: '500 MT',
+      price: '500 MT | Online',
       free: false
     },
     {
@@ -79,7 +79,7 @@ const HowItWorks = () => {
       icon: <GraduationCap className="w-5 h-5" />,
       title: 'Formação Intensiva (30 dias)',
       description: 'Curso prático e intensivo com foco nas necessidades atuais do mercado.',
-      price: '2,500 MT',
+      price: '2,500 MT | Presencial',
       free: false
     },
     {
@@ -87,15 +87,15 @@ const HowItWorks = () => {
       icon: <Briefcase className="w-5 h-5" />,
       title: 'Workshop de Empregabilidade',
       description: 'Sessões interativas sobre mercado de trabalho e melhores práticas.',
-      price: "Gratuita",
+      price: "Gratuita | Presencial",
       free: true
     },
     {
       number: 7,
       icon: <FileText className="w-5 h-5" />,
       title: 'Currículo Profissional',
-      description: 'Otimização de um currículo profissional de acordo com padrões de mercado.',
-      price: "Gratuita",
+      description: 'Optimização de um currículo profissional de acordo com padrões de mercado.',
+      price: "Gratuita | Online",
       free: true
     },
     {
@@ -103,7 +103,7 @@ const HowItWorks = () => {
       icon: <Users className="w-5 h-5" />,
       title: 'Inclusão na Base de Talentos',
       description: 'Seu perfil é incluído no nosso banco e encaminhado para empresas parceiras.',
-      price: "Gratuita",
+      price: "Gratuita | Online",
       free: true
     }
   ];

@@ -17,6 +17,7 @@ import {
   HeartHandshake,
   AlertCircle,
   AlertTriangle,
+  Loader2,
 } from "lucide-react";
 import { enviarCandidatura } from "../../../lib/enviar-candidatura-actions";
 import toast from "react-hot-toast";
@@ -42,8 +43,9 @@ const CursoCandidatura = () => {
   const [loading, setLoading] = useState(true);
   const [hasCandidatura, setHasCandidatura] = useState(false);
   const [candidaturaLoading, setCandidaturaLoading] = useState(true);
+  const [finalizando, setFinalizando] = useState(false);
 
-  // Benefícios do curso (dados estáticos)
+  // Benefícios do curso
   const beneficiosCurso = [
     "Certificado reconhecido",
     "Estágio em empresas parceiras",
@@ -84,7 +86,7 @@ const CursoCandidatura = () => {
     },
   ];
 
-  // Requisitos do curso (dados estáticos)
+  // Requisitos do curso
   const requisitos = ["Idade mínima: 18 anos", "Disponibilidade para formação"];
 
   // Buscar curso real da API
@@ -97,8 +99,8 @@ const CursoCandidatura = () => {
         if (!response.ok) throw new Error("Erro ao buscar curso");
         const data: CursoReal = await response.json();
         setCurso(data);
-      } catch (error) {
-        console.error(error);
+      } catch (error: any) {
+        toast.error(error.message || "Erro ao carregar curso.");
         setCurso(null);
       } finally {
         setLoading(false);
@@ -118,10 +120,12 @@ const CursoCandidatura = () => {
         }
 
         const candidaturas: Candidatura[] = await getCandidaturas();
-        const jaInscrito = candidaturas.some((c) => c.idCandidato === candidato.id);
+        const jaInscrito = candidaturas.some(
+          (c) => c.idCandidato === candidato.id
+        );
         setHasCandidatura(jaInscrito);
-      } catch (error) {
-        console.error("Erro ao verificar candidaturas:", error);
+      } catch (error: any) {
+        toast.error(error.message || "Erro ao verificar candidatura.");
       } finally {
         setCandidaturaLoading(false);
       }
@@ -130,36 +134,33 @@ const CursoCandidatura = () => {
     checkCandidatura();
   }, []);
 
-  const handleCandidatarSe = (cursoId: string) => {
+  // Função para candidatar-se
+  const handleCandidatarSe = async (cursoId: string) => {
     if (hasCandidatura) {
-      toast.error("Já tens uma candidatura ativa. Não podes inscrever-te em mais cursos.");
+      toast.error(
+        "Já tens uma candidatura ativa. Não podes inscrever-te em mais cursos."
+      );
       return;
     }
 
-    toast.promise(
-      (async () => {
-        // 1️⃣ Verifica se o usuário tem perfil de candidato
-        const candidato = await getCandidato();
-        if (!candidato) {
-          throw new Error("Preencha os dados do seu perfil para candidatar-se.");
-        }
+    setFinalizando(true);
 
-        // 2️⃣ Envia a candidatura
-        await enviarCandidatura({ idCurso: cursoId });
-        setHasCandidatura(true); // Atualiza o estado local
-
-        // 3️⃣ Retorna sucesso para o toast.promise
-        return "Candidatura enviada com sucesso!";
-      })(),
-      {
-        loading: "A enviar candidatura...",
-        success: (msg) => msg,
-        error: (err: any) => err?.message || "Erro ao processar candidatura.",
+    try {
+      const candidato = await getCandidato();
+      if (!candidato) {
+        throw new Error("Preencha os dados do seu perfil para candidatar-se.");
       }
-    ).then(() => {
-      // Redireciona só após sucesso
+
+      await enviarCandidatura({ idCurso: cursoId });
+      setHasCandidatura(true);
+
+      toast.success("Candidatura enviada com sucesso!");
       router.push("/user/candidaturas");
-    });
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao processar candidatura.");
+    } finally {
+      setFinalizando(false);
+    }
   };
 
   if (loading || candidaturaLoading) {
@@ -208,7 +209,7 @@ const CursoCandidatura = () => {
           Voltar
         </button>
 
-        {/* Cabeçalho com informações do curso */}
+        {/* Cabeçalho */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden p-6 mb-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
             <div className="flex items-center mb-4 md:mb-0">
@@ -231,16 +232,25 @@ const CursoCandidatura = () => {
             <div className="flex flex-col items-end">
               <button
                 onClick={() => handleCandidatarSe(curso.id)}
-                disabled={hasCandidatura}
-                className={`px-6 py-3 font-semibold rounded-lg transition-colors duration-300 flex items-center ${
-                  hasCandidatura
+                disabled={hasCandidatura || finalizando}
+                className={`px-6 py-3 font-semibold rounded-lg transition-colors duration-300 flex items-center justify-center min-w-[180px] ${
+                  hasCandidatura || finalizando
                     ? "bg-gray-400 text-gray-700 cursor-not-allowed"
                     : "bg-brand-main text-white hover:bg-brand-main/70"
                 }`}
               >
-                {hasCandidatura ? "Já Candidatado" : "Finalizar Candidatura"}
+                {finalizando ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Finalizando...
+                  </>
+                ) : hasCandidatura ? (
+                  "Já Candidatado"
+                ) : (
+                  "Finalizar Candidatura"
+                )}
               </button>
-              
+
               {hasCandidatura && (
                 <div className="mt-2 flex items-center text-sm text-amber-600 dark:text-amber-400">
                   <AlertTriangle className="w-4 h-4 mr-1" />
@@ -259,15 +269,11 @@ const CursoCandidatura = () => {
             </div>
             <div className="flex items-center text-sm">
               <Clock className="w-4 h-4 text-brand-main mr-2" />
-              <span className="text-gray-600 dark:text-gray-300">
-                Duração: 30 Dias
-              </span>
+              <span className="text-gray-600 dark:text-gray-300">Duração: 30 Dias</span>
             </div>
             <div className="flex items-center text-sm">
               <User className="w-4 h-4 text-brand-main mr-2" />
-              <span className="text-gray-600 dark:text-gray-300">
-                Vagas limitadas
-              </span>
+              <span className="text-gray-600 dark:text-gray-300">Vagas limitadas</span>
             </div>
           </div>
         </div>
@@ -290,17 +296,15 @@ const CursoCandidatura = () => {
                 <h3 className="font-semibold text-gray-800 dark:text-white mb-2">
                   {passo.titulo}
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  {passo.descricao}
-                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">{passo.descricao}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Grid com três colunas */}
+        {/* Grid de cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {/* Primeiro Card: Benefícios do Curso */}
+          {/* Benefícios do curso */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 h-full">
             <div className="flex items-center mb-4">
               <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mr-3">
@@ -322,7 +326,7 @@ const CursoCandidatura = () => {
             </ul>
           </div>
 
-          {/* Segundo Card: Benefícios para o Candidato */}
+          {/* Benefícios do candidato */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 h-full">
             <div className="flex items-center mb-4">
               <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center mr-3">
@@ -344,7 +348,7 @@ const CursoCandidatura = () => {
             </ul>
           </div>
 
-          {/* Terceiro Card: Requisitos */}
+          {/* Requisitos */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 h-full">
             <div className="flex items-center mb-4">
               <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mr-3">
@@ -363,10 +367,8 @@ const CursoCandidatura = () => {
                   </span>
                 </li>
               ))}
-            </ul>
-            <ul className="mt-2.5 space-y-3">
               <li className="flex items-start">
-                <CheckCircle className="w-5 h-5 text-purple-500 mr-2  flex-shrink-0" />
+                <CheckCircle className="w-5 h-5 text-purple-500 mr-2 flex-shrink-0" />
                 <span className="text-sm text-gray-600 dark:text-gray-300">
                   Interesse pela área de {curso.nome}
                 </span>
@@ -388,7 +390,7 @@ const CursoCandidatura = () => {
               <li>• Duração: 30 Dias</li>
               <li>• Modalidade: Presencial</li>
               <li>• Local: Após a aprovação da candidatura</li>
-              <li>• Horário: Segunda a Sexta, 18h-21h</li>
+              <li>• Horário: Segunda a Sexta, 08:35-12:10 - 15:55-19:30</li>
             </ul>
           </div>
 
@@ -407,29 +409,29 @@ const CursoCandidatura = () => {
             </ul>
           </div>
         </div>
+
+        {/* CTA Final */}
         <div className="text-center mt-10">
           <button
             onClick={() => handleCandidatarSe(curso.id)}
-            disabled={hasCandidatura}
-            className={`px-8 py-4 font-bold rounded-lg transition-colors duration-300 text-lg ${
-              hasCandidatura
+            disabled={hasCandidatura || finalizando}
+            className={`px-8 py-4 font-bold rounded-lg transition-colors duration-300 text-lg flex items-center justify-center mx-auto min-w-[280px] gap-2 ${
+              hasCandidatura || finalizando
                 ? "bg-gray-400 text-gray-700 cursor-not-allowed"
                 : "bg-brand-main text-white hover:bg-brand-lime"
             }`}
           >
-            {hasCandidatura ? "Já Candidatado a Outro Curso" : "Quero me Candidatar Agora"}
+            {finalizando ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Finalizando...
+              </>
+            ) : hasCandidatura ? (
+              "Já Candidatado a Outro Curso"
+            ) : (
+              "Quero me Candidatar Agora"
+            )}
           </button>
-          
-          {hasCandidatura ? (
-            <p className="text-sm text-amber-600 dark:text-amber-400 mt-3 flex items-center justify-center">
-              <AlertTriangle className="w-4 h-4 mr-1" />
-              Já tens uma candidatura ativa. Espera a próxima Edição.
-            </p>
-          ) : (
-            <p className="text-sm text-gray-600 dark:text-gray-300 mt-3">
-              Não perca esta oportunidade! Vagas limitadas.
-            </p>
-          )}
         </div>
       </div>
     </div>

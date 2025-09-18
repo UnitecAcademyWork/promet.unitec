@@ -20,11 +20,15 @@ export interface Candidatura {
   idCurso: string;
   createdAt: string;
   updatedAt: string;
-  cursos: Curso; // adicionamos cursos
+  cursos: Curso;
+}
+
+export interface ApiResponseError {
+  message: string;
 }
 
 /**
- * @returns Lista de candidaturas
+ * @returns Lista de candidaturas ou erro da API
  */
 export const getCandidaturas = async (): Promise<Candidatura[]> => {
   try {
@@ -41,14 +45,17 @@ export const getCandidaturas = async (): Promise<Candidatura[]> => {
       }
     );
 
+    const data = await response.json();
+
     if (!response.ok) {
-      throw new Error("Erro ao buscar candidaturas");
+      // Retorna o erro vindo da API
+      const apiError = data as ApiResponseError;
+      throw new Error(apiError.message || "Erro ao buscar candidaturas");
     }
 
-    const data: Candidatura[] = await response.json();
-    return data;
-  } catch (error) {
-    console.error(error);
-    throw error;
+    return data as Candidatura[];
+  } catch (error: any) {
+    console.error("Erro ao buscar candidaturas:", error.message || error);
+    throw new Error(error.message || "Erro desconhecido");
   }
 };

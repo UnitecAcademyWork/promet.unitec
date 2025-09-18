@@ -14,7 +14,7 @@ export const enviarCandidatura = async (data: CandidaturaData) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`, // 🔑 Token vai aqui
+        "Authorization": `Bearer ${token}`, 
       },
       body: JSON.stringify(data),
     });
