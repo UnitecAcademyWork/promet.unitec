@@ -5,6 +5,7 @@ import { SidebarProvider } from '../context/SidebarContext';
 import Navbar from '../components/Landing/Navbar/navbar';
 import Footer from '../components/Landing/footer/footer';
 import { Metadata } from 'next';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 const outfit = Outfit({
   subsets: ["latin"],
 });
@@ -33,6 +34,7 @@ export default function RootLayout({
             }}
           />
         </head>
+        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
       <body className={`h-full text-white${outfit.className} dark:bg-gray-900`}>
         {/* <ThemeProvider> */}
           <div className="sticky top-0 mb-[75px] z-50 bg-white dark:bg-gray-800 shadow-md">
@@ -42,6 +44,7 @@ export default function RootLayout({
           <Footer />
         {/* </ThemeProvider> */}
       </body>
+      </GoogleOAuthProvider>
     </html>
   );
 }
