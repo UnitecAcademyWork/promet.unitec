@@ -53,7 +53,7 @@ const router = useRouter()
   };
 
   return (
-    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
+    <>
       <Toaster
         position="top-center"
         toastOptions={{
@@ -201,6 +201,6 @@ const router = useRouter()
           </div>
         </motion.div>
       </div>
-      </GoogleOAuthProvider>
+      </>
   );
 }

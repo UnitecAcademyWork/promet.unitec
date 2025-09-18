@@ -10,9 +10,7 @@ export default function GoogleLoginButton() {
   const router = useRouter();
   
   const handleSuccess = async (credentialResponse: any) => {
-    console.log(credentialResponse);
     const token = credentialResponse.credential;
-    console.log("Token JWT:", token);
     try {
       const res = await fetch(routes.googleLogin, {
         method: "POST",
@@ -22,7 +20,6 @@ export default function GoogleLoginButton() {
       });
 
       const data = await res.json();
-     
       if (data?.token) {
         Cookies.set("auth_token", data.token, {
           expires: 7,
