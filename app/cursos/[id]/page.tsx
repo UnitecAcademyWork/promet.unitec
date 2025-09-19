@@ -220,12 +220,12 @@ const CursoCandidatura = () => {
                 <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
                   {curso.nome}
                 </h1>
-                <p className="text-gray-600 text-sm dark:text-gray-300 mt-1">
+                {/* <p className="text-gray-600 text-sm dark:text-gray-300 mt-1">
                   Teste de Diagnóstico{" "}
                   <span className="text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full mb-2">
                     {curso.precoTeste}MT
                   </span>
-                </p>
+                </p> */}
               </div>
             </div>
 
