@@ -5,10 +5,8 @@ export function middleware(req: NextRequest) {
   const token = req.cookies.get("auth_token")?.value;
   const { pathname } = req.nextUrl;
 
-  // Rotas públicas
   const publicRoutes = ["/", "/login", "/registro",, "/duvidas", "/recuperar-senha", "/formulario/parceiro", "/cursos"];
 
-  // Ignora arquivos estáticos e rotas internas do Next
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
@@ -18,12 +16,11 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Se for rota pública → deixa passar
   if (publicRoutes.some((route) => pathname === route)) {
     return NextResponse.next();
   }
 
-  // Se não houver token → redireciona para /login
+  // Se não houver token → redireciona para login
   if (!token) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
@@ -31,7 +28,7 @@ export function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-// Aplica em todas as rotas de páginas
+// Todas as rotas de páginas
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

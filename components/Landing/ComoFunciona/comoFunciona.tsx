@@ -39,8 +39,14 @@ const itemVariants = {
     }
   }
 };
-
 const HowItWorks = () => {
+  const diagnostico = [
+    {
+      number: 1,
+      pergunta: "Como se faz a Candidatura?",
+      resposta: "Candidatura: Preencha nosso formulário online com suas informações básicas e currículo."
+    }
+  ]
   const steps = [
     {
       number: 1,
@@ -63,7 +69,7 @@ const HowItWorks = () => {
       icon: <UserCheck className="w-5 h-5" />,
       title: 'Teste de Perfil de Carreira',
       description: 'Pequeno questionário para identificar suas áreas de maior afinidade.',
-      price: 'Gratuita | Online',
+      price: 'Gratuito | Online',
       free: true
     },
     {
@@ -87,7 +93,7 @@ const HowItWorks = () => {
       icon: <Briefcase className="w-5 h-5" />,
       title: 'Workshop de Empregabilidade',
       description: 'Sessões interativas sobre mercado de trabalho e melhores práticas.',
-      price: "Gratuita | Presencial",
+      price: "Gratuito | Presencial",
       free: true
     },
     {
@@ -95,7 +101,7 @@ const HowItWorks = () => {
       icon: <FileText className="w-5 h-5" />,
       title: 'Currículo Profissional',
       description: 'Optimização de um currículo profissional de acordo com padrões de mercado.',
-      price: "Gratuita | Online",
+      price: "Gratuito | Online",
       free: true
     },
     {

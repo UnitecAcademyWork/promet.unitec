@@ -1,5 +1,6 @@
 "use client";
-import Link from "next/link"
+
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -13,13 +14,12 @@ import {
   Save,
   X,
   Edit,
-  Plus,
   MessageCircle,
   Languages,
   UserCheck,
 } from "lucide-react";
 import { adicionarCandidato } from "../../../../lib/candidatura";
-import { getCandidato, Candidato } from "../../../../lib/candidato-actions";
+import { getCandidato, updateCandidato, Candidato } from "../../../../lib/candidato-actions";
 import toast from "react-hot-toast";
 
 // Províncias de Moçambique
@@ -50,17 +50,27 @@ const NIVEL_ACADEMICO = [
 
 // Idiomas comuns em Moçambique
 const IDIOMAS = [
-  "Português", "Inglês", "Espanhol", "Francês",
-  "Mandarim", "Changana", "Cisena", "Xichuwabu",
-  "Elomwe", "Macua", "Nhungue", "Tsonga", "Chuwabo",
-  "Makonde", "Chisena", "Ronga", "Chiyao",
+  "Português",
+  "Inglês",
+  "Espanhol",
+  "Francês",
+  "Mandarim",
+  "Changana",
+  "Cisena",
+  "Xichuwabu",
+  "Elomwe",
+  "Macua",
+  "Nhungue",
+  "Tsonga",
+  "Chuwabo",
+  "Makonde",
+  "Chisena",
+  "Ronga",
+  "Chiyao",
 ];
 
 // Gêneros
-const GENEROS = [
-  "Masculino",
-  "Feminino"
-];
+const GENEROS = ["Masculino", "Feminino"];
 
 interface CandidateData {
   provincia: string;
@@ -72,14 +82,16 @@ interface CandidateData {
   whatsapp: string;
   genero: string;
   idiomaNativo: string;
+  isFromUnitec: boolean;
 }
 
 export default function DadosPessoais() {
   const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  const [errors, setErrors] = useState<Partial<Record<keyof CandidateData, boolean>>>({});
+  const [candidatoExistente, setCandidatoExistente] = useState(false);
+  const [isEditing, setIsEditing] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const [data, setData] = useState<CandidateData>({
     provincia: "",
@@ -91,10 +103,12 @@ export default function DadosPessoais() {
     whatsapp: "",
     genero: "",
     idiomaNativo: "",
+    isFromUnitec: false,
   });
-  const [isEditing, setIsEditing] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Buscar dados do candidato
   useEffect(() => {
@@ -111,53 +125,68 @@ export default function DadosPessoais() {
           whatsapp: candidato.whatsapp || "",
           genero: candidato.genero || "",
           idiomaNativo: candidato.idiomaNativo || "",
+          isFromUnitec: candidato.isFromUnitec || false,
         });
         setIsEditing(false);
+        setCandidatoExistente(true);
       } else {
         setIsEditing(true);
+        setCandidatoExistente(false);
       }
     };
     fetchData();
   }, []);
 
-  const handleChange = (field: keyof CandidateData, value: string) => {
-    setData({ ...data, [field]: value });
+  const handleChange = (field: keyof CandidateData, value: string | boolean) => {
+    setData({ ...data, [field]: value as never });
+    setErrors({ ...errors, [field]: false });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  // Validação extra para todos os campos
-  const emptyField = Object.entries(data).find(([key, value]) => !value.trim());
-  if (emptyField) {
-    toast.error(`O campo "${emptyField[0]}" é obrigatório.`);
-    return;
-  }
+    // Validação
+    const newErrors: Partial<Record<keyof CandidateData, boolean>> = {};
+    Object.entries(data).forEach(([key, value]) => {
+      if (typeof value === "string" && !value.trim()) {
+        newErrors[key as keyof CandidateData] = true;
+      }
+    });
 
-  if (!isEditing) return; // não salvar se não estiver editando
-
-  setIsSaving(true);  
-
-  await toast.promise(
-    (async () => {
-      const res = await adicionarCandidato(data);
-      if (!res.success) throw new Error(res.error || "Erro ao salvar dados");
-      return res;
-    })(),
-    {
-      loading: "Salvando dados...",
-      success: "Dados salvos com sucesso!",
-      error: (err) => err.message || "Erro ao salvar dados",
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error("Preencha todos os campos obrigatórios.");
+      return;
     }
-  );
 
-  setIsSaving(false);
-  setShowSuccess(true);
-};
+    setIsSaving(true);
 
+    await toast.promise(
+      (async () => {
+        if (candidatoExistente) {
+          const res = await updateCandidato(data);
+          if (!res) throw new Error("Erro ao atualizar dados");
+          return res;
+        } else {
+          const res = await adicionarCandidato(data);
+          if (!res.success) throw new Error(res.error || "Erro ao salvar dados");
+          return res;
+        }
+      })(),
+      {
+        loading: candidatoExistente ? "Atualizando dados..." : "Salvando dados...",
+        success: candidatoExistente
+          ? "Dados atualizados com sucesso!"
+          : "Dados salvos com sucesso!",
+        error: (err) => err.message || "Erro ao salvar dados",
+      }
+    );
 
-  // Verifica se todos os dados do candidato estão preenchidos
-  const isCandidateDataComplete = Object.values(data).every((value) => value.trim() !== "");
+    setIsSaving(false);
+    setShowSuccess(true);
+    setIsEditing(false);
+    setCandidatoExistente(true);
+  };
 
   return (
     <motion.div
@@ -230,9 +259,10 @@ export default function DadosPessoais() {
               type="text"
               value={data.contacto}
               onChange={(e) => handleChange("contacto", e.target.value)}
-              className="mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500"
+              className={`mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 ${
+                errors.contacto ? "border-red-500" : "border-gray-300"
+              }`}
               placeholder="+258 84 123 4567"
-              required
               disabled={!isEditing}
             />
           </div>
@@ -247,9 +277,10 @@ export default function DadosPessoais() {
               type="text"
               value={data.whatsapp}
               onChange={(e) => handleChange("whatsapp", e.target.value)}
-              className="mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500"
+              className={`mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 ${
+                errors.whatsapp ? "border-red-500" : "border-gray-300"
+              }`}
               placeholder="+258 84 123 4567"
-              required
               disabled={!isEditing}
             />
           </div>
@@ -263,8 +294,9 @@ export default function DadosPessoais() {
             <select
               value={data.provincia}
               onChange={(e) => handleChange("provincia", e.target.value)}
-              className="mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 appearance-none"
-              required
+              className={`mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 appearance-none ${
+                errors.provincia ? "border-red-500" : "border-gray-300"
+              }`}
               disabled={!isEditing}
             >
               <option value="">Selecione uma província</option>
@@ -275,7 +307,7 @@ export default function DadosPessoais() {
               ))}
             </select>
           </div>
-          
+
           {/* Morada */}
           <div className="flex flex-col gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border">
             <label className="text-sm font-medium flex items-center gap-2">
@@ -286,9 +318,10 @@ export default function DadosPessoais() {
               type="text"
               value={data.morada}
               onChange={(e) => handleChange("morada", e.target.value)}
-              className="mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500"
+              className={`mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 ${
+                errors.morada ? "border-red-500" : "border-gray-300"
+              }`}
               placeholder="Polana Cimento"
-              required
               disabled={!isEditing}
             />
           </div>
@@ -303,14 +336,15 @@ export default function DadosPessoais() {
               type="date"
               value={data.dataNascimento}
               onChange={(e) => handleChange("dataNascimento", e.target.value)}
-              className="mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500"
-              required
+              className={`mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 ${
+                errors.dataNascimento ? "border-red-500" : "border-gray-300"
+              }`}
               disabled={!isEditing}
               max={new Date(
                 new Date().setFullYear(new Date().getFullYear() - 18)
               )
                 .toISOString()
-                .split("T")[0]} // Só permite datas até hoje - 18 anos
+                .split("T")[0]}
             />
           </div>
 
@@ -323,8 +357,9 @@ export default function DadosPessoais() {
             <select
               value={data.genero}
               onChange={(e) => handleChange("genero", e.target.value)}
-              className="mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 appearance-none"
-              required
+              className={`mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 appearance-none ${
+                errors.genero ? "border-red-500" : "border-gray-300"
+              }`}
               disabled={!isEditing}
             >
               <option value="">Selecione o gênero</option>
@@ -346,9 +381,10 @@ export default function DadosPessoais() {
               type="text"
               value={data.numeroBi}
               onChange={(e) => handleChange("numeroBi", e.target.value)}
-              className="mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500"
+              className={`mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 ${
+                errors.numeroBi ? "border-red-500" : "border-gray-300"
+              }`}
               placeholder="123456789LA045"
-              required
               disabled={!isEditing}
             />
           </div>
@@ -362,8 +398,9 @@ export default function DadosPessoais() {
             <select
               value={data.nivelAcademico}
               onChange={(e) => handleChange("nivelAcademico", e.target.value)}
-              className="mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 appearance-none"
-              required
+              className={`mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 appearance-none ${
+                errors.nivelAcademico ? "border-red-500" : "border-gray-300"
+              }`}
               disabled={!isEditing}
             >
               <option value="">Selecione um nível acadêmico</option>
@@ -384,8 +421,9 @@ export default function DadosPessoais() {
             <select
               value={data.idiomaNativo}
               onChange={(e) => handleChange("idiomaNativo", e.target.value)}
-              className="mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 appearance-none"
-              required
+              className={`mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 appearance-none ${
+                errors.idiomaNativo ? "border-red-500" : "border-gray-300"
+              }`}
               disabled={!isEditing}
             >
               <option value="">Selecione seu idioma nativo</option>
@@ -396,6 +434,18 @@ export default function DadosPessoais() {
               ))}
             </select>
           </div>
+        </div>
+
+        {/* Checkbox Unitec */}
+        <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border">
+          <input
+            type="checkbox"
+            checked={data.isFromUnitec}
+            onChange={(e) => handleChange("isFromUnitec", e.target.checked)}
+            disabled={!isEditing}
+            className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+          />
+          <label className="text-sm font-medium">Tem curso na Unitec?</label>
         </div>
 
         {/* Botões */}
@@ -411,12 +461,12 @@ export default function DadosPessoais() {
               {isSaving ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Salvando...
+                  {candidatoExistente ? "Atualizando..." : "Salvando..."}
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  Salvar
+                  {candidatoExistente ? "Atualizar" : "Salvar"}
                 </>
               )}
             </motion.button>
