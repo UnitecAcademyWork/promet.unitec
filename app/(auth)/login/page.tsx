@@ -28,15 +28,28 @@ const router = useRouter()
       const result = await loginUser(form);
 
       if (result?.token) {
-        Cookies.set("auth_token", result.token, {
-          expires: 7,
-          secure: true,
-          sameSite: "strict",
-        });
-        
-        toast.success("Login realizado com sucesso!");
-        router.push("/user/perfil");
-      } else {
+  Cookies.set("auth_token", result.token, {
+    expires: 7,
+    secure: true,
+    sameSite: "strict",
+  });
+
+  toast.success("Login realizado com sucesso!", {
+    duration: 1500,
+  });
+
+  // redireciona após 1.5s para garantir
+  setTimeout(() => {
+    router.replace("/user/perfil");
+    // fallback se o router falhar
+    setTimeout(() => {
+      if (window.location.pathname !== "/user/perfil") {
+        window.location.href = "/user/perfil";
+      }
+    }, 500);
+  }, 1000);
+}
+ else {
         toast.error("Token não encontrado na resposta");
       }
     } catch (error) {

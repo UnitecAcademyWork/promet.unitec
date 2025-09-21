@@ -48,10 +48,11 @@ export async function addUserIdiomas(idiomas: { nome: string; fluencia: string }
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ idiomas }), // envia como { idiomas: [...] }
+      body: JSON.stringify({ idiomas }),
     });
 
-    if (!res.ok) throw new Error(`Erro ${res.status}: ${res.statusText}`);
+    if (!res.ok) 
+      throw new Error(`Erro ${res.status}: ${res.statusText}`);
     const data: Idioma[] = await res.json();
     return { success: true, data };
   } catch (err: any) {

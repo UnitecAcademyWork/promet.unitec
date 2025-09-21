@@ -1,7 +1,7 @@
 "use client";
 import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, User, Mail, Lock, UserPlus, CheckCircle, KeyRound, UserCircle, RefreshCcw } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Lock, UserPlus, RefreshCcw, UserCircle } from "lucide-react";
 import { registerUser } from "../../lib/register-user-actions";
 import { toast, Toaster } from "react-hot-toast";
 import Image from "next/image";
@@ -71,28 +71,40 @@ export default function RegisterForm() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [usernameEdited, setUsernameEdited] = useState(false);
 
-  // Gera username aleatório com 4 números
+  // Remove acentos e espaços, gera username
   const generateUsername = (nome: string, apelido: string) => {
     if (!nome || !apelido) return "";
     const randomNumbers = Math.floor(1000 + Math.random() * 9000);
-    return `${nome}${apelido}${randomNumbers}`.toLowerCase().replace(/\s+/g, '');
+
+    // Normalizar e remover acentos
+    const clean = (str: string) =>
+      str
+        .normalize("NFD") // separa letras de acentos
+        .replace(/[\u0300-\u036f]/g, "") // remove acentos
+        .replace(/\s+/g, ""); // remove espaços
+
+    return `${clean(nome)}${clean(apelido)}${randomNumbers}`.toLowerCase();
   };
 
   useEffect(() => {
     if (form.nome && form.apelido && !usernameEdited) {
-      setForm(prev => ({ ...prev, username: generateUsername(form.nome, form.apelido) }));
+      setForm((prev) => ({
+        ...prev,
+        username: generateUsername(form.nome, form.apelido),
+      }));
     }
   }, [form.nome, form.apelido, usernameEdited]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value }));
 
     if (name === "username") setUsernameEdited(true);
   };
 
   const passwordStrength: PasswordStrength = useMemo(() => {
-    if (!form.password) return { strength: 0, label: "Muito Fraca", color: "bg-red-400", width: "w-0" };
+    if (!form.password)
+      return { strength: 0, label: "Muito Fraca", color: "bg-red-400", width: "w-0" };
     let strength = 0;
     if (form.password.length >= 8) strength += 1;
     if (/[A-Z]/.test(form.password)) strength += 1;
@@ -110,7 +122,10 @@ export default function RegisterForm() {
     return strengths[Math.min(strength, 4)];
   }, [form.password]);
 
-  const passwordsMatch = useMemo(() => form.password === form.confirmPassword, [form.password, form.confirmPassword]);
+  const passwordsMatch = useMemo(
+    () => form.password === form.confirmPassword,
+    [form.password, form.confirmPassword]
+  );
 
   const isFormValid = useMemo(() => {
     return (
@@ -132,10 +147,27 @@ export default function RegisterForm() {
     setLoading(true);
     try {
       const { confirmPassword, ...userData } = form;
-      await registerUser(userData);
+
+      // username sem acentos antes de enviar
+      const sanitizedUserData = {
+        ...userData,
+        username: userData.username
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/\s+/g, ""),
+      };
+
+      await registerUser(sanitizedUserData);
       toast.success("Conta criada com sucesso!");
 
-      setForm({ nome: "", apelido: "", email: "", username: "", password: "", confirmPassword: "" });
+      setForm({
+        nome: "",
+        apelido: "",
+        email: "",
+        username: "",
+        password: "",
+        confirmPassword: "",
+      });
       setAcceptedTerms(false);
       setUsernameEdited(false);
 
@@ -160,7 +192,14 @@ export default function RegisterForm() {
         >
           {/* Lado esquerdo */}
           <div className="hidden md:flex flex-1 relative">
-            <Image src="/images/reg.jpg" alt="Cadastro" width={600} height={800} className="w-full object-cover" priority />
+            <Image
+              src="/images/reg.jpg"
+              alt="Cadastro"
+              width={600}
+              height={800}
+              className="w-full object-cover"
+              priority
+            />
             <div className="absolute inset-0 bg-gradient-to-br from-brand-main/70 to-brand-lime/70 mix-blend-multiply" />
           </div>
 
@@ -175,15 +214,21 @@ export default function RegisterForm() {
               >
                 <UserPlus className="w-6 h-6 text-white" />
               </motion.div>
-              <h1 className="text-xl font-bold text-gray-800 dark:text-white mb-1">Criar Conta</h1>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">Preencha seus dados para começar</p>
+              <h1 className="text-xl font-bold text-gray-800 dark:text-white mb-1">
+                Criar Conta
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                Preencha seus dados para começar
+              </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-3">
               {/* Nome e Apelido */}
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label htmlFor="nome" className="sr-only">Nome</label>
+                  <label htmlFor="nome" className="sr-only">
+                    Nome
+                  </label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
@@ -199,7 +244,9 @@ export default function RegisterForm() {
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="apelido" className="sr-only">Apelido</label>
+                  <label htmlFor="apelido" className="sr-only">
+                    Apelido
+                  </label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
@@ -218,7 +265,9 @@ export default function RegisterForm() {
 
               {/* Email */}
               <div>
-                <label htmlFor="email" className="sr-only">Email</label>
+                <label htmlFor="email" className="sr-only">
+                  Email
+                </label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
@@ -236,7 +285,9 @@ export default function RegisterForm() {
 
               {/* Username */}
               <div>
-                <label htmlFor="username" className="sr-only">Username</label>
+                <label htmlFor="username" className="sr-only">
+                  Username
+                </label>
                 <div className="relative">
                   <UserCircle className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
@@ -252,7 +303,12 @@ export default function RegisterForm() {
                   />
                   <button
                     type="button"
-                    onClick={() => setForm(prev => ({ ...prev, username: generateUsername(prev.nome, prev.apelido) }))}
+                    onClick={() =>
+                      setForm((prev) => ({
+                        ...prev,
+                        username: generateUsername(prev.nome, prev.apelido),
+                      }))
+                    }
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                     aria-label="Gerar novo username"
                   >
@@ -260,13 +316,17 @@ export default function RegisterForm() {
                   </button>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  {usernameEdited ? "Você personalizou seu username" : "Username gerado automaticamente com 4 números"}
+                  {usernameEdited
+                    ? "Você personalizou seu username"
+                    : "Username gerado automaticamente sem acentos e com 4 números"}
                 </p>
               </div>
 
               {/* Password */}
               <div>
-                <label htmlFor="password" className="sr-only">Senha</label>
+                <label htmlFor="password" className="sr-only">
+                  Senha
+                </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
@@ -287,22 +347,13 @@ export default function RegisterForm() {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                {form.password && (
-                  <div className="mt-2 space-y-1">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-gray-500">Força: {passwordStrength.label}</span>
-                      <div className={`w-3 h-3 rounded-full ${passwordStrength.color}`} />
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
-                      <div className={`h-1.5 rounded-full transition-all duration-500 ${passwordStrength.color} ${passwordStrength.width}`} />
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Confirm Password */}
               <div>
-                <label htmlFor="confirmPassword" className="sr-only">Confirmar Senha</label>
+                <label htmlFor="confirmPassword" className="sr-only">
+                  Confirmar Senha
+                </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
@@ -333,13 +384,15 @@ export default function RegisterForm() {
                 <input
                   type="checkbox"
                   checked={acceptedTerms}
-                  onChange={() => setAcceptedTerms(prev => !prev)}
+                  onChange={() => setAcceptedTerms((prev) => !prev)}
                   id="terms"
                   className="w-4 h-4 text-brand-main border-gray-300 rounded focus:ring-1 focus:ring-brand-main/30"
                 />
                 <label htmlFor="terms" className="text-xs text-gray-500 dark:text-gray-400">
                   Aceito os{" "}
-                  <Link href="/terms" className="text-brand-main hover:text-brand-lime">Termos e Condições</Link>
+                  <Link href="/terms" className="text-brand-main hover:text-brand-lime">
+                    Termos e Condições
+                  </Link>
                 </label>
               </div>
 
@@ -356,7 +409,10 @@ export default function RegisterForm() {
             <div className="text-center mt-5">
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 Já tem uma conta?{" "}
-                <Link href="/login" className="text-brand-main hover:text-brand-lime font-medium">
+                <Link
+                  href="/login"
+                  className="text-brand-main hover:text-brand-lime font-medium"
+                >
                   Entrar
                 </Link>
               </p>

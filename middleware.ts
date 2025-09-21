@@ -5,8 +5,19 @@ export function middleware(req: NextRequest) {
   const token = req.cookies.get("auth_token")?.value;
   const { pathname } = req.nextUrl;
 
-  const publicRoutes = ["/", "/login", "/registro",, "/duvidas", "/recuperar-senha", "/formulario/parceiro", "/cursos"];
+  // Rotas públicas (sempre acessíveis sem login)
+  const publicRoutes = [
+    "/",
+    "/duvidas",
+    "/recuperar-senha",
+    "/formulario/parceiro",
+    "/cursos",
+  ];
 
+  // Rotas especiais que não podem ser acessadas após login
+  const authRoutes = ["/login", "/registro"];
+
+  // Ignorar assets e APIs
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
@@ -16,7 +27,13 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  if (publicRoutes.some((route) => pathname === route)) {
+  // Se usuário já logado tentar ir para login/registro → manda para perfil
+  if (token && authRoutes.includes(pathname)) {
+    return NextResponse.redirect(new URL("/user/perfil", req.url));
+  }
+
+  // Se rota pública → libera
+  if (publicRoutes.includes(pathname) || authRoutes.includes(pathname)) {
     return NextResponse.next();
   }
 
@@ -25,6 +42,7 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
+  // Senão, libera
   return NextResponse.next();
 }
 

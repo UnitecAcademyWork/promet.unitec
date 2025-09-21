@@ -3,19 +3,43 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, ReactNode } from "react";
 import { toast, Toaster } from "react-hot-toast";
-import { Candidato, getCandidato } from "../../../lib/candidato-actions";
-import { getFormations } from "../../../lib/formation-actions";
-// import { getExperiencias } from "../../../lib/experiencia-actions";
-// import { getIdiomas } from "../../../lib/idioma-actions";
-import ApplyButton from "./tabs/buttonAplly";
 import { useRouter } from "next/navigation";
 import { CheckCircle, Circle, AlertCircle } from "lucide-react";
+
+import ApplyButton from "./tabs/buttonAplly";
+import { Candidato, getCandidato } from "../../../lib/candidato-actions";
+import { getFormations } from "../../../lib/formation-actions";
+import { getIdiomas } from "../../../lib/idioma-actions";
+import { getExperiences } from "../../../lib/experiencia-actions";
 
 type TabsProps = {
   tabs: string[];
   showCount?: boolean;
   counts?: Record<string, number>;
   renderTabContent: (tab: string) => ReactNode;
+};
+
+// Para simplificar a renderização de status
+type StatusItemProps = {
+  title: string;
+  isCompleted: boolean;
+  isRequired?: boolean;
+};
+
+const StatusItem = ({ title, isCompleted, isRequired = false }: StatusItemProps) => {
+  const color = isCompleted ? (isRequired ? "green" : "blue") : isRequired ? "red" : "gray";
+  const Icon = isCompleted ? CheckCircle : isRequired ? AlertCircle : Circle;
+
+  return (
+    <div className="flex items-center">
+      <Icon className={`w-5 h-5 text-${color}-500 mr-2`} />
+      <span className={`text-sm text-${color}-600`}>
+        {title} {isCompleted ? "✓" : isRequired ? "✗" : ""}{" "}
+        {isRequired && <span className="text-xs text-gray-500">(Obrigatório)</span>}
+        {!isRequired && <span className="text-xs text-gray-500">(Opcional)</span>}
+      </span>
+    </div>
+  );
 };
 
 export default function TabsWithApply({
@@ -46,42 +70,37 @@ export default function TabsWithApply({
   const checkUserStatus = async () => {
     try {
       const candidato: Candidato | null = await getCandidato();
-      const hasCandidateData = !!candidato;
-      setIsCandidate(hasCandidateData);
-
       const formations = await getFormations();
-      const hasFormationData = !!formations && formations.length > 0;
+      const experiencias = await getExperiences();
+      const idiomas = await getIdiomas();
+
+      const hasCandidateData = !!candidato;
+      const hasFormationData = Array.isArray(formations) && formations.length > 0;
+      const hasExperienceData =
+        Array.isArray(experiencias.data) && experiencias.data.length > 0;
+      const hasLanguageData =
+        Array.isArray(idiomas.data) && idiomas.data.length > 0;
+
+      setIsCandidate(hasCandidateData);
       setHasFormation(hasFormationData);
+      setHasExperience(hasExperienceData);
+      setHasLanguage(hasLanguageData);
 
-      // const experiencias = await getExperiencias();
-      // const hasExperienceData = !!experiencias && experiencias.length > 0;
-      // setHasExperience(hasExperienceData);
-
-      // const idiomas = await getIdiomas();
-      // const hasLanguageData = !!idiomas && idiomas.length > 0;
-      // setHasLanguage(hasLanguageData);
-
-      // Calcular progresso (apenas dados obrigatórios)
-      const totalRequired = 2; // Dados pessoais + Formação
+      // Calcular progresso (somente obrigatórios: Dados pessoais + Formação)
+      const totalRequired = 2;
       let completed = 0;
-      
       if (hasCandidateData) completed++;
       if (hasFormationData) completed++;
-      
+
       setProgress(Math.round((completed / totalRequired) * 100));
-    } catch (err: any) {
+    } catch (err) {
       console.error("Erro ao verificar status do usuário:", err);
     }
   };
 
-  // Checagem inicial e polling a cada 5 segundos
   useEffect(() => {
-    checkUserStatus(); // primeira verificação
-
-    const interval = setInterval(() => {
-      checkUserStatus();
-    }, 5000); // a cada 5 segundos
-
+    checkUserStatus();
+    const interval = setInterval(checkUserStatus, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -108,13 +127,9 @@ export default function TabsWithApply({
     <div className={`flex flex-col w-full ${isMobile ? "space-y-2" : "space-y-3"}`}>
       <Toaster position="top-right" reverseOrder={false} />
 
-      {/* Barra de Progresso e Status */}
-      
-
       {/* Tabs */}
       {tabs.map((tab) => {
         const isActive = openTabs.includes(tab);
-
         return (
           <div
             key={tab}
@@ -133,7 +148,9 @@ export default function TabsWithApply({
                 {showCount && counts[tab] > 0 && (
                   <span
                     className={`text-xs px-2 py-1 rounded-full ${
-                      isActive ? "bg-white/20 text-white" : "bg-gray-300 dark:bg-gray-700"
+                      isActive
+                        ? "bg-white/20 text-white"
+                        : "bg-gray-300 dark:bg-gray-700"
                     }`}
                   >
                     {counts[tab]}
@@ -166,6 +183,7 @@ export default function TabsWithApply({
         );
       })}
 
+      {/* Botão de Aplicar */}
       <div className="mt-4 flex justify-end">
         <ApplyButton
           isEnabled={isCandidate && hasFormation}
@@ -173,60 +191,15 @@ export default function TabsWithApply({
           href="/cursos"
         />
       </div>
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-4">
 
-        {/* Lista de requisitos */}
-        <div className="space-y-3">
-          {/* Dados Pessoais (Obrigatório) */}
-          <div className="flex items-center">
-            {isCandidate ? (
-              <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
-            ) : (
-              <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
-            )}
-            <span className={`text-sm ${isCandidate ? 'text-green-600' : 'text-red-600'}`}>
-              Dados Pessoais {isCandidate ? '✓' : '✗'} <span className="text-xs text-gray-500">(Obrigatório)</span>
-            </span>
-          </div>
+      {/* Lista de Requisitos */}
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-4 space-y-3">
+        <StatusItem title="Dados Pessoais" isCompleted={isCandidate} isRequired />
+        <StatusItem title="Formação Acadêmica" isCompleted={hasFormation} isRequired />
+        <StatusItem title="Experiência Profissional" isCompleted={hasExperience} />
+        <StatusItem title="Idiomas" isCompleted={hasLanguage} />
 
-          {/* Formação (Obrigatório) */}
-          <div className="flex items-center">
-            {hasFormation ? (
-              <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
-            ) : (
-              <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
-            )}
-            <span className={`text-sm ${hasFormation ? 'text-green-600' : 'text-red-600'}`}>
-              Formação Acadêmica {hasFormation ? '✓' : '✗'} <span className="text-xs text-gray-500">(Obrigatório)</span>
-            </span>
-          </div>
-
-          {/* Experiência (Opcional) */}
-          <div className="flex items-center">
-            {hasExperience ? (
-              <CheckCircle className="w-5 h-5 text-blue-500 mr-2" />
-            ) : (
-              <Circle className="w-5 h-5 text-gray-400 mr-2" />
-            )}
-            <span className={`text-sm ${hasExperience ? 'text-blue-600' : 'text-gray-500'}`}>
-              Experiência Profissional {hasExperience ? '✓' : ''} <span className="text-xs text-gray-500">(Opcional)</span>
-            </span>
-          </div>
-
-          {/* Idioma (Opcional) */}
-          <div className="flex items-center">
-            {hasLanguage ? (
-              <CheckCircle className="w-5 h-5 text-blue-500 mr-2" />
-            ) : (
-              <Circle className="w-5 h-5 text-gray-400 mr-2" />
-            )}
-            <span className={`text-sm ${hasLanguage ? 'text-blue-600' : 'text-gray-500'}`}>
-              Idiomas {hasLanguage ? '✓' : ''} <span className="text-xs text-gray-500">(Opcional)</span>
-            </span>
-          </div>
-        </div>
-
-        {/* Mensagem de status */}
+        {/* Mensagem de progresso */}
         {progress < 100 && (
           <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
             <p className="text-sm text-yellow-700 dark:text-yellow-300">

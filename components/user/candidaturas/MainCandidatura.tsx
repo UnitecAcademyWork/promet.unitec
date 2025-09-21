@@ -36,7 +36,7 @@ const MainCandidatura = () => {
   // Abrir modal de pagamento
   const abrirModal = (id: string, tipo: "curso" | "teste", valor: number, idEdicao: string) => {
     setItemIdSelecionado(id);
-    setItemNomeSelecionado(tipo); // apenas "curso" ou "teste"
+    setItemNomeSelecionado(tipo);
     setItemIdEdicao(idEdicao);
     setModalTitulo(tipo === "curso" ? "Curso" : "Teste");
     setModalValor(valor);
@@ -53,7 +53,7 @@ const MainCandidatura = () => {
     const resp = await efectuarPagamento({
       metodoPagamento: dados.metodo,
       itemId: itemIdSelecionado,
-      itemNome: itemNomeSelecionado, // sempre "curso" ou "teste"
+      itemNome: itemNomeSelecionado,
       idEdicao: itemIdEdicao,
       comprovativo: dados.comprovativo,
     });
@@ -79,7 +79,7 @@ const MainCandidatura = () => {
             const testesData = await getTestesByCandidatura();
             setTestesPorCandidatura((prev) => ({
               ...prev,
-              [candidatura.id]: testesData.flatMap((c) => c.testes),
+              [candidatura.id]: testesData.flatMap((c) => c.testes).filter((t) => t && t.id),
             }));
           } catch {
             toast.error("Erro ao buscar testes do candidato.");
@@ -219,24 +219,28 @@ const MainCandidatura = () => {
                         <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
                           <h4 className="font-semibold text-gray-800 dark:text-white mb-2">Testes Realizados</h4>
                           <ul className="space-y-2">
-                            {testesPorCandidatura[c.id].map((t) => (
-                              <li
-                                key={t.id}
-                                className="flex justify-between items-center bg-white dark:bg-gray-800 p-2 rounded-md shadow-sm"
-                              >
-                                <div>
-                                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                                    {t.status} <span className="text-xs text-gray-500">({t.preco} MT)</span>
-                                  </p>
-                                </div>
-                                <button
-                                  onClick={() => abrirModal(c.id, "teste", t.preco, c.idEdicao)}
-                                  className="px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-xs font-medium"
+                            {(testesPorCandidatura[c.id] || [])
+                              .filter((t) => t && t.status !== undefined)
+                              .slice(0, 2) // mostra só 2 testes
+                              .map((t) => (
+                                <li
+                                  key={t.id}
+                                  className="flex justify-between items-center bg-white dark:bg-gray-800 p-2 rounded-md shadow-sm"
                                 >
-                                  Pagar Teste
-                                </button>
-                              </li>
-                            ))}
+                                  <div>
+                                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                                      {t.status}{" "}
+                                      <span className="text-xs text-gray-500">({t.preco} MT)</span>
+                                    </p>
+                                  </div>
+                                  <button
+                                    onClick={() => abrirModal(c.id, "teste", t.preco, c.idEdicao)}
+                                    className="px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-xs font-medium"
+                                  >
+                                    Pagar Teste
+                                  </button>
+                                </li>
+                              ))}
                           </ul>
                         </div>
                       )}
