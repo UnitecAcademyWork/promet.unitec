@@ -390,7 +390,7 @@ const CursoCandidatura = () => {
               <li>• Duração: 30 Dias</li>
               <li>• Modalidade: Presencial</li>
               <li>• Local: Após a aprovação da candidatura</li>
-              <li>• Horário: Segunda a Sexta, 08:35-12:10 - 15:55-19:30</li>
+              <li>• Horário: Segunda a Sexta, 08:35-11:35 - 16:00-19:00</li>
             </ul>
           </div>
 
