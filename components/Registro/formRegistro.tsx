@@ -60,6 +60,7 @@ export default function RegisterForm() {
     nome: "",
     apelido: "",
     email: "",
+    contacto: "",
     username: "",
     password: "",
     confirmPassword: "",
@@ -132,6 +133,7 @@ export default function RegisterForm() {
       form.nome.trim() &&
       form.apelido.trim() &&
       form.email.trim() &&
+      form.contacto.trim() &&
       form.username.trim() &&
       form.password.trim() &&
       form.confirmPassword.trim() &&
@@ -164,6 +166,7 @@ export default function RegisterForm() {
         nome: "",
         apelido: "",
         email: "",
+        contacto: "",
         username: "",
         password: "",
         confirmPassword: "",
@@ -276,6 +279,24 @@ export default function RegisterForm() {
                     name="email"
                     placeholder="Email"
                     value={form.email}
+                    onChange={handleChange}
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-1 focus:ring-brand-main/30 focus:border-brand-main/20 transition-all dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="contacto" className="sr-only">
+                  Contacto
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    id="contacto"
+                    type="text"
+                    name="contacto"
+                    placeholder="contacto"
+                    value={form.contacto}
                     onChange={handleChange}
                     className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-1 focus:ring-brand-main/30 focus:border-brand-main/20 transition-all dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                     required

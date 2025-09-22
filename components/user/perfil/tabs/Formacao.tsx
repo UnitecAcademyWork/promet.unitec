@@ -133,8 +133,8 @@ export default function Formacao() {
     <div className="p-6 bg-white rounded-2xl shadow-lg border border-gray-100 dark:bg-gray-900 dark:border-gray-800">
       <Toaster position="top-right" />
 
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-brand-main dark:text-white">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6">
+        <h2 className="text-2xl text-center font-bold text-brand-main dark:text-white">
           Formação Acadêmica
         </h2>
         {!showForm && (
@@ -142,7 +142,18 @@ export default function Formacao() {
             onClick={() => setShowForm(true)}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 px-4 py-2 bg-brand-main text-white rounded-lg hover:bg-blue-800 transition"
+            className="md:hidden flex items-center gap-2 px-4 py-2 bg-brand-main text-white rounded-lg hover:bg-blue-800 transition"
+          >
+            <Plus className="w-4 h-4" />
+            Adicionar
+          </motion.button>
+        )}
+        {!showForm && (
+          <motion.button
+            onClick={() => setShowForm(true)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="hidden md:flex items-center gap-2 px-4 py-2 bg-brand-main text-white rounded-lg hover:bg-blue-800 transition"
           >
             <Plus className="w-4 h-4" />
             Adicionar Formação
