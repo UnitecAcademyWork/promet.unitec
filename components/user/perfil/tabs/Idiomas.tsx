@@ -19,7 +19,7 @@ export default function Idiomas() {
   ];
 
   const niveisProficiencia = [
-    "Básico", "Intermediário", "Avançado", "Fluente", "Nativo"
+    "Básico", "Intermediário", "Avançado", "Fluente"
   ];
 
   // --- Carregar do localStorage ao montar ---

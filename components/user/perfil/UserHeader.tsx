@@ -1,18 +1,25 @@
 "use client";
-
 import { useEffect, useState } from "react";
-import { Edit3, Mail, User, Check, Loader2 } from "lucide-react";
+import { Edit3, Mail, User, Check, Loader2, Phone } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { getUser, updateUser, UserPerfilDados } from "../../../lib/user-actions";
+import {
+  getUser,
+  updateUser,
+  UserPerfilDados,
+} from "../../../lib/user-actions";
 import HeaderSkeleton from "./Loading/UsreHeader";
 
 export default function CandidatoHeader() {
-  const [candidatodados, setCandidatoDados] = useState<UserPerfilDados | null>(null);
+  const [candidatodados, setCandidatoDados] = useState<UserPerfilDados | null>(
+    null
+  );
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
   const [nome, setNome] = useState("");
   const [username, setUsername] = useState("");
   const [apelido, setApelido] = useState("");
+  const [contacto, setContacto] = useState("");
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -21,6 +28,7 @@ export default function CandidatoHeader() {
       setNome(data.nome);
       setApelido(data.apelido);
       setUsername(data.username);
+      setContacto(data.contacto || "");
     };
     fetchUser();
   }, []);
@@ -38,16 +46,19 @@ export default function CandidatoHeader() {
         apelido,
         username,
         email: candidatodados.email,
+        contacto,
       });
 
       toast.success("Dados atualizados com sucesso!", { duration: 3000 });
       setIsEditing(false);
       setCandidatoDados((prev) =>
-        prev ? { ...prev, nome, apelido, username } : prev
+        prev ? { ...prev, nome, apelido, username, contacto } : prev
       );
     } catch (err) {
       console.error(err);
-      toast.error("Erro ao atualizar dados. Tente novamente.", { duration: 4000 });
+      toast.error("Erro ao atualizar dados. Tente novamente.", {
+        duration: 4000,
+      });
     } finally {
       setIsSaving(false);
     }
@@ -58,6 +69,7 @@ export default function CandidatoHeader() {
       setNome(candidatodados.nome);
       setApelido(candidatodados.apelido);
       setUsername(candidatodados.username);
+      setContacto(candidatodados.contacto || "");
     }
     setIsEditing(false);
   };
@@ -98,6 +110,13 @@ export default function CandidatoHeader() {
                     className="border rounded-lg px-3 py-2 text-sm w-full md:w-auto dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-brand-main"
                     placeholder="Username"
                   />
+                  <input
+                    type="text"
+                    value={contacto}
+                    onChange={(e) => setContacto(e.target.value)}
+                    className="border rounded-lg px-3 py-2 text-sm w-full md:w-auto dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-brand-main"
+                    placeholder="Contacto"
+                  />
                 </div>
               </div>
             ) : (
@@ -115,6 +134,10 @@ export default function CandidatoHeader() {
               <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                 <Mail className="w-4 h-4 mr-1 text-brand-main dark:text-brand-lime flex-shrink-0" />
                 <span>{candidatodados.email}</span>
+              </div>
+              <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                <Phone className="w-4 h-4 mr-1 text-brand-main dark:text-brand-lime flex-shrink-0" />
+                <span>{candidatodados.contacto || "Sem contacto"}</span>
               </div>
             </div>
           </div>
@@ -136,7 +159,11 @@ export default function CandidatoHeader() {
                 disabled={isSaving}
                 className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-lg transition-colors text-sm font-medium min-w-[100px] justify-center"
               >
-                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                {isSaving ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Check className="w-4 h-4" />
+                )}
                 {isSaving ? "Salvando..." : "Salvar"}
               </button>
             </>

@@ -1,5 +1,20 @@
 import Cookies from "js-cookie";
 
+export interface Pagamento {
+  id: string;
+  candidatoId: string;
+  edicaoId: string;
+  itemNome: string;
+  itemId: string;
+  valor: number;
+  desconto: number | null;
+  metodoPagamento: string;
+  referencia: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Teste {
   id: string;
   cursoId: string;
@@ -11,9 +26,21 @@ export interface Teste {
   contadorTeste: number;
   createdAt: string;
   updatedAt: string;
+  pagamentos?: Pagamento[];
 }
 
 export interface CandidaturaTeste {
+  cursos: {
+    id: string;
+    nome: string;
+    preco: number;
+    precoTeste: number;
+    descricao?: string | null;
+    imgUrl?: string | null;
+    desconto?: number | null;
+    createdAt: string;
+    updatedAt: string;
+  };
   id: string;
   status: string;
   idCandidato: string;
@@ -21,7 +48,7 @@ export interface CandidaturaTeste {
   idCurso: string;
   createdAt: string;
   updatedAt: string;
-  testes: Teste[];
+  testesdiagnosticos: Teste[];
 }
 
 export const getTestesByCandidatura = async (): Promise<CandidaturaTeste[]> => {
@@ -42,7 +69,14 @@ export const getTestesByCandidatura = async (): Promise<CandidaturaTeste[]> => {
     if (!response.ok) throw new Error("Erro ao buscar testes da candidatura");
 
     const data: CandidaturaTeste[] = await response.json();
-    return data;
+
+    // Garantir que cada candidatura tenha array de testes
+    const formattedData = data.map((c) => ({
+      ...c,
+      testesdiagnosticos: c.testesdiagnosticos || [],
+    }));
+
+    return formattedData;
   } catch (error) {
     console.error(error);
     throw error;

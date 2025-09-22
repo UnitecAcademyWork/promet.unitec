@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { routes } from "../config/routes";
 
+// ================== TIPAGENS ==================
 export type User = {
   id: string;
   nome: string;
@@ -39,6 +40,15 @@ export type Experiencia = {
   idCandidato: string;
 };
 
+export type Idioma = {
+  id: string;
+  nome: string;
+  fluencia: string;
+  idCandidato: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type Candidato = {
   id: string;
   idUser: string;
@@ -58,8 +68,10 @@ export type Candidato = {
   isFromUnitec: boolean; // sempre boolean no front
   formacoes: Formacao[];
   experiencias: Experiencia[];
+  idiomas: Idioma[]; // 🔥 agora alinhado com o backend
 };
 
+// ================== FUNÇÕES ==================
 export async function getCandidato(): Promise<Candidato | null> {
   const token = (await cookies()).get("auth_token")?.value;
 
@@ -79,11 +91,12 @@ export async function getCandidato(): Promise<Candidato | null> {
     });
 
     if (!res.ok) {
-      console.error("Erro ao buscar candidato:", res.statusText);
+      console.error("Erro ao buscar candidato:", res.status, res.statusText);
       return null;
     }
 
     const raw = await res.json();
+    console.log("Dados brutos recebidos do backend (getCandidato):", raw);
 
     // 🔥 garantir que o flag vem sempre como boolean
     const data: Candidato = {
@@ -94,6 +107,7 @@ export async function getCandidato(): Promise<Candidato | null> {
         raw.isFromUnitec === true,
     };
 
+    console.log("Candidato formatado (getCandidato):", data);
     return data;
   } catch (error) {
     console.error("Erro no fetch candidato:", error);
@@ -118,8 +132,10 @@ export async function updateCandidato(
       isFromUnitec: dados.isFromUnitec ? 1 : 0,
     };
 
+    console.log("📤 Dados enviados para atualização (updateCandidato):", body);
+
     const res = await fetch(routes.candidato, {
-      method: "PUT", // ou PATCH, dependendo da API
+      method: "PUT", // ou PATCH dependendo da API
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -128,11 +144,12 @@ export async function updateCandidato(
     });
 
     if (!res.ok) {
-      console.error("Erro ao atualizar candidato:", res.statusText);
+      console.error("Erro ao atualizar candidato:", res.status, res.statusText);
       return null;
     }
 
     const raw = await res.json();
+    console.log("Resposta do backend (updateCandidato):", raw);
 
     const data: Candidato = {
       ...raw,
@@ -142,6 +159,7 @@ export async function updateCandidato(
         raw.isFromUnitec === true,
     };
 
+    console.log("Candidato atualizado e formatado (updateCandidato):", data);
     return data;
   } catch (error) {
     console.error("Erro no update candidato:", error);

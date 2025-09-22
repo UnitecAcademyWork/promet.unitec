@@ -29,7 +29,7 @@ export type UserData = {
   apelido?: string;
   username?: string;
   email: string;
-  telefone?: string;
+  contacto: string;
   localizacao?: string;
   overview?: string;
   avatarUrl?: string | null;

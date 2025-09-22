@@ -8,13 +8,11 @@ export async function efectuarPagamento({
   metodoPagamento,
   itemId,
   itemNome,
-  idEdicao,
   comprovativo,
 }: {
   metodoPagamento: string;
   itemId: string;
   itemNome: string;
-  idEdicao: string;
   comprovativo?: File;
 }) {
   try {
@@ -27,7 +25,6 @@ export async function efectuarPagamento({
       formData.append("metodoPagamento", metodoPagamento);
       formData.append("itemId", itemId);
       formData.append("itemNome", itemNome);
-      formData.append("idEdicao", idEdicao);
       formData.append("comprovativo", comprovativo);
 
       res = await fetch(`${API_URL}/efectuar-pagamento`, {
@@ -48,17 +45,16 @@ export async function efectuarPagamento({
           metodoPagamento,
           itemId,
           itemNome,
-          idEdicao,
         }),
       });
     }
 
-    if (!res.ok) {
+    if (res.status === 200 || res.status === 201) {
+      return { success: true };
+    } else {
       const data = await res.json();
       throw new Error(data?.message || "Erro ao efectuar pagamento");
     }
-
-    return await res.json();
   } catch (error: any) {
     console.error("Pagamento falhou:", error);
     return { success: false, error: error.message || "Erro no pagamento" };

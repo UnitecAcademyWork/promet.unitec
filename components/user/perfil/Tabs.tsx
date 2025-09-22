@@ -27,16 +27,35 @@ type StatusItemProps = {
 };
 
 const StatusItem = ({ title, isCompleted, isRequired = false }: StatusItemProps) => {
-  const color = isCompleted ? (isRequired ? "green" : "blue") : isRequired ? "red" : "gray";
-  const Icon = isCompleted ? CheckCircle : isRequired ? AlertCircle : Circle;
+  let colorClass = "";
+  let textClass = "";
+  let Icon = Circle;
+
+  if (isCompleted) {
+    colorClass = "text-green-500";
+    textClass = "text-green-600";
+    Icon = CheckCircle;
+  } else if (isRequired) {
+    colorClass = "text-red-500";
+    textClass = "text-red-600";
+    Icon = AlertCircle;
+  } else {
+    colorClass = "text-gray-500";
+    textClass = "text-gray-600";
+    Icon = Circle;
+  }
 
   return (
     <div className="flex items-center">
-      <Icon className={`w-5 h-5 text-${color}-500 mr-2`} />
-      <span className={`text-sm text-${color}-600`}>
-        {title} {isCompleted ? "✓" : isRequired ? "✗" : ""}{" "}
-        {isRequired && <span className="text-xs text-gray-500">(Obrigatório)</span>}
-        {!isRequired && <span className="text-xs text-gray-500">(Opcional)</span>}
+      <Icon className={`w-5 h-5 mr-2 ${colorClass}`} />
+      <span className={`text-sm ${textClass}`}>
+        {title}{" "}
+        {isCompleted ? "✓" : isRequired ? "✗" : ""}{" "}
+        {isRequired ? (
+          <span className="text-xs text-gray-500">(Obrigatório)</span>
+        ) : (
+          <span className="text-xs text-gray-500">(Opcional)</span>
+        )}
       </span>
     </div>
   );
@@ -192,12 +211,39 @@ export default function TabsWithApply({
         />
       </div>
 
-      {/* Lista de Requisitos */}
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-4 space-y-3">
-        <StatusItem title="Dados Pessoais" isCompleted={isCandidate} isRequired />
-        <StatusItem title="Formação Acadêmica" isCompleted={hasFormation} isRequired />
-        <StatusItem title="Experiência Profissional" isCompleted={hasExperience} />
-        <StatusItem title="Idiomas" isCompleted={hasLanguage} />
+      {/* Barra de Progresso Animada */}
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-4">
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Progresso do Perfil
+          </h3>
+          <span className="text-sm font-semibold text-brand-main dark:text-brand-light">
+            {progress}%
+          </span>
+        </div>
+        
+        {/* Barra de progresso */}
+        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mb-4 overflow-hidden">
+          <motion.div
+            className="h-full bg-gradient-to-r from-brand-main to-green-500 rounded-full"
+            initial={{ width: "0%" }}
+            animate={{ width: `${progress}%` }}
+            transition={{ 
+              type: "spring",
+              stiffness: 50,
+              damping: 15,
+              duration: 0.8
+            }}
+          />
+        </div>
+
+        {/* Lista de Requisitos */}
+        <div className="space-y-3">
+          <StatusItem title="Dados Pessoais" isCompleted={isCandidate} isRequired />
+          <StatusItem title="Formação Acadêmica" isCompleted={hasFormation} isRequired />
+          <StatusItem title="Experiência Profissional" isCompleted={hasExperience} />
+          <StatusItem title="Idiomas" isCompleted={hasLanguage} />
+        </div>
 
         {/* Mensagem de progresso */}
         {progress < 100 && (

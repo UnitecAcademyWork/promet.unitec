@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { getCandidaturas, Candidatura } from "../../../lib/candidaturas-get";
 import Cookies from "js-cookie";
 import { toast, Toaster } from "react-hot-toast";
+import Link from "next/link";
 import {
   Loader,
   Search,
@@ -15,29 +15,28 @@ import {
   RefreshCw,
   AlertCircle,
 } from "lucide-react";
-import { Teste, getTestesByCandidatura } from "../../../lib/testes-actions";
-import Link from "next/link";
+
+import { getCandidaturas } from "../../../lib/candidaturas-get";
+import { CandidaturaTeste, getTestesByCandidatura, Pagamento, Teste } from "../../../lib/testes-actions";
 import ModalPagamento from "./ModalPagamento";
 import { efectuarPagamento } from "../../../lib/pagamento-actions";
+import { deleteCandidatura } from "../../../lib/candidaturas-get"; // Supondo que exista função para deletar
 
 const MainCandidatura = () => {
-  const [candidaturas, setCandidaturas] = useState<Candidatura[]>([]);
+  const [candidaturas, setCandidaturas] = useState<CandidaturaTeste[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [pesquisa, setPesquisa] = useState("");
-  const [testesPorCandidatura, setTestesPorCandidatura] = useState<Record<string, Teste[]>>({});
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTitulo, setModalTitulo] = useState("");
   const [modalValor, setModalValor] = useState(0);
   const [itemIdSelecionado, setItemIdSelecionado] = useState<string | null>(null);
   const [itemNomeSelecionado, setItemNomeSelecionado] = useState<"curso" | "teste" | null>(null);
-  const [itemIdEdicao, setItemIdEdicao] = useState<string | null>(null);
 
   // Abrir modal de pagamento
-  const abrirModal = (id: string, tipo: "curso" | "teste", valor: number, idEdicao: string) => {
+  const abrirModal = (id: string, tipo: "curso" | "teste", valor: number) => {
     setItemIdSelecionado(id);
     setItemNomeSelecionado(tipo);
-    setItemIdEdicao(idEdicao);
     setModalTitulo(tipo === "curso" ? "Curso" : "Teste");
     setModalValor(valor);
     setModalOpen(true);
@@ -45,7 +44,7 @@ const MainCandidatura = () => {
 
   // Confirmar pagamento
   const handleConfirmPagamento = async (dados: { metodo: string; numero?: string; comprovativo?: File }) => {
-    if (!itemIdSelecionado || !itemNomeSelecionado || !itemIdEdicao) {
+    if (!itemIdSelecionado || !itemNomeSelecionado) {
       toast.error("Dados do item não encontrados!");
       return;
     }
@@ -54,54 +53,88 @@ const MainCandidatura = () => {
       metodoPagamento: dados.metodo,
       itemId: itemIdSelecionado,
       itemNome: itemNomeSelecionado,
-      idEdicao: itemIdEdicao,
       comprovativo: dados.comprovativo,
     });
 
     if (resp.success) {
       toast.success("Pagamento efetuado com sucesso!");
       setModalOpen(false);
+      fetchCandidaturas();
     } else {
       toast.error(resp.error || "Erro ao efetuar pagamento");
     }
   };
 
-  // Buscar candidaturas e testes
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        if (!Cookies.get("auth_token")) throw new Error("Usuário não autenticado");
-        const data = await getCandidaturas();
-        setCandidaturas(data);
+  // Deletar candidatura
+  const handleDeletarCandidatura = (id: string) => {
+  toast(
+    (t) => (
+      <div className="flex flex-col gap-2">
+        <span>Tem certeza que deseja deletar esta candidatura?</span>
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={async () => {
+              toast.dismiss(t.id); // fecha o toast
+              try {
+                const resp = await deleteCandidatura(id);
+                if (resp.success) {
+                  toast.success("Candidatura deletada com sucesso!");
+                  fetchCandidaturas();
+                } else {
+                  toast.error( "Erro ao deletar candidatura");
+                }
+              } catch (err: any) {
+                toast.error(err.message || "Erro ao deletar candidatura");
+              }
+            }}
+            className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-sm"
+          >
+            Sim
+          </button>
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="px-3 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition-colors text-sm"
+          >
+            Não
+          </button>
+        </div>
+      </div>
+    ),
+    { duration: Infinity } // mantém o toast aberto até clicar
+  );
+};
 
-        for (const candidatura of data) {
-          try {
-            const testesData = await getTestesByCandidatura();
-            setTestesPorCandidatura((prev) => ({
-              ...prev,
-              [candidatura.id]: testesData.flatMap((c) => c.testes).filter((t) => t && t.id),
-            }));
-          } catch {
-            toast.error("Erro ao buscar testes do candidato.");
-          }
-        }
-      } catch (err: any) {
-        toast.error(err.message || "Erro ao buscar candidaturas");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+
+  const fetchCandidaturas = async () => {
+    setLoading(true);
+    try {
+      if (!Cookies.get("auth_token")) throw new Error("Usuário não autenticado");
+      const data = await getCandidaturas();
+      const testesData = await getTestesByCandidatura();
+
+      const candidaturasComTestes = data.map((c) => {
+        const testes = testesData.find((t) => t.id === c.id)?.testesdiagnosticos || [];
+        return { ...c, testesdiagnosticos: testes };
+      });
+
+      setCandidaturas(candidaturasComTestes);
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao buscar candidaturas");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCandidaturas();
   }, []);
 
-  // Filtrar candidaturas por status e pesquisa
   const candidaturasFiltradas = candidaturas.filter(
     (c) =>
       (filtroStatus === "todos" || c.status === filtroStatus) &&
       c.cursos.nome.toLowerCase().includes(pesquisa.toLowerCase())
   );
 
-  // Informações de status
   const getStatusInfo = (status: string) => {
     const statusInfo = {
       emAvaliacao: { icon: Clock, color: "text-yellow-600", bg: "bg-yellow-100", text: "Em Avaliação" },
@@ -128,6 +161,7 @@ const MainCandidatura = () => {
         valor={modalValor}
         onConfirm={handleConfirmPagamento}
       />
+
       <div className="container mx-auto px-4 max-w-4xl">
         {/* Header */}
         <div className="mb-8 text-center">
@@ -158,7 +192,6 @@ const MainCandidatura = () => {
           </select>
         </div>
 
-        {/* Lista de candidaturas */}
         {candidaturas.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm">
             <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">Nenhuma candidatura</h2>
@@ -174,6 +207,17 @@ const MainCandidatura = () => {
           <div className="space-y-3">
             {candidaturasFiltradas.map((c) => {
               const { icon: Icon, color, bg, text } = getStatusInfo(c.status);
+              const testes: Teste[] = c.testesdiagnosticos || [];
+              const existeTestePendente = testes.some((t: Teste) => t.status === "pendente");
+
+              const testePago = testes.some((t: Teste) =>
+                t.pagamentos?.some((p: Pagamento) => ["processando", "concluido"].includes(p.status))
+              );
+
+              const cursoPago = c.pagamentos?.some((p: Pagamento) =>
+                p.itemNome === "curso" && ["processando", "concluido"].includes(p.status)
+              );
+
               return (
                 <div
                   key={c.id}
@@ -194,57 +238,84 @@ const MainCandidatura = () => {
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${bg} ${color}`}>{text}</span>
                   </div>
 
-                  {/* Concluido */}
-                  {c.status === "concluido" && (
-                    <div className="mt-4 space-y-4">
-                      {/* Pagar Curso */}
-                      <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 flex justify-between items-center">
-                        <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
-                          <GraduationCap className="w-4 h-4" />
-                          <span>
-                            Parabéns! Você foi aprovado. Valor do curso:{" "}
-                            <span className="font-semibold">{c.cursos.preco} MT</span>
-                          </span>
-                        </div>
-                        <button
-                          onClick={() => abrirModal(c.id, "curso", c.cursos.preco, c.idEdicao)}
-                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
-                        >
-                          Pagar Curso
-                        </button>
-                      </div>
+                  {/* Testes */}
+                  {testes.length > 0 && (
+                    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 mb-4">
+                      <h4 className="font-semibold text-gray-800 dark:text-white mb-2">Testes</h4>
+                      <ul className="space-y-2">
+                        {testes.map((t: Teste) => {
+                          const pagamentoProcessando = t.pagamentos?.some((p: Pagamento) =>
+                            ["processando", "concluido"].includes(p.status)
+                          );
 
-                      {/* Testes realizados */}
-                      {testesPorCandidatura[c.id] && (
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-                          <h4 className="font-semibold text-gray-800 dark:text-white mb-2">Testes Realizados</h4>
-                          <ul className="space-y-2">
-                            {(testesPorCandidatura[c.id] || [])
-                              .filter((t) => t && t.status !== undefined)
-                              .slice(0, 2) // mostra só 2 testes
-                              .map((t) => (
-                                <li
-                                  key={t.id}
-                                  className="flex justify-between items-center bg-white dark:bg-gray-800 p-2 rounded-md shadow-sm"
-                                >
-                                  <div>
-                                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                                      {t.status}{" "}
-                                      <span className="text-xs text-gray-500">({t.preco} MT)</span>
-                                    </p>
-                                  </div>
-                                  <button
-                                    onClick={() => abrirModal(c.id, "teste", t.preco, c.idEdicao)}
-                                    className="px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-xs font-medium"
-                                  >
-                                    Pagar Teste
-                                  </button>
-                                </li>
-                              ))}
-                          </ul>
-                        </div>
-                      )}
+                          return (
+                            <li
+                              key={t.id}
+                              className="flex justify-between items-center bg-white dark:bg-gray-800 p-2 rounded-md shadow-sm"
+                            >
+                              <div>
+                                <p className="text-sm text-gray-700 dark:text-gray-300">
+                                  {t.status.charAt(0).toUpperCase() + t.status.slice(1)}{" "}
+                                  <span className="text-xs text-gray-500">({t.preco} MT)</span>
+                                </p>
+
+                                {pagamentoProcessando && (
+                                  <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
+                                    Aguarde a Verificação do Pagamento
+                                  </span>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => abrirModal(t.id, "teste", t.preco)}
+                                disabled={pagamentoProcessando}
+                                className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                                  pagamentoProcessando
+                                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                    : "bg-yellow-500 text-white hover:bg-yellow-600"
+                                }`}
+                              >
+                                Pagar Teste
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
                     </div>
+                  )}
+
+                  {/* Botão do curso */}
+                  {!existeTestePendente && c.status === "concluido" && (
+                    <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 flex justify-between items-center">
+                      <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
+                        <GraduationCap className="w-4 h-4" />
+                        <span>
+                          Parabéns! Você foi aprovado. Valor do curso:{" "}
+                          <span className="font-semibold">{c.cursos.preco} MT</span>
+                        </span>
+
+                        {cursoPago && (
+                          <span className="ml-2 inline-block px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
+                            Aguarde a Verificação do Pagamento
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => abrirModal(c.id, "curso", c.cursos.preco)}
+                        disabled={cursoPago}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          cursoPago ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-green-600 text-white hover:bg-green-700"
+                        }`}
+                      >
+                        Pagar Curso
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Aviso se houver teste pendente */}
+                  {existeTestePendente && (
+                    <p className="text-xs text-brand-main font-medium mt-2">
+                      Assim que concluir o teste passará para a fase seguinte.
+                    </p>
                   )}
 
                   {/* Rejeitado */}
@@ -271,6 +342,16 @@ const MainCandidatura = () => {
                       </p>
                     </div>
                   )}
+
+                  {/* Botão deletar candidatura */}
+                  <div className="flex justify-end mt-3">
+                    <button
+                      onClick={() => handleDeletarCandidatura(c.id)}
+                      className="px-3 py-1 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors"
+                    >
+                      Deletar Candidatura
+                    </button>
+                  </div>
                 </div>
               );
             })}

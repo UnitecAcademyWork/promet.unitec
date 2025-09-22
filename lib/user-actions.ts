@@ -8,6 +8,7 @@ export type UserPerfilDados = {
   apelido: string;
   username: string;
   email: string;
+  contacto: string;
   googleId: string;
   avatarUrl: string;
   otp: null;

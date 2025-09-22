@@ -339,7 +339,7 @@ export default function RegisterForm() {
                 <p className="text-xs text-gray-500 mt-1">
                   {usernameEdited
                     ? "Você personalizou seu username"
-                    : "Username gerado automaticamente sem acentos e com 4 números"}
+                    : "Podes Usar esse username e senha para Login/Entrar."}
                 </p>
               </div>
 
