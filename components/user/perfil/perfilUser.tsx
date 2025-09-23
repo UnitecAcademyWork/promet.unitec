@@ -15,12 +15,6 @@ const tabs = ["Dados Pessoais", "Idiomas", "Experiência", "Formação"];
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState(tabs[0]);
-  const [userData, setUserData] = useState<UserData>({
-    id: "1",
-    nome: "André Rodrigues",
-    email: "andre.novela@promet.co.mz",
-    overview: "Minha visão geral inicial...",
-  });
   const [isEditing, setIsEditing] = useState(true);
   const [candidato, setCandidato] = useState<Candidato | null>(null);
 
