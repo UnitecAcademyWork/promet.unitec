@@ -214,9 +214,12 @@ const MainCandidatura = () => {
                 t.pagamentos?.some((p: Pagamento) => ["processando", "concluido"].includes(p.status))
               );
 
-              const cursoPago = c.pagamentos?.some((p: Pagamento) =>
-                p.itemNome === "curso" && ["processando", "concluido"].includes(p.status)
+              const cursoPago = testes.some((t: Teste) =>
+                t.pagamentos?.some((p: Pagamento) =>
+                  p.itemNome === "curso" && ["processando", "concluido"].includes(p.status)
+                )
               );
+
 
               return (
                 <div
