@@ -46,15 +46,17 @@ export default function Experiencia({ isEditing }: ExperienciaProps) {
     const dataArray = result?.data || [];
 
     if (!result.success) {
-      // Mostra toast apenas aqui
-      toast.error(result.error || "Preencha seus dados pessoais!");
+      // Só mostra toast se for erro de dados pessoais
+      if (result.error === "Preencha os seus dados pessoais!") {
+        toast.error(result.error);
+      }
       setShowForm(true);
       setExperiences([]);
       return;
     }
 
     if (dataArray.length === 0) {
-      toast.error("Ainda sem Experiências");
+      // Nenhum toast aqui! Apenas abre o form
       setShowForm(true);
       setExperiences([]);
       return;
@@ -81,48 +83,45 @@ export default function Experiencia({ isEditing }: ExperienciaProps) {
 };
 
 
-
-
   const handleAddExperience = async (exp: Experience) => {
-  try {
-    const serverExperience = {
-      organizacao: exp.company,
-      cargo: exp.position,
-      descricao: exp.description || "",
-      dataInicio: exp.startDate,
-      dataFim: exp.current ? undefined : exp.endDate,
-    };
+    try {
+      const serverExperience = {
+        organizacao: exp.company,
+        cargo: exp.position,
+        descricao: exp.description || "",
+        dataInicio: exp.startDate,
+        dataFim: exp.current ? undefined : exp.endDate,
+      };
 
+      await toast.promise(
+        addExperience(serverExperience).then((result) => {
+          if (!result.success) throw new Error(result.error || "Erro ao adicionar experiência");
+          return loadExperiences().then(() => setShowForm(false));
+        }),
+        {
+          loading: "Adicionando experiência...",
+          success: "Experiência adicionada!",
+          error: (err) => err.message,
+        }
+      );
+    } catch (err: any) {
+      console.error(err);
+    }
+  };
+
+  const handleRemoveExperience = async (id: number) => {
     await toast.promise(
-      addExperience(serverExperience).then((result) => {
-        if (!result.success) throw new Error(result.error || "Erro ao adicionar experiência");
-        return loadExperiences().then(() => setShowForm(false));
+      deleteExperience(id.toString()).then((result) => {
+        if (!result.success) throw new Error(result.error || "Erro ao remover experiência");
+        setExperiences((prev) => prev.filter((exp) => exp.id !== id));
       }),
       {
-        loading: "Adicionando experiência...",
-        success: "Experiência adicionada!",
+        loading: "Removendo experiência...",
+        success: "Experiência removida!",
         error: (err) => err.message,
       }
     );
-  } catch (err: any) {
-    console.error(err);
-  }
-};
-
-const handleRemoveExperience = async (id: number) => {
-  await toast.promise(
-    deleteExperience(id.toString()).then((result) => {
-      if (!result.success) throw new Error(result.error || "Erro ao remover experiência");
-      setExperiences((prev) => prev.filter((exp) => exp.id !== id));
-    }),
-    {
-      loading: "Removendo experiência...",
-      success: "Experiência removida!",
-      error: (err) => err.message,
-    }
-  );
-};
-
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -212,7 +211,7 @@ const handleRemoveExperience = async (id: number) => {
         {showForm && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="mb-6">
             <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-gray-50 rounded-xl shadow-md dark:bg-gray-800">
-              {/* Form fields aqui (igual ao que você tinha) */}
+              {/* Form fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cargo *</label>

@@ -52,7 +52,6 @@ function validateExperienceData(data: Experience): void {
   }
 }
 
-// ➕ Adicionar experiência
 export async function addExperience(data: Experience): Promise<ApiResponse> {
   try {
     const token = (await cookies()).get("auth_token")?.value;
@@ -124,7 +123,6 @@ export async function getExperiences(): Promise<ApiResponse<Experience[]>> {
 
     const data = await res.json();
 
-    // Caso a API retorne mensagem de candidato não associado
     if (data?.message === "Candidato não associado ao usuário!") {
       return {
         success: false,
@@ -133,7 +131,6 @@ export async function getExperiences(): Promise<ApiResponse<Experience[]>> {
       };
     }
 
-    // Caso o fetch não esteja ok, lançamos erro
     if (!res.ok) {
       return {
         success: false,

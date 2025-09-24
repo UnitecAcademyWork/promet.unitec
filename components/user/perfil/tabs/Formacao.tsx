@@ -22,7 +22,8 @@ export type FormationType = {
   dataFim?: string;
   descricao?: string;
   duracao: string;
-  atual?: boolean; // novo campo
+  atual?: boolean;
+  usarDuracao?: boolean;
 };
 
 export default function Formacao() {
@@ -38,6 +39,7 @@ export default function Formacao() {
     descricao: "",
     duracao: "",
     atual: false,
+    usarDuracao: false,
   });
 
   const loadFormacoes = async () => {
@@ -62,10 +64,17 @@ export default function Formacao() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     const payload = {
       id: editId || undefined,
-      ...form,
-      dataFim: form.atual ? "" : form.dataFim, // se atual, limpa dataFim
+      nome: form.nome,
+      local: form.local,
+      descricao: form.descricao,
+      // --- Regras ---
+      dataInicio: form.usarDuracao ? "" : form.dataInicio,
+      dataFim: form.usarDuracao ? form.dataFim : form.atual ? "" : form.dataFim,
+      atual: form.usarDuracao ? false : form.atual,
+      duracao: form.usarDuracao ? form.duracao : "",
     };
 
     await toast.promise(
@@ -91,6 +100,7 @@ export default function Formacao() {
             descricao: "",
             duracao: "",
             atual: false,
+            usarDuracao: false,
           });
           setEditId(null);
           setShowForm(false);
@@ -123,13 +133,34 @@ export default function Formacao() {
   };
 
   const handleEdit = (f: FormationType) => {
-    setForm({ ...f, atual: f.atual || false });
+    setForm({
+      ...f,
+      atual: f.atual || false,
+      usarDuracao: f.usarDuracao || false,
+    });
     setEditId(f.id);
     setShowForm(true);
   };
 
-  const formatDate = (dateString: string) =>
-    dateString ? new Date(dateString).toLocaleDateString("pt-BR") : "";
+  const formatYear = (dateString: string) => {
+    if (!dateString) return "";
+    return dateString.split("-")[0];
+  };
+
+  const formatDisplayDate = (formation: FormationType) => {
+    if (formation.usarDuracao) {
+      const fim = formation.dataFim ? formatYear(formation.dataFim) : "";
+      return `${formation.duracao}${fim ? ` (até ${fim})` : ""}`;
+    } else {
+      const inicio = formatYear(formation.dataInicio);
+      const fim = formation.atual
+        ? "Atual"
+        : formation.dataFim
+        ? formatYear(formation.dataFim)
+        : "";
+      return `${inicio} - ${fim}`;
+    }
+  };
 
   return (
     <div className="p-6 bg-white rounded-2xl shadow-lg border border-gray-100 dark:bg-gray-900 dark:border-gray-800">
@@ -197,55 +228,204 @@ export default function Formacao() {
                   className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
                   required
                 />
-                <input
-                  type="date"
-                  value={form.dataInicio}
-                  onChange={(e) =>
-                    setForm({ ...form, dataInicio: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
-                  required
-                />
-                <input
-                  type="date"
-                  value={form.dataFim}
-                  onChange={(e) =>
-                    setForm({ ...form, dataFim: e.target.value })
-                  }
-                  disabled={form.atual} // 🔒 bloqueado se "cursando atualmente"
-                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white disabled:bg-gray-200 disabled:cursor-not-allowed"
-                />
-                <input
-                  type="text"
-                  placeholder="Duração *"
-                  value={form.duracao}
-                  onChange={(e) => setForm({ ...form, duracao: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
-                  required
+
+                <div className="md:col-span-2 space-y-3">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={!form.usarDuracao}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            usarDuracao: !e.target.checked,
+                            duracao: e.target.checked ? "" : form.duracao,
+                          })
+                        }
+                        className="w-4 h-4"
+                      />
+                      <label className="text-gray-700 dark:text-gray-300">
+                        Usar datas de início e fim
+                      </label>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={form.usarDuracao}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            usarDuracao: e.target.checked,
+                            dataInicio: "",
+                            atual: false,
+                          })
+                        }
+                        className="w-4 h-4"
+                      />
+                      <label className="text-gray-700 dark:text-gray-300">
+                        Usar duração + data fim
+                      </label>
+                    </div>
+                  </div>
+
+                  {!form.usarDuracao && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Ano de Início *
+                        </label>
+                        <input
+                          type="number"
+                          min="1900"
+                          max="2100"
+                          value={form.dataInicio ? formatYear(form.dataInicio) : ""}
+                          onChange={(e) =>
+                            setForm({
+                              ...form,
+                              dataInicio: e.target.value
+                                ? `${e.target.value}-01-01`
+                                : "",
+                            })
+                          }
+                          className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
+                          required={!form.usarDuracao}
+                          placeholder="Ex: 2020"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Ano de Fim
+                        </label>
+                        <input
+                          type="number"
+                          min="1900"
+                          max="2100"
+                          value={form.dataFim ? formatYear(form.dataFim) : ""}
+                          onChange={(e) =>
+                            setForm({
+                              ...form,
+                              dataFim: e.target.value
+                                ? `${e.target.value}-01-01`
+                                : "",
+                            })
+                          }
+                          disabled={form.atual}
+                          className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white disabled:bg-gray-200 disabled:cursor-not-allowed"
+                          placeholder="Ex: 2024"
+                        />
+                      </div>
+
+                      <div className="flex items-end">
+                        <div className="flex items-center gap-2 w-full">
+                          <input
+                            type="checkbox"
+                            checked={form.atual}
+                            onChange={(e) =>
+                              setForm({
+                                ...form,
+                                atual: e.target.checked,
+                                dataFim: e.target.checked ? "" : form.dataFim,
+                              })
+                            }
+                            disabled={form.usarDuracao}
+                            className="w-4 h-4"
+                          />
+                          <label className="text-gray-700 dark:text-gray-300">
+                            Cursando actualmente
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {form.usarDuracao && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Duração *
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={form.duracao.replace(/[^0-9]/g, "")}
+                            onChange={(e) => {
+                              const numValue = e.target.value.replace(/[^0-9]/g, "");
+                              if (numValue) {
+                                setForm({
+                                  ...form,
+                                  duracao: `${numValue} ano${
+                                    parseInt(numValue) > 1 ? "s" : ""
+                                  }`,
+                                });
+                              } else {
+                                setForm({ ...form, duracao: "" });
+                              }
+                            }}
+                            className="w-24 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
+                            required={form.usarDuracao}
+                            placeholder="Ex: 4"
+                          />
+                          <select
+                            value={form.duracao.includes("ano") ? "ano" : "mes"}
+                            onChange={(e) => {
+                              const numValue = form.duracao.replace(/[^0-9]/g, "");
+                              if (numValue) {
+                                const plural = parseInt(numValue) > 1 ? "s" : "";
+                                setForm({
+                                  ...form,
+                                  duracao:
+                                    e.target.value === "ano"
+                                      ? `${numValue} ano${plural}`
+                                      : `${numValue} mês${plural}`,
+                                });
+                              }
+                            }}
+                            className="px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
+                          >
+                            <option value="ano">ano(s)</option>
+                            <option value="mes">mês(es)</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Ano de Fim *
+                        </label>
+                        <input
+                          type="number"
+                          min="1900"
+                          max="2100"
+                          value={form.dataFim ? formatYear(form.dataFim) : ""}
+                          onChange={(e) =>
+                            setForm({
+                              ...form,
+                              dataFim: e.target.value
+                                ? `${e.target.value}-01-01`
+                                : "",
+                            })
+                          }
+                          className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
+                          required={form.usarDuracao}
+                          placeholder="Ex: 2024"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <textarea
+                  placeholder="Descrição"
+                  value={form.descricao}
+                  onChange={(e) => setForm({ ...form, descricao: e.target.value })}
+                  rows={3}
+                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white md:col-span-2"
                 />
               </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={form.atual}
-                  onChange={(e) =>
-                    setForm({ ...form, atual: e.target.checked, dataFim: "" })
-                  }
-                  className="w-4 h-4"
-                />
-                <label className="text-gray-700 dark:text-gray-300">
-                  Cursando actualmente
-                </label>
-              </div>
-
-              <textarea
-                placeholder="Descrição"
-                value={form.descricao}
-                onChange={(e) => setForm({ ...form, descricao: e.target.value })}
-                rows={3}
-                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
-              />
 
               <div className="flex gap-2">
                 <button
@@ -301,9 +481,7 @@ export default function Formacao() {
                   </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                     <Calendar className="w-4 h-4 inline-block" />{" "}
-                    {formatDate(f.dataInicio)} -{" "}
-                    {f.atual ? "Atual" : f.dataFim ? formatDate(f.dataFim) : ""}
-                    {" "}({f.duracao})
+                    {formatDisplayDate(f)}
                   </p>
                   {f.descricao && (
                     <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">

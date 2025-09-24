@@ -39,9 +39,8 @@ const PROVINCIAS = [
 
 // Níveis académicos
 const NIVEL_ACADEMICO = [
-  "Ensino Primário",
-  "Ensino Secundário",
-  "Ensino Médio",
+  "Nivel Básico",
+  "Nivel Médio",
   "Bacharelato",
   "Licenciatura",
   "Mestrado",

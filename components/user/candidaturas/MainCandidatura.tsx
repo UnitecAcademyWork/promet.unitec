@@ -42,7 +42,7 @@ const MainCandidatura = () => {
     "curso" | "teste" | null
   >(null);
 
-  //modal de pagamento
+  // modal de pagamento
   const abrirModal = (id: string, tipo: "curso" | "teste", valor: number) => {
     setItemIdSelecionado(id);
     setItemNomeSelecionado(tipo);
@@ -53,38 +53,38 @@ const MainCandidatura = () => {
 
   // Confirmar pagamento
   const handleConfirmPagamento = async (dados: {
-  metodo: string;
-  numero?: string;
-  comprovativo?: File;
-}) => {
-  if (!itemIdSelecionado || !itemNomeSelecionado) {
-    toast.error("Dados do item não encontrados!");
-    return;
-  }
+    metodo: string;
+    numero?: string;
+    comprovativo?: File;
+  }) => {
+    if (!itemIdSelecionado || !itemNomeSelecionado) {
+      toast.error("Dados do item não encontrados!");
+      return;
+    }
 
-  try {
-    await toast.promise(
-      efectuarPagamento({
-        metodoPagamento: dados.metodo,
-        itemId: itemIdSelecionado,
-        itemNome: itemNomeSelecionado,
-        comprovativo: dados.comprovativo,
-      }),
-      {
-        loading: "Processando pagamento...",
-        success: "Pagamento efetuado com sucesso!",
-        error: "Erro ao efetuar pagamento",
-      }
-    );
+    try {
+      await toast.promise(
+        efectuarPagamento({
+          metodoPagamento: dados.metodo,
+          itemId: itemIdSelecionado,
+          itemNome: itemNomeSelecionado,
+          comprovativo: dados.comprovativo,
+        }),
+        {
+          loading: "Processando pagamento...",
+          success: "Pagamento efetuado com sucesso!",
+          error: "Erro ao efetuar pagamento",
+        }
+      );
 
-    setTimeout(() => {
-      setModalOpen(false);
-      fetchCandidaturas();
-    }, 4000);
-  } catch (err) {
-    console.error(err);
-  }
-};
+      setTimeout(() => {
+        setModalOpen(false);
+        fetchCandidaturas();
+      }, 4000);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // Nova tentativa de teste
   const handleNovaTentativa = async (candidaturaId: string) => {
@@ -248,7 +248,10 @@ const MainCandidatura = () => {
         </div>
 
         {candidaturas.length === 0 ? (
-          <div id="testes" className="flex flex-col items-center justify-center text-center bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm">
+          <div
+            id="testes"
+            className="flex flex-col items-center justify-center text-center bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm"
+          >
             <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
               Nenhuma candidatura
             </h2>
@@ -284,12 +287,13 @@ const MainCandidatura = () => {
                 )
               );
 
-             const cursoPago = c.testesdiagnosticos?.some((t: Teste) =>
-  t.pagamentos?.some((p: Pagamento) =>
-    p.itemNome === "curso" &&
-    ["processando", "concluido"].includes(p.status)
-  )
-);
+              const cursoPago = c.testesdiagnosticos?.some((t: Teste) =>
+                t.pagamentos?.some(
+                  (p: Pagamento) =>
+                    p.itemNome === "curso" &&
+                    ["processando", "concluido"].includes(p.status)
+                )
+              );
 
               return (
                 <div
@@ -322,7 +326,7 @@ const MainCandidatura = () => {
                   {testes.length > 0 && (
                     <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 mb-4">
                       <h4 className="font-semibold text-gray-800 dark:text-white mb-2">
-                        Testes
+                        Testes de Diagnóstico
                       </h4>
                       <ul className="space-y-2">
                         {testes.map((t: Teste) => {
@@ -407,8 +411,8 @@ const MainCandidatura = () => {
                     </div>
                   )}
 
-                  {/* Nova tentativa só aparece se não existir nenhum aprovado */}
-                  {existeTesteReprovado && !existeTesteAprovado && (
+                  {/* Nova tentativa - só aparece se tiver reprovado, não tiver aprovado e total de testes < 2 */}
+                  {existeTesteReprovado && !existeTesteAprovado && testes.length < 2 && (
                     <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
                       <div className="flex items-center gap-2 text-red-700 dark:text-red-300 mb-3">
                         <AlertCircle className="w-5 h-5" />
@@ -430,9 +434,6 @@ const MainCandidatura = () => {
                           </span>
                         </button>
                       </div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                        * O recurso/revisão custa 50% do valor do teste original
-                      </p>
                     </div>
                   )}
 
