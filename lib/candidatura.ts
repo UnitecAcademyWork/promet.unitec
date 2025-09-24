@@ -9,7 +9,6 @@ export type NovoCandidato = {
   dataNascimento: string; 
   numeroBi: string;
   nivelAcademico: string;
-  contacto: string;
   isFromUnitec: boolean;
 };
 export async function adicionarCandidato(candidato: NovoCandidato) {

@@ -78,7 +78,6 @@ interface CandidateData {
   dataNascimento: string;
   numeroBi: string;
   nivelAcademico: string;
-  contacto: string;
   whatsapp: string;
   genero: string;
   idiomaNativo: string;
@@ -99,7 +98,6 @@ export default function DadosPessoais() {
     dataNascimento: "",
     numeroBi: "",
     nivelAcademico: "",
-    contacto: "",
     whatsapp: "",
     genero: "",
     idiomaNativo: "",
@@ -121,7 +119,6 @@ export default function DadosPessoais() {
           dataNascimento: candidato.dataNascimento || "",
           numeroBi: candidato.numeroBi || "",
           nivelAcademico: candidato.nivelAcademico || "",
-          contacto: candidato.contacto || "",
           whatsapp: candidato.whatsapp || "",
           genero: candidato.genero || "",
           idiomaNativo: candidato.idiomaNativo || "",
@@ -168,7 +165,6 @@ const handleSubmit = async (e: React.FormEvent) => {
     dataNascimento: data.dataNascimento || "",
     numeroBi: data.numeroBi || "",
     nivelAcademico: data.nivelAcademico || "",
-    contacto: data.contacto || "",
     whatsapp: data.whatsapp || "",
     genero: data.genero || "",
     idiomaNativo: data.idiomaNativo || "",
@@ -265,23 +261,6 @@ const handleSubmit = async (e: React.FormEvent) => {
       {/* Formulário */}
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* Contacto */}
-          <div className="flex flex-col gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border">
-            <label className="text-sm font-medium flex items-center gap-2">
-              <Phone className="w-4 h-4 text-blue-500" />
-              Contacto
-            </label>
-            <input
-              type="text"
-              value={data.contacto}
-              onChange={(e) => handleChange("contacto", e.target.value)}
-              className={`mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 ${
-                errors.contacto ? "border-red-500" : "border-gray-300"
-              }`}
-              placeholder="+258 84 123 4567"
-              disabled={!isEditing}
-            />
-          </div>
 
           {/* WhatsApp */}
           <div className="flex flex-col gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border">
