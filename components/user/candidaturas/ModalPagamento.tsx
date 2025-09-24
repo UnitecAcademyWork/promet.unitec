@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { X, Smartphone, Building, Upload, Check, CreditCard, Copy } from "lucide-react";
+import toast from "react-hot-toast";
 
 type ModalPagamentoProps = {
   isOpen: boolean;
@@ -182,11 +183,29 @@ const ModalPagamento: React.FC<ModalPagamentoProps> = ({
   }
 };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setComprovativo(file);
-    setFileName(file ? file.name : "");
-  };
+const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0] || null;
+  if (!file) return;
+
+  const allowedTypes = ["application/pdf", "image/png", "image/jpeg"];
+  const maxSize = 5 * 1024 * 1024; // 5MB
+
+  if (!allowedTypes.includes(file.type)) {
+    toast.error("Formato inválido. Aceito apenas PDF, PNG ou JPG.");
+    e.target.value = "";
+    return;
+  }
+
+  if (file.size > maxSize) {
+    toast.error("Arquivo muito grande. Máximo permitido: 5MB.");
+    e.target.value = "";
+    return;
+  }
+
+  setComprovativo(file);
+  setFileName(file.name);
+};
+
 
   if (!isOpen) return null;
 

@@ -343,54 +343,48 @@ export default function Formacao() {
                   {form.usarDuracao && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Duração *
-                        </label>
-                        <div className="flex gap-2">
-                          <input
-                            type="number"
-                            min="1"
-                            max="10"
-                            value={form.duracao.replace(/[^0-9]/g, "")}
-                            onChange={(e) => {
-                              const numValue = e.target.value.replace(/[^0-9]/g, "");
-                              if (numValue) {
-                                setForm({
-                                  ...form,
-                                  duracao: `${numValue} ano${
-                                    parseInt(numValue) > 1 ? "s" : ""
-                                  }`,
-                                });
-                              } else {
-                                setForm({ ...form, duracao: "" });
-                              }
-                            }}
-                            className="w-24 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
-                            required={form.usarDuracao}
-                            placeholder="Ex: 4"
-                          />
-                          <select
-                            value={form.duracao.includes("ano") ? "ano" : "mes"}
-                            onChange={(e) => {
-                              const numValue = form.duracao.replace(/[^0-9]/g, "");
-                              if (numValue) {
-                                const plural = parseInt(numValue) > 1 ? "s" : "";
-                                setForm({
-                                  ...form,
-                                  duracao:
-                                    e.target.value === "ano"
-                                      ? `${numValue} ano${plural}`
-                                      : `${numValue} mês${plural}`,
-                                });
-                              }
-                            }}
-                            className="px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
-                          >
-                            <option value="ano">ano(s)</option>
-                            <option value="mes">mês(es)</option>
-                          </select>
-                        </div>
-                      </div>
+  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+    Duração *
+  </label>
+  <div className="flex gap-2">
+    <input
+      type="number"
+      min={1}
+      max={100}
+      value={form.duracao.replace(/[^0-9]/g, "")}
+      onChange={(e) => {
+        const numValue = e.target.value.replace(/[^0-9]/g, "");
+        const unit = form.duracao.match(/[a-z]+/i)?.[0] || "dia";
+
+        if (numValue) {
+          const plural = parseInt(numValue) > 1 ? "s" : "";
+          setForm({ ...form, duracao: `${numValue} ${unit}${plural}` });
+        } else {
+          setForm({ ...form, duracao: "" });
+        }
+      }}
+      className="w-24 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
+      required={form.usarDuracao}
+      placeholder="Ex: 4"
+    />
+
+    <select
+      value={form.duracao.match(/[a-z]+/i)?.[0] || "dia"}
+      onChange={(e) => {
+        const numValue = form.duracao.replace(/[^0-9]/g, "") || "1";
+        const plural = parseInt(numValue) > 1 ? "s" : "";
+        setForm({ ...form, duracao: `${numValue} ${e.target.value}${plural}` });
+      }}
+      className="px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
+    >
+      <option value="dia">dia(s)</option>
+      <option value="semana">semana(s)</option>
+      <option value="mes">mês(es)</option>
+      <option value="ano">ano(s)</option>
+    </select>
+  </div>
+</div>
+
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
