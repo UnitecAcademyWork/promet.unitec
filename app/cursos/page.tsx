@@ -105,86 +105,91 @@ const CursosPage = () => {
       </div>
 
       <div className="container mx-auto px-4 pb-12">
-        {/* Contador */}
-        {/* <div className="mb-6 text-center">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {filteredCursos.length} curso{filteredCursos.length !== 1 ? "s" : ""} disponível{filteredCursos.length !== 1 ? "s" : ""}
-          </p>
-        </div> */}
 
         {/* Grid / List */}
-        <AnimatePresence mode="wait">
-          {viewMode === "grid" ? (
-            <motion.div key="grid-view" variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredCursos.map((curso) => {
-                const CursoIcon = curso.imgUrl ? (
-                  <img src={curso.imgUrl} alt={curso.nome} className="w-6 h-6" />
-                ) : (
-                  <BookOpen className="w-6 h-6 text-brand-main" />
-                );
-                return (
-                  <motion.div key={curso.id} variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-300 group">
-                    <div className="flex flex-col h-full">
-                      <div className="flex items-center justify-center w-12 h-12 bg-brand-main/10 rounded-lg mb-3 group-hover:bg-brand-main/20 transition-colors">
-                        {CursoIcon}
-                      </div>
-                      <h3 className="font-semibold text-gray-800 dark:text-white mb-2 group-hover:text-brand-main transition-colors line-clamp-2">
-                        {curso.nome}
-                      </h3>
-                      <div className="flex items-center space-x-4 mb-3">
-                        <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
-                          <Clock className="w-3 h-3 mr-1" />
-                          <span>30 Dias</span>
-                        </div>
-                      </div>
-                      <div className="mt-auto flex items-end justify-end">
-                        <Link href={`/cursos/${curso.id}`} className="text-xs bg-brand-main hover:bg-brand-main-dark text-white py-1.5 px-3 rounded-md transition-colors">
-                          Ver curso
-                        </Link>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
-          ) : (
-            <motion.div key="list-view" variants={containerVariants} initial="hidden" animate="visible" className="space-y-3">
-              {filteredCursos.map((curso) => {
-                const CursoIcon = curso.imgUrl ? (
-                  <img src={curso.imgUrl} alt={curso.nome} className="w-6 h-6 flex-shrink-0" />
-                ) : (
-                  <BookOpen className="w-6 h-6 text-brand-main flex-shrink-0" />
-                );
-                return (
-                  <motion.div key={curso.id} variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-300 group">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4 overflow-hidden">
-                        <div className="flex items-center justify-center w-10 h-10 bg-brand-main/10 rounded-lg group-hover:bg-brand-main/20 transition-colors flex-shrink-0">
-                          {CursoIcon}
-                        </div>
-                        <h3
-                          className="font-semibold text-gray-800 dark:text-white group-hover:text-brand-main truncate max-w-xs"
-                          title={curso.nome} // <-- Tooltip com nome completo
-                        >
-                          {curso.nome}
-                        </h3>
-                      </div>
+        {/* Grid / List */}
+<AnimatePresence mode="wait">
+  {viewMode === "grid" ? (
+    <motion.div key="grid-view" variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {filteredCursos.map((curso) => {
+        const CursoIcon = curso.imgUrl ? (
+          <img src={curso.imgUrl} alt={curso.nome} className="w-6 h-6" />
+        ) : (
+          <BookOpen className="w-6 h-6 text-brand-main" />
+        );
 
-                      <div className="flex items-center space-x-4">
-                        <span className="text-sm font-semibold text-brand-main dark:text-brand-lime">
-                          Grátis
-                        </span>
-                        <Link href={`/cursos/${curso.id}`} className="text-sm bg-brand-main hover:bg-brand-main-dark text-white py-2 px-4 rounded-md transition-colors">
-                          Ver curso
-                        </Link>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
+        return (
+          <Link key={curso.id} href={`/cursos/${curso.id}`}>
+            <motion.div
+              variants={itemVariants}
+              className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-300 group cursor-pointer"
+            >
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-center w-12 h-12 bg-brand-main/10 rounded-lg mb-3 group-hover:bg-brand-main/20 transition-colors">
+                  {CursoIcon}
+                </div>
+                <h3 className="font-semibold text-gray-800 dark:text-white mb-2 group-hover:text-brand-main transition-colors line-clamp-2">
+                  {curso.nome}
+                </h3>
+                <div className="flex items-center space-x-4 mb-3">
+                  <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                    <Clock className="w-3 h-3 mr-1" />
+                    <span>30 Dias</span>
+                  </div>
+                </div>
+                <div className="mt-auto flex items-end justify-end">
+                  <span className="text-xs bg-brand-main hover:bg-brand-main-dark text-white py-1.5 px-3 rounded-md transition-colors">
+                    Ver curso
+                  </span>
+                </div>
+              </div>
             </motion.div>
-          )}
-        </AnimatePresence>
+          </Link>
+        );
+      })}
+    </motion.div>
+  ) : (
+    <motion.div key="list-view" variants={containerVariants} initial="hidden" animate="visible" className="space-y-3">
+      {filteredCursos.map((curso) => {
+        const CursoIcon = curso.imgUrl ? (
+          <img src={curso.imgUrl} alt={curso.nome} className="w-6 h-6 flex-shrink-0" />
+        ) : (
+          <BookOpen className="w-6 h-6 text-brand-main flex-shrink-0" />
+        );
+
+        return (
+          <Link key={curso.id} href={`/cursos/${curso.id}`}>
+            <motion.div
+              variants={itemVariants}
+              className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-300 group cursor-pointer flex items-center justify-between"
+            >
+              <div className="flex items-center space-x-4 overflow-hidden">
+                <div className="flex items-center justify-center w-10 h-10 bg-brand-main/10 rounded-lg group-hover:bg-brand-main/20 transition-colors flex-shrink-0">
+                  {CursoIcon}
+                </div>
+                <h3
+                  className="font-semibold text-gray-800 dark:text-white group-hover:text-brand-main truncate max-w-xs"
+                  title={curso.nome}
+                >
+                  {curso.nome}
+                </h3>
+              </div>
+              <div className="flex items-center space-x-4">
+                <span className="text-sm font-semibold text-brand-main dark:text-brand-lime">
+                  Grátis
+                </span>
+                <span className="text-xs bg-brand-main hover:bg-brand-main-dark text-white py-1.5 px-3 rounded-md transition-colors">
+                  Ver curso
+                </span>
+              </div>
+            </motion.div>
+          </Link>
+        );
+      })}
+    </motion.div>
+  )}
+</AnimatePresence>
+
 
         {filteredCursos.length === 0 && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-12">

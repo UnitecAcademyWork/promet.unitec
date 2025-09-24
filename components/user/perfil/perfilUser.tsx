@@ -11,7 +11,7 @@ import { UserData } from "../types/user-types";
 import { getCandidato, Candidato } from "../../../lib/candidato-actions";
 import Idiomas from "./tabs/Idiomas";
 
-const tabs = ["Dados Pessoais", "Idiomas", "Experiência", "Formação"];
+const tabs = ["Dados Pessoais", "Formação", "Experiência", "Idiomas"];
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState(tabs[0]);

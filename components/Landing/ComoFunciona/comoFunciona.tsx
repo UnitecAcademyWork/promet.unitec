@@ -53,7 +53,7 @@ const HowItWorks = () => {
       icon: <ClipboardList className="w-5 h-5" />,
       title: 'Candidatura',
       description: 'Preencha nosso formulário online com suas informações básicas e currículo.',
-      price: 'Gratuita | Online',
+      price: 'Gratuito | Online',
       free: true
     },
     {
@@ -61,7 +61,7 @@ const HowItWorks = () => {
       icon: <Search className="w-5 h-5" />,
       title: 'Pré-seleção',
       description: 'Análise do perfil e competências pela nossa equipe especializada.',
-      price: "Gratuita | Online",
+      price: "Gratuito | Online",
       free: true
     },
     {
@@ -109,7 +109,7 @@ const HowItWorks = () => {
       icon: <Users className="w-5 h-5" />,
       title: 'Inclusão na Base de Talentos',
       description: 'Seu perfil é incluído no nosso banco e encaminhado para empresas parceiras.',
-      price: "Gratuita | Online",
+      price: "Gratuito | Online",
       free: true
     }
   ];

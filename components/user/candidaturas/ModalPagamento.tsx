@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Smartphone, Building, Upload, Check } from "lucide-react";
+import { X, Smartphone, Building, Upload, Check, CreditCard, Copy } from "lucide-react";
 
 type ModalPagamentoProps = {
   isOpen: boolean;
@@ -12,7 +12,136 @@ type ModalPagamentoProps = {
     metodo: string;
     numero?: string;
     comprovativo?: File;
-  }) => Promise<void>; // agora é async
+  }) => Promise<void>;
+};
+
+// Componente CompactPaymentMethods integrado
+const CompactPaymentMethods = ({ valor }: { valor: number }) => {
+  const [selectedMethod, setSelectedMethod] = useState<string>("mbim");
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  const methods = {
+    mbim: {
+      name: "Millennium BIM",
+      conta: "1024762418",
+      nib: "000100000102476241857",
+      titular: "Unitec Moçambique Lda.",
+    },
+    bci: {
+      name: "BCI",
+      conta: "25418442710001",
+      nib: "000800005418442710113",
+      titular: "Unitec Moçambique Lda.",
+    },
+    absa: {
+      name: "ABSA",
+      conta: "0014102004789",
+      nib: "000200141410200478905",
+      titular: "Unitec Moçambique Lda.",
+    }
+  };
+
+  const copyToClipboard = (text: string, field: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const currentMethod = methods[selectedMethod as keyof typeof methods];
+
+  return (
+    <div className="space-y-4">
+      {/* Seletor de Método */}
+      <div>
+        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Dados Bancários
+        </h4>
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          {Object.entries(methods).map(([key, method]) => (
+            <button
+              key={key}
+              onClick={() => setSelectedMethod(key)}
+              className={`px-3 py-2 rounded-lg whitespace-nowrap text-xs transition-all ${
+                selectedMethod === key
+                  ? "bg-brand-main text-white"
+                  : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+              }`}
+            >
+              {method.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Dados da Conta */}
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+        <div className="space-y-2">
+          {[
+            { label: "Conta", value: currentMethod.conta, field: "conta" },
+            { label: "NIB", value: currentMethod.nib, field: "nib" },
+            { label: "Titular", value: currentMethod.titular, field: "titular" },
+          ].map(({ label, value, field }) => (
+            <div key={field} className="flex justify-between items-center">
+              <span className="text-xs text-gray-600 dark:text-gray-400">{label}:</span>
+              <div className="flex items-center gap-1">
+                <code className="font-mono text-xs  dark:bg-gray-700 px-1 rounded">
+                  {value}
+                </code>
+                <button
+                  onClick={() => copyToClipboard(value, field)}
+                  className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded text-xs"
+                  title="Copiar"
+                >
+                  <Copy className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Passos para Pagamento */}
+      <div className="text-xs space-y-1 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+        <h4 className="font-semibold mb-1 flex items-center gap-1">
+          <CreditCard className="w-3 h-3" />
+          Como pagar usando Emola:
+        </h4>
+        <div className="space-y-1">
+          <div className="flex gap-1">
+            <span className="font-semibold">1.</span>
+            <span>Digite *898#</span>
+          </div>
+          <div className="flex gap-1">
+            <span className="font-semibold">2.</span>
+            <span>Opção 9 → Pagamentos</span>
+          </div>
+          <div className="flex gap-1">
+            <span className="font-semibold">3.</span>
+            <span>Opção 1 → Comerciante</span>
+          </div>
+          <div className="flex gap-1">
+            <span className="font-semibold">4.</span>
+            <span>ID: <strong>801335</strong></span>
+          </div>
+          <div className="flex gap-1">
+            <span className="font-semibold">5.</span>
+            <span>Digite o valor: <strong>{valor} MT</strong></span>
+          </div>
+          <div className="flex gap-1">
+            <span className="font-semibold">6.</span>
+            <span>Conteúdo: <strong>Inscricao</strong></span>
+          </div>
+          <div className="flex gap-1">
+            <span className="font-semibold">7.</span>
+            <span>Confirme "Unitec Moçambique US"</span>
+          </div>
+        </div>
+        <p className="font-semibold mt-2 text-blue-600 dark:text-blue-400">
+          Bons estudos! Aproveite o seu aprendizado!
+        </p>
+      </div>
+    </div>
+  );
 };
 
 const ModalPagamento: React.FC<ModalPagamentoProps> = ({
@@ -29,25 +158,29 @@ const ModalPagamento: React.FC<ModalPagamentoProps> = ({
   const [loading, setLoading] = useState(false);
 
   const handleConfirm = async () => {
-    setLoading(true);
-    try {
-      await onConfirm({
-        metodo,
-        numero: numero || undefined,
-        comprovativo: comprovativo || undefined,
-      });
+  setLoading(true);
+  try {
+    await onConfirm({
+      metodo,
+      numero: numero || undefined,
+      comprovativo: comprovativo || undefined,
+    });
+
+    // Mantém o modal aberto por 3 segundos antes de fechar
+    setTimeout(() => {
+      onClose();
 
       // Reset campos
       setNumero("");
       setComprovativo(null);
       setFileName("");
-      onClose();
-    } catch (error) {
-      console.error("Erro ao confirmar pagamento:", error);
-    } finally {
       setLoading(false);
-    }
-  };
+    }, 3000);
+  } catch (error) {
+    console.error("Erro ao confirmar pagamento:", error);
+    setLoading(false);
+  }
+};
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
@@ -59,7 +192,7 @@ const ModalPagamento: React.FC<ModalPagamentoProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-md shadow-xl relative transform transition-all duration-300">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-md shadow-xl relative transform transition-all duration-300 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex justify-between items-start mb-6">
           <div>
@@ -121,17 +254,24 @@ const ModalPagamento: React.FC<ModalPagamentoProps> = ({
                     : "text-gray-500"
                 }`}
               />
-              <span className="text-xs mt-1">Comprovativo</span>
+              <span className="text-xs mt-1">Transferência</span>
             </button>
           </div>
         </div>
+
+        {/* Componente CompactPaymentMethods - aparece APENAS para transferência */}
+        {metodo === "transferencia" && (
+          <div className="mb-6">
+            <CompactPaymentMethods valor={valor} />
+          </div>
+        )}
 
         {/* Campos de entrada baseados no método selecionado */}
         <div className="space-y-4 mb-6">
           {metodo === "mpesa" && (
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Telefone
+                Número do Telefone
               </label>
               <div className="relative">
                 <Smartphone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -143,19 +283,22 @@ const ModalPagamento: React.FC<ModalPagamentoProps> = ({
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
                 />
               </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Usaremos este número para confirmar o pagamento via M-Pesa
+              </p>
             </div>
           )}
 
           {metodo === "transferencia" && (
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Comprovativo
+                Enviar Comprovativo
               </label>
               <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl cursor-pointer hover:border-gray-400 dark:hover:border-gray-600 transition-colors">
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                   <Upload className="w-8 h-8 text-gray-400 mb-2" />
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Clique para enviar ou arraste o arquivo
+                    Clique para enviar o comprovativo
                   </p>
                   <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                     PNG, JPG, PDF (Max. 5MB)

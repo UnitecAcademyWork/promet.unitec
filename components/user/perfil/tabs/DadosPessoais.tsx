@@ -17,6 +17,8 @@ import {
   MessageCircle,
   Languages,
   UserCheck,
+  FileText,
+  Upload,
 } from "lucide-react";
 import { adicionarCandidato } from "../../../../lib/candidatura";
 import { getCandidato, updateCandidato, Candidato } from "../../../../lib/candidato-actions";
@@ -83,6 +85,8 @@ interface CandidateData {
   genero: string;
   idiomaNativo: string;
   isFromUnitec: boolean;
+  certificadoUnitec?: File | null;
+  nomeCertificado?: string;
 }
 
 export default function DadosPessoais() {
@@ -92,6 +96,7 @@ export default function DadosPessoais() {
   const [isEditing, setIsEditing] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [certificadoFile, setCertificadoFile] = useState<File | null>(null);
 
   const [data, setData] = useState<CandidateData>({
     provincia: "",
@@ -104,6 +109,8 @@ export default function DadosPessoais() {
     genero: "",
     idiomaNativo: "",
     isFromUnitec: false,
+    certificadoUnitec: null,
+    nomeCertificado: "",
   });
 
   useEffect(() => {
@@ -126,6 +133,8 @@ export default function DadosPessoais() {
           genero: candidato.genero || "",
           idiomaNativo: candidato.idiomaNativo || "",
           isFromUnitec: candidato.isFromUnitec || false,
+          certificadoUnitec: null,
+          nomeCertificado: candidato.nomeCertificado || "",
         });
         setIsEditing(false);
         setCandidatoExistente(true);
@@ -137,38 +146,91 @@ export default function DadosPessoais() {
     fetchData();
   }, []);
 
-  const handleChange = (field: keyof CandidateData, value: string | boolean) => {
+  const handleChange = (field: keyof CandidateData, value: string | boolean | File) => {
     setData({ ...data, [field]: value as never });
     setErrors({ ...errors, [field]: false });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    if (file) {
+      // Validar tipo de arquivo
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error('Por favor, selecione um arquivo PDF, JPG ou PNG');
+        return;
+      }
+
+      // Validar tamanho do arquivo (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('O arquivo deve ter no máximo 5MB');
+        return;
+      }
+
+      setCertificadoFile(file);
+      handleChange('certificadoUnitec', file);
+      handleChange('nomeCertificado', file.name);
+    }
+  };
+
+  const removeCertificado = () => {
+    setCertificadoFile(null);
+    handleChange('certificadoUnitec', null);
+    handleChange('nomeCertificado', '');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validação
+    // Validação básica
     const newErrors: Partial<Record<keyof CandidateData, boolean>> = {};
     Object.entries(data).forEach(([key, value]) => {
-      if (typeof value === "string" && !value.trim()) {
+      if (key !== 'certificadoUnitec' && key !== 'nomeCertificado' && 
+          typeof value === 'string' && !value.trim()) {
         newErrors[key as keyof CandidateData] = true;
       }
     });
 
+    // Validação específica para certificado se isFromUnitec for true
+    if (data.isFromUnitec && !certificadoFile) {
+      newErrors.certificadoUnitec = true;
+      toast.error('Por favor, faça upload do seu certificado da Unitec');
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      toast.error("Preencha todos os campos obrigatórios.");
       return;
     }
 
     setIsSaving(true);
 
+    // Criar FormData para enviar arquivo
+    const formData = new FormData();
+    
+    // Adicionar campos de texto
+    Object.entries(data).forEach(([key, value]) => {
+      if (key !== 'certificadoUnitec' && value !== null && value !== undefined) {
+        if (key === 'isFromUnitec') {
+          formData.append(key, value ? '1' : '0');
+        } else {
+          formData.append(key, value.toString());
+        }
+      }
+    });
+
+    // Adicionar arquivo se existir
+    if (certificadoFile) {
+      formData.append('certificadoUnitec', certificadoFile);
+    }
+
     await toast.promise(
       (async () => {
         if (candidatoExistente) {
-          const res = await updateCandidato(data);
+          const res = await updateCandidato(formData);
           if (!res) throw new Error("Erro ao atualizar dados");
           return res;
         } else {
-          const res = await adicionarCandidato(data);
+          const res = await adicionarCandidato(formData);
           if (!res.success) throw new Error(res.error || "Erro ao salvar dados");
           return res;
         }
@@ -437,7 +499,7 @@ export default function DadosPessoais() {
         </div>
 
         {/* Checkbox Unitec */}
-        <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border">
+        {/* <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border">
           <input
             type="checkbox"
             checked={data.isFromUnitec}
@@ -445,8 +507,69 @@ export default function DadosPessoais() {
             disabled={!isEditing}
             className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
           />
-          <label className="text-sm font-medium">Tem curso na Unitec?</label>
-        </div>
+          <label className="text-sm font-medium">Frequentou algum curso na Unitec?</label>
+        </div> */}
+
+        {/* Campo para certificado - aparece apenas se isFromUnitec for true */}
+        {/* <AnimatePresence>
+          {data.isFromUnitec && isEditing && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800"
+            >
+              <label className="text-sm font-medium flex items-center gap-2 mb-3">
+                <FileText className="w-4 h-4 text-blue-500" />
+                Certificado da Unitec
+                <span className="text-red-500">*</span>
+              </label>
+              
+              {!certificadoFile ? (
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer hover:border-blue-400 transition-colors bg-white dark:bg-gray-800">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <Upload className="w-8 h-8 text-blue-400 mb-2" />
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Clique para fazer upload do certificado
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                      PDF, JPG, PNG (Max. 5MB)
+                    </p>
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    onChange={handleFileChange}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                  />
+                </label>
+              ) : (
+                <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border">
+                  <div className="flex items-center gap-3">
+                    <FileText className="w-6 h-6 text-green-500" />
+                    <div>
+                      <p className="font-medium text-sm">{certificadoFile.name}</p>
+                      <p className="text-xs text-gray-500">
+                        {(certificadoFile.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={removeCertificado}
+                    className="p-1 text-red-500 hover:bg-red-50 rounded-full"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+              
+              {errors.certificadoUnitec && (
+                <p className="text-red-500 text-xs mt-2">Por favor, faça upload do certificado</p>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence> */}
 
         {/* Botões */}
         <div className="pt-4 flex flex-col md:flex-row justify-end gap-3">

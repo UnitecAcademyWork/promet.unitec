@@ -7,10 +7,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle, Circle, AlertCircle } from "lucide-react";
 
 import ApplyButton from "./tabs/buttonAplly";
-import { Candidato, getCandidato } from "../../../lib/candidato-actions";
-import { getFormations } from "../../../lib/formation-actions";
-import { getIdiomas } from "../../../lib/idioma-actions";
-import { getExperiences } from "../../../lib/experiencia-actions";
+import { getCandidato, Candidato } from "../../../lib/candidato-actions";
 
 type TabsProps = {
   tabs: string[];
@@ -19,7 +16,6 @@ type TabsProps = {
   renderTabContent: (tab: string) => ReactNode;
 };
 
-// Para simplificar a renderização de status
 type StatusItemProps = {
   title: string;
   isCompleted: boolean;
@@ -49,8 +45,7 @@ const StatusItem = ({ title, isCompleted, isRequired = false }: StatusItemProps)
     <div className="flex items-center">
       <Icon className={`w-5 h-5 mr-2 ${colorClass}`} />
       <span className={`text-sm ${textClass}`}>
-        {title}{" "}
-        {isCompleted ? "✓" : isRequired ? "✗" : ""}{" "}
+        {title} {isCompleted ? "✓" : isRequired ? "✗" : ""}{" "}
         {isRequired ? (
           <span className="text-xs text-gray-500">(Obrigatório)</span>
         ) : (
@@ -69,10 +64,7 @@ export default function TabsWithApply({
 }: TabsProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [openTabs, setOpenTabs] = useState<string[]>([tabs[0]]);
-  const [isCandidate, setIsCandidate] = useState(false);
-  const [hasFormation, setHasFormation] = useState(false);
-  const [hasExperience, setHasExperience] = useState(false);
-  const [hasLanguage, setHasLanguage] = useState(false);
+  const [candidato, setCandidato] = useState<Candidato | null>(null);
   const [progress, setProgress] = useState(0);
 
   const router = useRouter();
@@ -85,35 +77,38 @@ export default function TabsWithApply({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Função de checagem de status do usuário
+  // Busca candidato e calcula progresso
   const checkUserStatus = async () => {
     try {
-      const candidato: Candidato | null = await getCandidato();
-      const formations = await getFormations();
-      const experiencias = await getExperiences();
-      const idiomas = await getIdiomas();
+      const data: Candidato | null = await getCandidato();
+      if (data) {
+        setCandidato(data);
+        let completed = 0;
+        let totalRequired = 2; // só 2 obrigatórios: dados pessoais + formação
 
-      const hasCandidateData = !!candidato;
-      const hasFormationData = Array.isArray(formations) && formations.length > 0;
-      const hasExperienceData =
-        Array.isArray(experiencias.data) && experiencias.data.length > 0;
-      const hasLanguageData =
-        Array.isArray(idiomas.data) && idiomas.data.length > 0;
+        // Dados pessoais (obrigatório)
+        const hasDadosPessoais =
+          !!data.provincia && !!data.morada && !!data.dataNascimento && !!data.numeroBi;
+        if (hasDadosPessoais) completed += 1;
 
-      setIsCandidate(hasCandidateData);
-      setHasFormation(hasFormationData);
-      setHasExperience(hasExperienceData);
-      setHasLanguage(hasLanguageData);
+        // Formação (obrigatório)
+        const hasFormacao =
+          !!data.nivelAcademico && data.formacoes && data.formacoes.length > 0;
+        if (hasFormacao) completed += 1;
 
-      // Calcular progresso (somente obrigatórios: Dados pessoais + Formação)
-      const totalRequired = 2;
-      let completed = 0;
-      if (hasCandidateData) completed++;
-      if (hasFormationData) completed++;
+        // Experiência (opcional, mas soma progresso se tiver)
+        const hasExperiencia = data.experiencias && data.experiencias.length > 0;
+        if (hasExperiencia) completed += 1;
 
-      setProgress(Math.round((completed / totalRequired) * 100));
+        // Idiomas (opcional, mas soma progresso se tiver)
+        const hasIdiomas = data.idiomas && data.idiomas.length > 0;
+        if (hasIdiomas) completed += 1;
+
+        // Progresso = (completos / total de 4 se considerar opcionais)
+        setProgress(Math.round((completed / 4) * 100));
+      }
     } catch (err) {
-      console.error("Erro ao verificar status do usuário:", err);
+      console.error("Erro ao buscar candidato:", err);
     }
   };
 
@@ -130,30 +125,38 @@ export default function TabsWithApply({
   };
 
   const handleApply = () => {
-    if (!isCandidate) {
+    if (!candidato) {
       toast.error("Preencha seus dados pessoais antes de se candidatar!");
       return;
     }
-    if (!hasFormation) {
+    if (!(candidato.nivelAcademico && candidato.formacoes?.length)) {
       toast.error("Preencha o formulário de Formação antes de se candidatar!");
       return;
     }
+
     toast.success("Redirecionando para cursos...");
     router.push("/cursos");
   };
+
+  const dadosCompletos =
+    !!candidato?.provincia &&
+    !!candidato?.morada &&
+    !!candidato?.dataNascimento &&
+    !!candidato?.numeroBi;
+
+  const formacaoCompleta =
+    !!candidato?.nivelAcademico && !!candidato?.formacoes?.length;
+
+  const requisitosObrigatoriosOK = dadosCompletos && formacaoCompleta;
 
   return (
     <div className={`flex flex-col w-full ${isMobile ? "space-y-2" : "space-y-3"}`}>
       <Toaster position="top-right" reverseOrder={false} />
 
-      {/* Tabs */}
       {tabs.map((tab) => {
         const isActive = openTabs.includes(tab);
         return (
-          <div
-            key={tab}
-            className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
-          >
+          <div key={tab} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
             <button
               onClick={() => toggleTab(tab)}
               className={`w-full flex justify-between items-center px-5 py-3 font-medium text-left transition-all duration-300 ${
@@ -167,9 +170,7 @@ export default function TabsWithApply({
                 {showCount && counts[tab] > 0 && (
                   <span
                     className={`text-xs px-2 py-1 rounded-full ${
-                      isActive
-                        ? "bg-white/20 text-white"
-                        : "bg-gray-300 dark:bg-gray-700"
+                      isActive ? "bg-white/20 text-white" : "bg-gray-300 dark:bg-gray-700"
                     }`}
                   >
                     {counts[tab]}
@@ -202,16 +203,15 @@ export default function TabsWithApply({
         );
       })}
 
-      {/* Botão de Aplicar */}
       <div className="mt-4 flex justify-end">
         <ApplyButton
-          isEnabled={isCandidate && hasFormation}
+          isEnabled={requisitosObrigatoriosOK}
           onClick={handleApply}
           href="/cursos"
         />
       </div>
 
-      {/* Barra de Progresso Animada */}
+      {/* Barra de progresso */}
       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-4">
         <div className="flex justify-between items-center mb-2">
           <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -221,35 +221,41 @@ export default function TabsWithApply({
             {progress}%
           </span>
         </div>
-        
-        {/* Barra de progresso */}
+
         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mb-4 overflow-hidden">
           <motion.div
             className="h-full bg-gradient-to-r from-brand-main to-green-500 rounded-full"
             initial={{ width: "0%" }}
             animate={{ width: `${progress}%` }}
-            transition={{ 
-              type: "spring",
-              stiffness: 50,
-              damping: 15,
-              duration: 0.8
-            }}
+            transition={{ type: "spring", stiffness: 50, damping: 15, duration: 0.8 }}
           />
         </div>
 
-        {/* Lista de Requisitos */}
         <div className="space-y-3">
-          <StatusItem title="Dados Pessoais" isCompleted={isCandidate} isRequired />
-          <StatusItem title="Formação Acadêmica" isCompleted={hasFormation} isRequired />
-          <StatusItem title="Experiência Profissional" isCompleted={hasExperience} />
-          <StatusItem title="Idiomas" isCompleted={hasLanguage} />
+          <StatusItem
+            title="Dados Pessoais"
+            isCompleted={dadosCompletos}
+            isRequired
+          />
+          <StatusItem
+            title="Formação Acadêmica"
+            isCompleted={formacaoCompleta}
+            isRequired
+          />
+          <StatusItem
+            title="Experiência Profissional"
+            isCompleted={!!candidato?.experiencias?.length}
+          />
+          <StatusItem
+            title="Idiomas"
+            isCompleted={!!candidato?.idiomas?.length}
+          />
         </div>
 
-        {/* Mensagem de progresso */}
-        {progress < 100 && (
+        {!requisitosObrigatoriosOK && (
           <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
             <p className="text-sm text-yellow-700 dark:text-yellow-300">
-              Complete os campos obrigatórios marcados em vermelho para poder se candidatar.
+              Complete os campos obrigatórios para liberar sua candidatura.
             </p>
           </div>
         )}

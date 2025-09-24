@@ -73,9 +73,6 @@ export default function Experiencia({ isEditing }: ExperienciaProps) {
     setExperiences(formatted);
   } catch (err: any) {
     console.error("Erro ao carregar experiências:", err);
-
-    // Mostra toast apenas aqui
-    toast.error("Erro ao carregar experiências");
     setShowForm(true);
     setExperiences([]);
   } finally {
@@ -237,7 +234,7 @@ const handleRemoveExperience = async (id: number) => {
 
               <div className="flex items-center">
                 <input type="checkbox" id="current" checked={form.current} onChange={(e) => setForm({ ...form, current: e.target.checked, endDate: "" })} className="rounded focus:ring-blue-500 text-blue-600"/>
-                <label htmlFor="current" className="ml-2 text-sm text-gray-700 dark:text-gray-300">Trabalho atualmente aqui</label>
+                <label htmlFor="current" className="ml-2 text-sm text-gray-700 dark:text-gray-300">Trabalho actualmente aqui</label>
               </div>
 
               <div>

@@ -10,6 +10,7 @@ export type NovoCandidato = {
   numeroBi: string;
   nivelAcademico: string;
   contacto: string;
+  isFromUnitec: boolean;
 };
 export async function adicionarCandidato(candidato: NovoCandidato) {
   const token = (await cookies()).get("auth_token")?.value;
