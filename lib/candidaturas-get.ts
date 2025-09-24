@@ -1,13 +1,10 @@
 import Cookies from "js-cookie";
-
-export interface Curso {
+export interface Pagamento {
   id: string;
-  nome: string;
-  preco: number;
-  precoTeste: number;
-  descricao: string | null;
-  imgUrl: string | null;
-  desconto: number | null;
+  status: "processando" | "concluido" | "falhado";
+  itemNome: "curso" | "teste";
+  valor: number;
+  comprovativo?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -21,6 +18,7 @@ export interface Candidatura {
   createdAt: string;
   updatedAt: string;
   cursos: Curso;
+  pagamentos?: Pagamento[]; 
 }
 
 export interface ApiResponseError {

@@ -220,7 +220,7 @@ const ModalPagamento: React.FC<ModalPagamentoProps> = ({
         {/* Métodos de Pagamento */}
         <div className="mb-6">
           <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-            Método de Pagamento
+            Métodos de Pagamento
           </h3>
           <div className="grid grid-cols-2 gap-2">
             <button
