@@ -78,39 +78,41 @@ export default function TabsWithApply({
   }, []);
 
   // Busca candidato e calcula progresso
-  const checkUserStatus = async () => {
-    try {
-      const data: Candidato | null = await getCandidato();
-      if (data) {
-        setCandidato(data);
-        let completed = 0;
-        let totalRequired = 2; // só 2 obrigatórios: dados pessoais + formação
+  // Busca candidato e calcula progresso
+const checkUserStatus = async () => {
+  try {
+    const data: Candidato | null = await getCandidato();
+    if (data) {
+      setCandidato(data);
+      let completed = 0;
+      const totalRequired = 2; // só 2 obrigatórios: dados pessoais + formação
 
-        // Dados pessoais (obrigatório)
-        const hasDadosPessoais =
-          !!data.provincia && !!data.morada && !!data.dataNascimento && !!data.numeroBi;
-        if (hasDadosPessoais) completed += 1;
+      // Dados pessoais (obrigatório)
+      const hasDadosPessoais =
+        !!data.provincia && !!data.morada && !!data.dataNascimento && !!data.numeroBi;
+      if (hasDadosPessoais) completed += 1;
 
-        // Formação (obrigatório)
-        const hasFormacao =
-          !!data.nivelAcademico && data.formacoes && data.formacoes.length > 0;
-        if (hasFormacao) completed += 1;
+      // Formação (obrigatório)
+      const hasFormacao =
+        !!data.nivelAcademico && data.formacoes && data.formacoes.length > 0;
+      if (hasFormacao) completed += 1;
 
-        // Experiência (opcional, mas soma progresso se tiver)
-        const hasExperiencia = data.experiencias && data.experiencias.length > 0;
-        if (hasExperiencia) completed += 1;
+      // Experiência (opcional)
+      const hasExperiencia = data.experiencias && data.experiencias.length > 0;
+      if (hasExperiencia) completed += 1;
 
-        // Idiomas (opcional, mas soma progresso se tiver)
-        const hasIdiomas = data.idiomas && data.idiomas.length > 0;
-        if (hasIdiomas) completed += 1;
+      // Idiomas (opcional)
+      const hasIdiomas = data.idiomas && data.idiomas.length > 0;
+      if (hasIdiomas) completed += 1;
 
-        // Progresso = (completos / total de 4 se considerar opcionais)
-        setProgress(Math.round((completed / 4) * 100));
-      }
-    } catch (err) {
-      console.error("Erro ao buscar candidato:", err);
+      // Progresso
+      setProgress(Math.round((completed / 4) * 100));
     }
-  };
+  } catch (err) {
+    console.error("Erro ao buscar candidato:", err);
+  }
+};
+
 
   useEffect(() => {
     checkUserStatus();
