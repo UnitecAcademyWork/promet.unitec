@@ -115,7 +115,7 @@ const HowItWorks = () => {
   ];
 
   return (
-    <section id="funcionamneto" className="py-20 px-4 bg-white dark:bg-gray-900">
+    <section id="funcionamento" className="py-20 px-4 bg-white dark:bg-gray-900">
       <div className="max-w-6xl mx-auto">
         <motion.div 
           className="text-center mb-12"

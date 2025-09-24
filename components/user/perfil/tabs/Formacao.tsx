@@ -197,7 +197,7 @@ export default function Formacao() {
             >
               <div className="flex justify-between items-center">
                 <h3 className="font-semibold text-gray-800 dark:text-white">
-                  {editId ? "Editar Formação" : "Nova Formação"}
+                  {editId ? "Editar Formação" : "Adcionar Formação"}
                 </h3>
                 <button
                   type="button"
@@ -245,7 +245,7 @@ export default function Formacao() {
                         className="w-4 h-4"
                       />
                       <label className="text-gray-700 dark:text-gray-300">
-                        Usar datas de início e fim
+                        Datas de início e fim
                       </label>
                     </div>
 
@@ -264,7 +264,7 @@ export default function Formacao() {
                         className="w-4 h-4"
                       />
                       <label className="text-gray-700 dark:text-gray-300">
-                        Usar duração + data fim
+                        Usar duração
                       </label>
                     </div>
                   </div>

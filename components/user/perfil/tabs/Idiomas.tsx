@@ -1,88 +1,111 @@
 "use client";
 import { useState, useEffect } from "react";
 import { toast, Toaster } from "react-hot-toast";
-import { ChevronDown, Plus, Check, X, Languages } from "lucide-react";
-import { Idioma, NovoIdioma, addUserIdiomas } from "../../../../lib/idioma-actions";
+import { ChevronDown, X, Languages } from "lucide-react";
+import { getIdiomas, Idioma } from "../../../../lib/idioma-actions";
+import {
+  IdiomaCandidato,
+  addUserIdiomas,
+  getUserIdiomas,
+  deleteUserIdioma,
+} from "../../../../lib/add-idioma-candidato";
 
 export default function Idiomas() {
   const [idiomas, setIdiomas] = useState<Idioma[]>([]);
-  const [form, setForm] = useState<NovoIdioma>({ nome: "", fluencia: "" });
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [userIdiomas, setUserIdiomas] = useState<IdiomaCandidato[]>([]);
+  const [selectedIdiomaId, setSelectedIdiomaId] = useState<string | null>(null);
+  const [selectedFluencia, setSelectedFluencia] = useState<string>("");
   const [showIdiomaDropdown, setShowIdiomaDropdown] = useState(false);
   const [showFluenciaDropdown, setShowFluenciaDropdown] = useState(false);
 
-  const idiomasComuns = [
-    "Português", "Inglês", "Espanhol", "Francês",
-    "Mandarim", "Changana","Cisena","Xichuwabu",
-    "Elomwe","Macua","Nhungue","Tsonga","Chuwabo",
-    "Makonde","Chisena","Ronga","Chiyao",
-  ];
+  const niveisProficiencia = ["Basico", "Intermediario", "Avancado", "Fluente"];
 
-  const niveisProficiencia = [
-    "Básico", "Intermediário", "Avançado", "Fluente"
-  ];
-
-  // --- Carregar do localStorage ao montar ---
   useEffect(() => {
-    const stored = localStorage.getItem("idiomas");
-    if (stored) {
-      setIdiomas(JSON.parse(stored));
-    }
+    loadIdiomas();
+    loadUserIdiomas();
   }, []);
 
-  // --- Atualiza localStorage sempre que idiomas mudarem ---
-  useEffect(() => {
-    localStorage.setItem("idiomas", JSON.stringify(idiomas));
-  }, [idiomas]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.nome.trim() || !form.fluencia.trim()) {
-      toast.error("Selecione um idioma e um nível!");
+  const loadIdiomas = async () => {
+    const result = await getIdiomas();
+    if (!result.success) {
+      toast.error(result.error || "Erro ao carregar idiomas");
+      setIdiomas([]);
       return;
     }
+    setIdiomas(result.data || []);
+  };
 
-    const novoIdioma = { nome: form.nome, fluencia: form.fluencia, id: Date.now() };
+  const loadUserIdiomas = async () => {
+    const result = await getUserIdiomas();
+    if (!result.success) {
+      toast.error(result.error || "Erro ao carregar seus idiomas");
+      setUserIdiomas([]);
+      return;
+    }
+    const mapped: IdiomaCandidato[] = (result.data || []).map((item) => ({
+      idIdioma: item.id,
+      fluencia: item.candidato?.[0]?.fluencia || "",
+    }));
+    setUserIdiomas(mapped);
+  };
 
-    await toast.promise(
-      addUserIdiomas([novoIdioma]), // futuro: substituir por API real
-      {
-        loading: "Salvando idioma...",
-        success: "Idioma adicionado com sucesso!",
-        error: (err) => err.message || "Erro ao salvar idioma",
+  const selectIdioma = (idioma: Idioma) => {
+    setSelectedIdiomaId(idioma.id || null);
+    setShowIdiomaDropdown(false);
+  };
+
+  const selectFluencia = (nivel: string) => {
+    setSelectedFluencia(nivel);
+    setShowFluenciaDropdown(false);
+  };
+
+  const handleSalvar = async () => {
+    if (!selectedIdiomaId || !selectedFluencia) return;
+
+    // JSON a ser enviado
+    const payload: IdiomaCandidato = {
+      idIdioma: selectedIdiomaId,
+      fluencia: selectedFluencia,
+    };
+
+    console.log(">>> Enviando idioma candidato (JSON):", payload);
+
+    const result = await toast.promise(addUserIdiomas(payload), {
+      loading: "Salvando idioma...",
+      success: "Idioma salvo com sucesso!",
+      error: (err) => err.message || "Erro ao salvar idioma",
+    });
+
+    if (result.success) {
+      const idiomaInfo = idiomas.find((i) => i.id === selectedIdiomaId);
+      if (idiomaInfo) {
+        setUserIdiomas((prev) => [
+          ...prev,
+          { idIdioma: selectedIdiomaId, fluencia: selectedFluencia },
+        ]);
       }
-    );
-
-    // Atualizar estado e localStorage
-    setIdiomas(prev => [...prev, novoIdioma]);
-    setForm({ nome: "", fluencia: "" });
-    setEditingId(null);
-    setShowIdiomaDropdown(false);
-    setShowFluenciaDropdown(false);
+      setSelectedIdiomaId(null);
+      setSelectedFluencia("");
+    }
   };
 
-  const handleDelete = (id: number) => {
-    if (!confirm("Deseja realmente deletar este idioma?")) return;
-    setIdiomas(prev => prev.filter(i => i.id !== id));
-    toast.success("Idioma removido!");
+  const handleDelete = async (id: string) => {
+    if (!confirm("Deseja realmente remover este idioma?")) return;
+
+    console.log(">>> Removendo idioma ID:", id);
+
+    const result = await toast.promise(deleteUserIdioma(id), {
+      loading: "Removendo idioma...",
+      success: "Idioma removido!",
+      error: (err) => err.message || "Erro ao remover idioma",
+    });
+
+    if (result.success) {
+      setUserIdiomas((prev) => prev.filter((i) => i.idIdioma !== id));
+    }
   };
 
-  const selectIdioma = (idioma: string) => {
-    setForm({ ...form, nome: idioma });
-    setShowIdiomaDropdown(false);
-  };
-
-  const selectNivel = (fluencia: string) => {
-    setForm({ ...form, fluencia });
-    setShowFluenciaDropdown(false);
-  };
-
-  const cancelEdit = () => {
-    setForm({ nome: "", fluencia: "" });
-    setEditingId(null);
-    setShowIdiomaDropdown(false);
-    setShowFluenciaDropdown(false);
-  };
+  const selectedIdioma = idiomas.find((i) => i.id === selectedIdiomaId);
 
   return (
     <div className="p-6 bg-white rounded-2xl shadow-lg border border-gray-100 dark:bg-gray-900 dark:border-gray-800">
@@ -92,125 +115,137 @@ export default function Idiomas() {
         <span className="bg-brand-main bg-clip-text text-transparent">Idiomas</span>
       </h2>
 
-      <form onSubmit={handleSubmit} className="mb-8 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Dropdown de Idiomas */}
-          <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Idioma</label>
-            <button
-              type="button"
-              onClick={() => setShowIdiomaDropdown(!showIdiomaDropdown)}
-              className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:border-brand-main dark:hover:border-brand-lime transition-colors"
-            >
-              <span>{form.nome || "Selecione um idioma"}</span>
-              <ChevronDown size={16} className={`transform transition-transform ${showIdiomaDropdown ? 'rotate-180' : ''}`} />
-            </button>
-            {showIdiomaDropdown && (
-              <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                {idiomasComuns.map((idioma) => (
-                  <div
-                    key={idioma}
-                    onClick={() => selectIdioma(idioma)}
-                    className={`px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${form.nome === idioma ? 'bg-brand-main/10 text-brand-main dark:text-brand-lime' : ''}`}
-                  >
-                    {idioma}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Dropdown de Níveis */}
-          <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nível de Proficiência</label>
-            <button
-              type="button"
-              onClick={() => setShowFluenciaDropdown(!showFluenciaDropdown)}
-              className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:border-brand-main dark:hover:border-brand-lime transition-colors"
-            >
-              <span>{form.fluencia || "Selecione o nível"}</span>
-              <ChevronDown size={16} className={`transform transition-transform ${showFluenciaDropdown ? 'rotate-180' : ''}`} />
-            </button>
-            {showFluenciaDropdown && (
-              <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
-                {niveisProficiencia.map((nivel) => (
-                  <div
-                    key={nivel}
-                    onClick={() => selectNivel(nivel)}
-                    className={`px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${form.fluencia === nivel ? 'bg-brand-main/10 text-brand-main dark:text-brand-lime' : ''}`}
-                  >
-                    {nivel}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="flex gap-2 pt-2">
+      {/* Formulário */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        {/* Idioma */}
+        <div className="relative">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Idioma
+          </label>
           <button
-            type="submit"
-            className="flex items-center gap-2 bg-brand-main text-white px-4 py-2 rounded-lg hover:bg-brand-main/90 transition-colors font-medium"
+            type="button"
+            onClick={() => setShowIdiomaDropdown(!showIdiomaDropdown)}
+            className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:border-brand-main dark:hover:border-brand-lime transition-colors"
           >
-            {editingId ? (<><Check size={16} /> Atualizar</>) : (<><Plus size={16} /> Adicionar</>)}
+            <span>{selectedIdioma?.nome || "Selecione um idioma"}</span>
+            <ChevronDown
+              size={16}
+              className={`transform transition-transform ${showIdiomaDropdown ? "rotate-180" : ""}`}
+            />
           </button>
-          
-          {editingId && (
-            <button
-              type="button"
-              onClick={cancelEdit}
-              className="flex items-center gap-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium"
-            >
-              <X size={16} /> Cancelar
-            </button>
+          {showIdiomaDropdown && (
+            <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              {idiomas.map((idioma) => (
+                <div
+                  key={idioma.id}
+                  onClick={() => selectIdioma(idioma)}
+                  className={`px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                    selectedIdiomaId === idioma.id ? "bg-brand-main/10 text-brand-main dark:text-brand-lime" : ""
+                  }`}
+                >
+                  {idioma.nome}
+                </div>
+              ))}
+            </div>
           )}
         </div>
-      </form>
 
-      {idiomas.length === 0 ? (
-        <div className="text-center py-8 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
+        {/* Fluência */}
+        <div className="relative">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Nivel de Proficiencia
+          </label>
+          <button
+            type="button"
+            onClick={() => setShowFluenciaDropdown(!showFluenciaDropdown)}
+            className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:border-brand-main dark:hover:border-brand-lime transition-colors"
+          >
+            <span>{selectedFluencia || "Selecione o nivel"}</span>
+            <ChevronDown
+              size={16}
+              className={`transform transition-transform ${showFluenciaDropdown ? "rotate-180" : ""}`}
+            />
+          </button>
+          {showFluenciaDropdown && (
+            <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+              {niveisProficiencia.map((nivel) => (
+                <div
+                  key={nivel}
+                  onClick={() => selectFluencia(nivel)}
+                  className={`px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                    selectedFluencia === nivel ? "bg-brand-main/10 text-brand-main dark:text-brand-lime" : ""
+                  }`}
+                >
+                  {nivel}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <button
+        onClick={handleSalvar}
+        disabled={!selectedIdiomaId || !selectedFluencia}
+        className={`w-full md:w-auto px-6 py-3 rounded-lg font-medium text-white transition-colors ${
+          selectedIdiomaId && selectedFluencia ? "bg-brand-main hover:bg-brand-main/90" : "bg-gray-400 cursor-not-allowed"
+        }`}
+      >
+        Salvar
+      </button>
+
+      {/* Lista de idiomas */}
+      {userIdiomas.length === 0 ? (
+        <div className="text-center py-8 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg mt-6">
           <Languages className="w-12 h-12 mx-auto mb-4 opacity-50" />
           <p className="text-gray-500 dark:text-gray-400">Nenhum idioma adicionado ainda.</p>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Adicione seu primeiro idioma usando o formulário acima.</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Adicione seu primeiro idioma usando o formulario acima.</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4 mt-6">
           <h3 className="font-medium text-gray-700 dark:text-gray-300">Seus Idiomas</h3>
-          {idiomas.map((idioma) => (
-            <div
-              key={idioma.id}
-              className="border border-gray-200 dark:border-gray-700 p-4 rounded-lg bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-sm flex justify-between items-center transition-all hover:shadow-md"
-            >
-              <div className="flex-1">
-                <p className="font-bold text-lg text-brand-main dark:text-brand-lime">{idioma.nome}</p>
-                <div className="flex items-center mt-1">
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                    <div 
-                      className="bg-gradient-to-r from-brand-main to-brand-lime h-2.5 rounded-full" 
-                      style={{ 
-                        width: idioma.fluencia === "Nativo" ? "100%" : 
-                               idioma.fluencia === "Fluente" ? "90%" : 
-                               idioma.fluencia === "Avançado" ? "75%" : 
-                               idioma.fluencia === "Intermediário" ? "50%" : "25%" 
-                      }}
-                    ></div>
+          {userIdiomas.map((idioma, index) => {
+            const info = idiomas.find((i) => i.id === idioma.idIdioma);
+            return (
+              <div
+                key={`${idioma.idIdioma}-${index}`}
+                className="border border-gray-200 dark:border-gray-700 p-4 rounded-lg bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-sm flex justify-between items-center transition-all hover:shadow-md"
+              >
+                <div className="flex-1">
+                  <p className="font-bold text-lg text-brand-main dark:text-brand-lime">{info?.nome}</p>
+                  <div className="flex items-center mt-1">
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                      <div
+                        className="bg-gradient-to-r from-brand-main to-brand-lime h-2.5 rounded-full"
+                        style={{
+                          width:
+                            idioma.fluencia.toLowerCase() === "fluente"
+                              ? "100%"
+                              : idioma.fluencia === "Avancado"
+                              ? "75%"
+                              : idioma.fluencia === "Intermediario"
+                              ? "50%"
+                              : "25%",
+                        }}
+                      ></div>
+                    </div>
+                    <span className="text-sm text-gray-600 dark:text-gray-400 ml-3 min-w-[100px]">
+                      {idioma.fluencia}
+                    </span>
                   </div>
-                  <span className="text-sm text-gray-600 dark:text-gray-400 ml-3 min-w-[100px]">
-                    {idioma.fluencia}
-                  </span>
+                </div>
+                <div className="flex gap-2 ml-4">
+                  <button
+                    onClick={() => handleDelete(idioma.idIdioma)}
+                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                    title="Remover idioma"
+                  >
+                    <X size={18} />
+                  </button>
                 </div>
               </div>
-              <div className="flex gap-2 ml-4">
-                <button
-                  onClick={() => handleDelete(idioma.id)}
-                  className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                  title="Remover idioma"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

@@ -19,7 +19,7 @@ const Navbar = () => {
     { name: "Início", href: "/", icon: Briefcase },
     { name: "Sobre", href: "/#sobre", icon: Briefcase },
     { name: "Áreas de Formação", href: "/#areas", icon: GraduationCap  },
-    { name: "Como Funciona", href: "/#funcionamneto", icon: Info  },
+    { name: "Como Funciona", href: "/#funcionamento", icon: Info  },
     { name: "Benefícios", href: "/#beneficios", icon: Briefcase },
     { name: "Contacto", href: "/#contacto", icon: Briefcase },
   ];
