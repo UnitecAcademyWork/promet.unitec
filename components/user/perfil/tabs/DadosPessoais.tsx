@@ -18,7 +18,7 @@ import {
   Languages,
   UserCheck,
 } from "lucide-react";
-import { adicionarCandidato, NovoCandidato } from "../../../../lib/candidatura";
+import { adicionarCandidato } from "../../../../lib/candidatura";
 import { getCandidato, updateCandidato, Candidato } from "../../../../lib/candidato-actions";
 import toast from "react-hot-toast";
 
@@ -145,7 +145,7 @@ export default function DadosPessoais() {
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
 
-  // Validação dos campos obrigatórios
+  // Validação
   const newErrors: Partial<Record<keyof CandidateData, boolean>> = {};
   Object.entries(data).forEach(([key, value]) => {
     if (typeof value === "string" && !value.trim()) {
@@ -161,38 +161,28 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   setIsSaving(true);
 
-  // Prepara payload para criar ou atualizar candidato
-  const payloadNovoCandidato: NovoCandidato = {
+  // Monta payload completo com fallback para strings vazias
+  const payload = {
     provincia: data.provincia || "",
     morada: data.morada || "",
     dataNascimento: data.dataNascimento || "",
     numeroBi: data.numeroBi || "",
     nivelAcademico: data.nivelAcademico || "",
     contacto: data.contacto || "",
+    whatsapp: data.whatsapp || "",
+    genero: data.genero || "",
+    idiomaNativo: data.idiomaNativo || "",
     isFromUnitec: !!data.isFromUnitec,
-  };
-
-  const payloadUpdateCandidato: Partial<Candidato> = {
-    provincia: data.provincia,
-    morada: data.morada,
-    dataNascimento: data.dataNascimento,
-    numeroBi: data.numeroBi,
-    nivelAcademico: data.nivelAcademico,
-    contacto: data.contacto,
-    whatsapp: data.whatsapp,
-    genero: data.genero,
-    idiomaNativo: data.idiomaNativo,
-    isFromUnitec: data.isFromUnitec,
   };
 
   await toast.promise(
     (async () => {
       if (candidatoExistente) {
-        const res = await updateCandidato(payloadUpdateCandidato);
+        const res = await updateCandidato(payload); // partial ok
         if (!res) throw new Error("Erro ao atualizar dados");
         return res;
       } else {
-        const res = await adicionarCandidato(payloadNovoCandidato);
+        const res = await adicionarCandidato(payload); // todos os campos obrigatórios presentes
         if (!res.success) throw new Error(res.error || "Erro ao salvar dados");
         return res;
       }
@@ -211,6 +201,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   setIsEditing(false);
   setCandidatoExistente(true);
 };
+
 
 
   return (
