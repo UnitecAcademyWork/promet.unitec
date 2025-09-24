@@ -133,7 +133,7 @@ const CompactPaymentMethods = ({ valor }: { valor: number }) => {
           </div>
           <div className="flex gap-1">
             <span className="font-semibold">7.</span>
-            <span>Confirme "Unitec Moçambique US"</span>
+            <span>Confirme Unitec Moçambique US</span>
           </div>
         </div>
         <p className="font-semibold mt-2 text-blue-600 dark:text-blue-400">
