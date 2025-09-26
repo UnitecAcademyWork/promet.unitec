@@ -39,7 +39,7 @@ const CompactPaymentMethods = ({ valor }: { valor: number }) => {
       conta: "0014102004789",
       nib: "000200141410200478905",
       titular: "Unitec Moçambique Lda.",
-    }
+    },
   };
 
   const copyToClipboard = (text: string, field: string) => {
@@ -157,55 +157,75 @@ const ModalPagamento: React.FC<ModalPagamentoProps> = ({
   const [comprovativo, setComprovativo] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [numeroErro, setNumeroErro] = useState<string | null>(null);
+
+  const validarNumero = (valor: string) => {
+    const regex = /^(84|85)\d{7}$/;
+    return regex.test(valor);
+  };
 
   const handleConfirm = async () => {
-  setLoading(true);
-  try {
-    await onConfirm({
-      metodo,
-      numero: numero || undefined,
-      comprovativo: comprovativo || undefined,
-    });
+    if (metodo === "mpesa" && !validarNumero(numero)) {
+      toast.error("Número inválido. Use formato 84XXXXXXX ou 85XXXXXXX");
+      return;
+    }
 
-    // Mantém o modal aberto por 3 segundos antes de fechar
-    setTimeout(() => {
-      onClose();
+    setLoading(true);
+    try {
+      await onConfirm({
+        metodo,
+        numero: numero || undefined,
+        comprovativo: comprovativo || undefined,
+      });
 
-      // Reset campos
-      setNumero("");
-      setComprovativo(null);
-      setFileName("");
+      // Mantém o modal aberto por 3 segundos antes de fechar
+      setTimeout(() => {
+        onClose();
+
+        // Reset campos
+        setNumero("");
+        setComprovativo(null);
+        setFileName("");
+        setLoading(false);
+      }, 3000);
+    } catch (error) {
+      console.error("Erro ao confirmar pagamento:", error);
       setLoading(false);
-    }, 3000);
-  } catch (error) {
-    console.error("Erro ao confirmar pagamento:", error);
-    setLoading(false);
-  }
-};
+    }
+  };
 
-const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0] || null;
-  if (!file) return;
+  const handleNumeroChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, ""); // apenas dígitos
+    setNumero(value);
+    if (value && !validarNumero(value)) {
+      setNumeroErro("Número deve começar por 84/85 e ter 9 dígitos.");
+    } else {
+      setNumeroErro(null);
+    }
+  };
 
-  const allowedTypes = ["application/pdf", "image/png", "image/jpeg"];
-  const maxSize = 5 * 1024 * 1024; // 5MB
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    if (!file) return;
 
-  if (!allowedTypes.includes(file.type)) {
-    toast.error("Formato inválido. Aceito apenas PDF, PNG ou JPG.");
-    e.target.value = "";
-    return;
-  }
+    const allowedTypes = ["application/pdf", "image/png", "image/jpeg"];
+    const maxSize = 5 * 1024 * 1024;
 
-  if (file.size > maxSize) {
-    toast.error("Arquivo muito grande. Máximo permitido: 5MB.");
-    e.target.value = "";
-    return;
-  }
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Formato inválido. apenas PDF, PNG ou JPG.");
+      e.target.value = "";
+      return;
+    }
 
-  setComprovativo(file);
-  setFileName(file.name);
-};
+    if (file.size > maxSize) {
+      toast.error("Arquivo muito grande. Máximo permitido: 5MB.");
+      e.target.value = "";
+      return;
+    }
 
+    setComprovativo(file);
+    setFileName(file.name);
+  };
 
   if (!isOpen) return null;
 
@@ -297,14 +317,19 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                 <input
                   type="tel"
                   value={numero}
-                  onChange={(e) => setNumero(e.target.value)}
-                  placeholder="+258 8X XXX XXXX"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
+                  onChange={handleNumeroChange}
+                  placeholder="84/85"
+                  maxLength={9}
+                  className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent dark:bg-gray-800 dark:text-white ${
+                    numeroErro
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 dark:border-gray-700 focus:ring-purple-500"
+                  }`}
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Usaremos este número para confirmar o pagamento via M-Pesa
-              </p>
+              {numeroErro && (
+                <p className="text-xs text-red-500 mt-1">{numeroErro}</p>
+              )}
             </div>
           )}
 
@@ -351,7 +376,7 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
           </button>
           <button
             onClick={handleConfirm}
-            disabled={loading}
+            disabled={loading || (metodo === "mpesa" && !!numeroErro)}
             className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg font-medium disabled:opacity-60"
           >
             {loading ? "Processando..." : "Confirmar Pagamento"}

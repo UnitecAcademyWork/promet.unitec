@@ -49,6 +49,8 @@ export interface CandidaturaTeste {
   createdAt: string;
   updatedAt: string;
   testesdiagnosticos: Teste[];
+  pagamentos?: Pagamento[];
+
 }
 
 export const getTestesByCandidatura = async (): Promise<CandidaturaTeste[]> => {

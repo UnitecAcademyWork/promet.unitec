@@ -49,6 +49,14 @@ export type Idioma = {
   updatedAt: string;
 };
 
+export type Certificado = {
+  id: string;
+  idCandidato: string;
+  imgUrl: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type Candidato = {
   id: string;
   idUser: string;
@@ -59,6 +67,7 @@ export type Candidato = {
   nivelAcademico: string;
   contacto: string;
   whatsapp: string;
+  tipoDocumento: string;
   genero: string;
   idiomaNativo: string;
   createdAt: string;
@@ -68,7 +77,8 @@ export type Candidato = {
   isFromUnitec: boolean; // sempre boolean no front
   formacoes: Formacao[];
   experiencias: Experiencia[];
-  idiomas: Idioma[]; // 🔥 agora alinhado com o backend
+  idiomas: Idioma[]; 
+  certificados?: Certificado[];
 };
 
 // ================== FUNÇÕES ==================
@@ -98,7 +108,6 @@ export async function getCandidato(): Promise<Candidato | null> {
     const raw = await res.json();
     console.log("Dados brutos recebidos do backend (getCandidato):", raw);
 
-    // 🔥 garantir que o flag vem sempre como boolean
     const data: Candidato = {
       ...raw,
       isFromUnitec:
@@ -128,14 +137,13 @@ export async function updateCandidato(
   try {
     const body = {
       ...dados,
-      // 🔥 enviar como número/flag que o backend entenda
       isFromUnitec: dados.isFromUnitec ? 1 : 0,
     };
 
     console.log("📤 Dados enviados para atualização (updateCandidato):", body);
 
     const res = await fetch(routes.candidato, {
-      method: "PUT", // ou PATCH dependendo da API
+      method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -163,6 +171,35 @@ export async function updateCandidato(
     return data;
   } catch (error) {
     console.error("Erro no update candidato:", error);
+    return null;
+  }
+}
+
+// ================== GET CERTIFICADOS ==================
+export async function getCertificados(
+  idCandidato: string
+): Promise<Certificado[] | null> {
+  try {
+    const res = await fetch(
+      `${routes.backend_url}/listar-certificados/${idCandidato}`,
+      {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+      }
+    );
+
+    if (!res.ok) {
+      console.error("Erro ao buscar certificados:", res.status, res.statusText);
+      return null;
+    }
+
+    const data = await res.json();
+    console.log("📜 Certificados recebidos:", data);
+
+    return data as Certificado[];
+  } catch (error) {
+    console.error("Erro no fetch certificados:", error);
     return null;
   }
 }

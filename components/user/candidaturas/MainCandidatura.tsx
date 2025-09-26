@@ -52,17 +52,34 @@ const MainCandidatura = () => {
   };
 
   // Confirmar pagamento
-  const handleConfirmPagamento = async (dados: {
-    metodo: string;
-    numero?: string;
-    comprovativo?: File;
-  }) => {
-    if (!itemIdSelecionado || !itemNomeSelecionado) {
-      toast.error("Dados do item não encontrados!");
-      return;
-    }
+ const handleConfirmPagamento = async (dados: {
+  metodo: string;
+  numero?: string;
+  comprovativo?: File;
+}) => {
+  if (!itemIdSelecionado || !itemNomeSelecionado) {
+    toast.error("Dados do item não encontrados!");
+    return;
+  }
 
-    try {
+  try {
+    if (dados.metodo === "mpesa") {
+      // fluxo específico para M-Pesa
+      await toast.promise(
+        efectuarPagamento({
+          metodoPagamento: "mpesa",
+          itemId: itemIdSelecionado,
+          itemNome: itemNomeSelecionado,
+          phoneNumber: dados.numero,
+        }),
+        {
+          loading: "Confirmando pagamento...",
+          success: "Pagamento efectuado com sucesso",
+          error: "Erro ao efectuar pagamento",
+        }
+      );
+    } else {
+      // fluxo transferência
       await toast.promise(
         efectuarPagamento({
           metodoPagamento: dados.metodo,
@@ -71,20 +88,22 @@ const MainCandidatura = () => {
           comprovativo: dados.comprovativo,
         }),
         {
-          loading: "Processando pagamento...",
-          success: "Pagamento efetuado com sucesso!",
-          error: "Erro ao efetuar pagamento",
+          loading: "Enviando comprovativo...",
+          success: "Pagamento enviado para verificação",
+          error: "Erro ao enviar comprovativo",
         }
       );
-
-      setTimeout(() => {
-        setModalOpen(false);
-        fetchCandidaturas();
-      }, 4000);
-    } catch (err) {
-      console.error(err);
     }
-  };
+
+    setTimeout(() => {
+      setModalOpen(false);
+      fetchCandidaturas();
+    }, 4000);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 
   // Nova tentativa de teste
   const handleNovaTentativa = async (candidaturaId: string) => {

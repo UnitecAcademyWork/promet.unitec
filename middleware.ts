@@ -12,11 +12,16 @@ export function middleware(req: NextRequest) {
     "/recuperar-senha",
     "/formulario/parceiro",
     "/cursos",
+     "/nova-senha",         // adicionado
+    "/nova-senha/[otp]",
   ];
 
   // Rotas especiais que não podem ser acessadas após login
-  const authRoutes = ["/login", "/registro"];
-
+  const authRoutes = ["/login", "/registro", "/nova-senha",         // adicionado
+    "/nova-senha/[otp]"];
+  if (pathname.startsWith("/nova-senha")) {
+    return NextResponse.next();
+  }
   // Ignorar assets e APIs
   if (
     pathname.startsWith("/_next") ||

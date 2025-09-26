@@ -9,11 +9,13 @@ export async function efectuarPagamento({
   itemId,
   itemNome,
   comprovativo,
+  phoneNumber, // ✅ corrigi aqui
 }: {
   metodoPagamento: string;
   itemId: string;
   itemNome: string;
   comprovativo?: File;
+  phoneNumber?: string; // ✅ minúsculo
 }) {
   try {
     const token = (await cookies()).get("auth_token")?.value;
@@ -21,6 +23,7 @@ export async function efectuarPagamento({
     let res: Response;
 
     if (metodoPagamento === "transferencia" && comprovativo) {
+      // fluxo transferência com comprovativo
       const formData = new FormData();
       formData.append("metodoPagamento", metodoPagamento);
       formData.append("itemId", itemId);
@@ -34,7 +37,23 @@ export async function efectuarPagamento({
         },
         body: formData,
       });
+    } else if (metodoPagamento === "mpesa" && phoneNumber) {
+      // fluxo mpesa com número de telefone
+      res = await fetch(`${API_URL}/efectuar-pagamento`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          metodoPagamento,
+          itemId,
+          itemNome,
+          phoneNumber, // ✅ enviado corretamente
+        }),
+      });
     } else {
+      // fallback genérico
       res = await fetch(`${API_URL}/efectuar-pagamento`, {
         method: "POST",
         headers: {
@@ -50,7 +69,7 @@ export async function efectuarPagamento({
     }
 
     if (res.status === 200 || res.status === 201) {
-      return { success: true };
+      return { success: true, data: await res.json() };
     } else {
       const data = await res.json();
       throw new Error(data?.message || "Erro ao efectuar pagamento");
