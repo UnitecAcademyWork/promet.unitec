@@ -71,7 +71,7 @@ export type CandidatoPayload = {
   isFromUnitec: boolean;
 };
 
-interface CandidateData extends CandidatoPayload {}
+// interface CandidateData extends CandidatoPayload {}
 
 export default function DadosPessoais() {
   const [isClient, setIsClient] = useState(false);
