@@ -22,7 +22,7 @@ export type FormationType = {
   dataFim?: string;
   descricao?: string;
   duracao: string;
-  atual?: boolean;
+  cursando?: boolean; 
   usarDuracao?: boolean;
 };
 
@@ -38,7 +38,7 @@ export default function Formacao() {
     dataFim: "",
     descricao: "",
     duracao: "",
-    atual: false,
+    cursando: false,
     usarDuracao: false,
   });
 
@@ -63,53 +63,94 @@ export default function Formacao() {
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const payload = {
-      id: editId || undefined,
-      nome: form.nome,
-      local: form.local,
-      descricao: form.descricao,
-      // --- Regras ---
-      dataInicio: form.usarDuracao ? "" : form.dataInicio,
-      dataFim: form.usarDuracao ? form.dataFim : form.atual ? "" : form.dataFim,
-      atual: form.usarDuracao ? false : form.atual,
-      duracao: form.usarDuracao ? form.duracao : "",
-    };
+  const hoje = new Date();
 
-    await toast.promise(
-      (async () => {
-        const res = await fetch("/api/formacoes", {
-          method: editId ? "PUT" : "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        const data = await res.json();
-        if (data.error) throw new Error(data.error);
-        return data;
-      })(),
-      {
-        loading: editId ? "Atualizando formação..." : "Adicionando formação...",
-        success: () => {
-          loadFormacoes();
-          setForm({
-            nome: "",
-            local: "",
-            dataInicio: "",
-            dataFim: "",
-            descricao: "",
-            duracao: "",
-            atual: false,
-            usarDuracao: false,
-          });
-          setEditId(null);
-          setShowForm(false);
-          return editId ? "Formação atualizada!" : "Formação adicionada!";
-        },
-        error: (err: any) => err.message || "Erro ao salvar formação",
+  // Validação quando não usar duração
+  if (!form.usarDuracao) {
+    if (form.dataInicio) {
+      const inicio = new Date(form.dataInicio);
+
+      if (inicio > hoje) {
+        toast.error("O ano de início não pode ser maior que o ano actual.");
+        return;
       }
-    );
+
+      if (form.dataFim) {
+        const fim = new Date(form.dataFim);
+        if (fim < inicio) {
+          toast.error("O ano de fim não pode ser menor que o ano de início.");
+          return;
+        }
+      }
+    }
+  }
+
+  // Monta payload básico
+  const payload: any = {
+    id: editId || undefined,
+    nome: form.nome,
+    local: form.local,
+    descricao: form.descricao,
   };
+
+  // Se usar duração
+  if (form.usarDuracao) {
+    if (form.duracao) {
+      payload.duracao = form.duracao;
+    }
+    if (form.dataFim) {
+      payload.dataFim = form.dataFim;
+    }
+    payload.cursando = false;
+  } else {
+    if (form.dataInicio) {
+      payload.dataInicio = form.dataInicio;
+    }
+    if (form.dataFim && !form.cursando) {
+      payload.dataFim = form.dataFim;
+    }
+    if (form.cursando) {
+      payload.cursando = true;
+    }
+  }
+
+  await toast.promise(
+    (async () => {
+      const res = await fetch("/api/formacoes", {
+        method: editId ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      return data;
+    })(),
+    {
+      loading: editId ? "actualizando formação..." : "Adicionando formação...",
+      success: () => {
+        loadFormacoes();
+        setForm({
+          nome: "",
+          local: "",
+          dataInicio: "",
+          dataFim: "",
+          descricao: "",
+          duracao: "",
+          cursando: false,
+          usarDuracao: false,
+        });
+        setEditId(null);
+        setShowForm(false);
+        return editId ? "Formação actualizada!" : "Formação adicionada!";
+      },
+      error: (err: any) => err.message || "Erro ao salvar formação",
+    }
+  );
+};
+
+
 
   const handleDelete = async (id: string) => {
     if (!confirm("Deseja realmente deletar esta formação?")) return;
@@ -135,7 +176,7 @@ export default function Formacao() {
   const handleEdit = (f: FormationType) => {
     setForm({
       ...f,
-      atual: f.atual || false,
+      cursando: f.cursando || false,
       usarDuracao: f.usarDuracao || false,
     });
     setEditId(f.id);
@@ -153,8 +194,8 @@ export default function Formacao() {
       return `${formation.duracao}${fim ? ` (até ${fim})` : ""}`;
     } else {
       const inicio = formatYear(formation.dataInicio);
-      const fim = formation.atual
-        ? "Atual"
+      const fim = formation.cursando
+        ? "cursando"
         : formation.dataFim
         ? formatYear(formation.dataFim)
         : "";
@@ -197,7 +238,7 @@ export default function Formacao() {
             >
               <div className="flex justify-between items-center">
                 <h3 className="font-semibold text-gray-800 dark:text-white">
-                  {editId ? "Editar Formação" : "Adcionar Formação"}
+                  {editId ? "Editar Formação" : "Adicionar Formação"}
                 </h3>
                 <button
                   type="button"
@@ -258,7 +299,7 @@ export default function Formacao() {
                             ...form,
                             usarDuracao: e.target.checked,
                             dataInicio: "",
-                            atual: false,
+                            cursando: false,
                           })
                         }
                         className="w-4 h-4"
@@ -311,7 +352,7 @@ export default function Formacao() {
                                 : "",
                             })
                           }
-                          disabled={form.atual}
+                          disabled={form.cursando}
                           className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white disabled:bg-gray-200 disabled:cursor-not-allowed"
                           placeholder="Ex: 2024"
                         />
@@ -321,11 +362,11 @@ export default function Formacao() {
                         <div className="flex items-center gap-2 w-full">
                           <input
                             type="checkbox"
-                            checked={form.atual}
+                            checked={form.cursando}
                             onChange={(e) =>
                               setForm({
                                 ...form,
-                                atual: e.target.checked,
+                                cursando: e.target.checked,
                                 dataFim: e.target.checked ? "" : form.dataFim,
                               })
                             }
@@ -377,6 +418,7 @@ export default function Formacao() {
       }}
       className="px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
     >
+      <option value="dia">hora(s)</option>
       <option value="dia">dia(s)</option>
       <option value="semana">semana(s)</option>
       <option value="mes">mês(es)</option>
@@ -384,30 +426,6 @@ export default function Formacao() {
     </select>
   </div>
 </div>
-
-
-                      {/* <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Ano de Fim *
-                        </label>
-                        <input
-                          type="number"
-                          min="1900"
-                          max="2100"
-                          value={form.dataFim ? formatYear(form.dataFim) : ""}
-                          onChange={(e) =>
-                            setForm({
-                              ...form,
-                              dataFim: e.target.value
-                                ? `${e.target.value}-01-01`
-                                : "",
-                            })
-                          }
-                          className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
-                          required={form.usarDuracao}
-                          placeholder="Ex: 2024"
-                        />
-                      </div> */}
                     </div>
                   )}
                 </div>
@@ -475,7 +493,7 @@ export default function Formacao() {
                   </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                     <Calendar className="w-4 h-4 inline-block" />{" "}
-                    {formatDisplayDate(f)}
+                    {formatDisplayDate(f)} {f.duracao}
                   </p>
                   {f.descricao && (
                     <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">

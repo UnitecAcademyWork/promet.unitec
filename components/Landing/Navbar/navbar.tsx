@@ -18,7 +18,7 @@ const Navbar = () => {
   const menuItems = [
     { name: "Início", href: "/", icon: Briefcase },
     { name: "Sobre", href: "/#sobre", icon: Briefcase },
-    { name: "Áreas de Formação", href: "/#areas", icon: GraduationCap  },
+    { name: "Áreas de Formação", href: "/cursos", icon: GraduationCap  },
     { name: "Como Funciona", href: "/#funcionamento", icon: Info  },
     { name: "Benefícios", href: "/#beneficios", icon: Briefcase },
     { name: "Contacto", href: "/#contacto", icon: Briefcase },

@@ -2,7 +2,6 @@
 
 import { cookies } from "next/headers";
 import { routes } from "../config/routes";
-import Cookies from "js-cookie";
 
 export type ApiResponse<T> = {
   success: boolean;
@@ -16,13 +15,12 @@ export async function adicionarCertificado(file: File): Promise<ApiResponse<any>
     if (!token) throw new Error("Erro de autenticação");
 
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", file); // multipart, atributo = file
 
     const resp = await fetch(routes.Adicionarcertificado, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
-        // ❌ não colocar Content-Type → o browser define automaticamente
       },
       body: formData,
     });

@@ -183,6 +183,71 @@ const MainCandidatura = () => {
   useEffect(() => {
     fetchCandidaturas();
   }, []);
+useEffect(() => {
+  const fetchAndLog = async () => {
+    setLoading(true);
+    try {
+      if (!Cookies.get("auth_token")) throw new Error("Usuário não autenticado");
+      
+      const data = await getCandidaturas();
+      const testesData = await getTestesByCandidatura();
+
+      console.log("=== CANDIDATURAS BRUTAS ===");
+      console.log(data);
+
+      console.log("=== TESTES POR CANDIDATURA ===");
+      console.log(testesData);
+
+      const candidaturasComTestes = data.map((c) => {
+        const testes =
+          testesData.find((t) => t.id === c.id)?.testesdiagnosticos || [];
+
+        // Log detalhado
+        console.log(`Candidatura: ${c.id} - ${c.cursos.nome}`);
+        console.log("Testes:", testes);
+
+        const existeTestePendente = testes.some((t: Teste) => t.status === "pendente");
+        const existeTesteAprovado = testes.some((t: Teste) => t.status === "aprovado");
+        const existeTesteReprovado = testes.some((t: Teste) => t.status === "reprovado");
+
+        console.log("Status dos testes:");
+        console.log("Pendentes:", existeTestePendente);
+        console.log("Aprovados:", existeTesteAprovado);
+        console.log("Reprovados:", existeTesteReprovado);
+
+        const testePago = testes.some((t: Teste) =>
+          t.pagamentos?.some((p: Pagamento) =>
+            ["processando", "concluido"].includes(p.status)
+          )
+        );
+        console.log("Algum teste pago?", testePago);
+
+        const cursoPago = testes.some((t: Teste) =>
+          t.pagamentos?.some(
+            (p: Pagamento) =>
+              p.itemNome === "curso" &&
+              ["processando", "concluido"].includes(p.status)
+          )
+        );
+        console.log("Curso pago?", cursoPago);
+
+        return { ...c, testesdiagnosticos: testes };
+      });
+
+      console.log("=== CANDIDATURAS FINAL COM TESTES ===");
+      console.log(candidaturasComTestes);
+
+      setCandidaturas(candidaturasComTestes);
+    } catch (err: any) {
+      console.error("Erro ao buscar candidaturas:", err.message || err);
+      toast.error(err.message || "Erro ao buscar candidaturas");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchAndLog();
+}, []);
 
   const candidaturasFiltradas = candidaturas.filter(
     (c) =>

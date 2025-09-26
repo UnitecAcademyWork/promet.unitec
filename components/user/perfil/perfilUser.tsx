@@ -45,7 +45,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="md:p-6 w-full md:max-w-6xl mx-auto">
       <Tabs
         tabs={tabs}
         renderTabContent={renderTabContent} 

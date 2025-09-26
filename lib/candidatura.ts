@@ -2,16 +2,19 @@
 
 import { cookies } from "next/headers";
 import { routes } from "../config/routes";
-
-export type NovoCandidato = {
+type CandidatoPayload = {
   provincia: string;
   morada: string;
-  dataNascimento: string; 
+  dataNascimento: string;
   numeroBi: string;
   nivelAcademico: string;
+  whatsapp: string;
+  genero: string;
+  idiomaNativo: string;
   isFromUnitec: boolean;
 };
-export async function adicionarCandidato(candidato: NovoCandidato) {
+
+export async function adicionarCandidato(candidato: CandidatoPayload) {
   const token = (await cookies()).get("auth_token")?.value;
 
   try {

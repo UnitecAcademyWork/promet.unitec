@@ -1,11 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User,
-  Phone,
   Home,
   Map,
   Calendar,
@@ -18,70 +16,62 @@ import {
   Languages,
   UserCheck,
 } from "lucide-react";
+import toast, { Toaster } from "react-hot-toast";
 import { adicionarCandidato } from "../../../../lib/candidatura";
-import { getCandidato, updateCandidato, Candidato } from "../../../../lib/candidato-actions";
-import toast from "react-hot-toast";
+import {
+  getCandidato,
+  updateCandidato,
+  Candidato,
+} from "../../../../lib/candidato-actions";
+import { adicionarCertificado } from "../../../../lib/addCertificadoAction";
 
-// Províncias de Moçambique
+// Constantes
 const PROVINCIAS = [
-  "Maputo Cidade",
-  "Maputo Província",
-  "Gaza",
-  "Inhambane",
-  "Sofala",
-  "Manica",
-  "Tete",
-  "Zambézia",
-  "Nampula",
-  "Cabo Delgado",
-  "Niassa",
+  "Maputo Cidade","Maputo Província","Gaza","Inhambane","Sofala",
+  "Manica","Tete","Zambézia","Nampula","Cabo Delgado","Niassa"
+];
+const NIVEL_ACADEMICO = ["Nivel Básico","Nivel Médio","Bacharelato","Licenciatura","Mestrado","Doutoramento"];
+const IDIOMAS = ["Português","Inglês","Espanhol","Francês","Mandarim","Changana","Cisena","Xichuwabu","Elomwe","Macua","Nhungue","Tsonga","Chuwabo","Makonde","Chisena","Ronga","Chiyao"];
+const GENEROS = ["Masculino","Feminino"];
+
+const TIPOS_DOCUMENTO = [
+  { value: "BI", label: "Bilhete de Identidade", maxLength: 12, placeholder: "123456789LA0" },
+  { value: "PASSAPORTE", label: "Passaporte", maxLength: 9, placeholder: "AB1234567" },
+  { value: "CARTA_CONDUCAO", label: "Carta de Condução", maxLength: 11, placeholder: "12345678901" },
 ];
 
-// Níveis académicos
-const NIVEL_ACADEMICO = [
-  "Nivel Básico",
-  "Nivel Médio",
-  "Bacharelato",
-  "Licenciatura",
-  "Mestrado",
-  "Doutoramento",
-];
+const validateDocumentNumber = (numero: string, tipo: string) => {
+  const tipoDoc = TIPOS_DOCUMENTO.find((doc) => doc.value === tipo);
+  if (!tipoDoc) return false;
 
-// Idiomas comuns em Moçambique
-const IDIOMAS = [
-  "Português",
-  "Inglês",
-  "Espanhol",
-  "Francês",
-  "Mandarim",
-  "Changana",
-  "Cisena",
-  "Xichuwabu",
-  "Elomwe",
-  "Macua",
-  "Nhungue",
-  "Tsonga",
-  "Chuwabo",
-  "Makonde",
-  "Chisena",
-  "Ronga",
-  "Chiyao",
-];
+  if (numero.length !== tipoDoc.maxLength) return false;
 
-// Gêneros
-const GENEROS = ["Masculino", "Feminino"];
+  switch (tipo) {
+    case "BI":
+      return /^\d{11}[A-Z]{1}$/.test(numero); // 9 números + 2 letras + 1 número
+    case "PASSAPORTE":
+      return /^[A-Z]{2}\d{7}$/.test(numero); // 2 letras + 7 números
+    case "CARTA_CONDUCAO":
+      return /^\d{8}$/.test(numero); // 8 números
+    default:
+      return true;
+  }
+};
 
-interface CandidateData {
+export type CandidatoPayload = {
   provincia: string;
   morada: string;
   dataNascimento: string;
+  tipoDocumento: string;
   numeroBi: string;
   nivelAcademico: string;
   whatsapp: string;
   genero: string;
   idiomaNativo: string;
   isFromUnitec: boolean;
-}
+};
+
+interface CandidateData extends CandidatoPayload {}
 
 export default function DadosPessoais() {
   const [isClient, setIsClient] = useState(false);
@@ -95,6 +85,7 @@ export default function DadosPessoais() {
     provincia: "",
     morada: "",
     dataNascimento: "",
+    tipoDocumento: "BI",
     numeroBi: "",
     nivelAcademico: "",
     whatsapp: "",
@@ -103,11 +94,10 @@ export default function DadosPessoais() {
     isFromUnitec: false,
   });
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  const [certificadoFile, setCertificadoFile] = useState<File | null>(null);
 
-  // Buscar dados do candidato
+  useEffect(() => setIsClient(true), []);
+
   useEffect(() => {
     const fetchData = async () => {
       const candidato: Candidato | null = await getCandidato();
@@ -116,6 +106,7 @@ export default function DadosPessoais() {
           provincia: candidato.provincia || "",
           morada: candidato.morada || "",
           dataNascimento: candidato.dataNascimento || "",
+          tipoDocumento: candidato.tipoDocumento || "BI",
           numeroBi: candidato.numeroBi || "",
           nivelAcademico: candidato.nivelAcademico || "",
           whatsapp: candidato.whatsapp || "",
@@ -125,9 +116,6 @@ export default function DadosPessoais() {
         });
         setIsEditing(false);
         setCandidatoExistente(true);
-      } else {
-        setIsEditing(true);
-        setCandidatoExistente(false);
       }
     };
     fetchData();
@@ -138,65 +126,93 @@ export default function DadosPessoais() {
     setErrors({ ...errors, [field]: false });
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  // Validação
-  const newErrors: Partial<Record<keyof CandidateData, boolean>> = {};
-  Object.entries(data).forEach(([key, value]) => {
-    if (typeof value === "string" && !value.trim()) {
-      newErrors[key as keyof CandidateData] = true;
-    }
-  });
-
-  if (Object.keys(newErrors).length > 0) {
-    setErrors(newErrors);
-    toast.error("Preencha todos os campos obrigatórios.");
-    return;
-  }
-
-  setIsSaving(true);
-
-  // Monta payload completo com fallback para strings vazias
-  const payload = {
-    provincia: data.provincia || "",
-    morada: data.morada || "",
-    dataNascimento: data.dataNascimento || "",
-    numeroBi: data.numeroBi || "",
-    nivelAcademico: data.nivelAcademico || "",
-    whatsapp: data.whatsapp || "",
-    genero: data.genero || "",
-    idiomaNativo: data.idiomaNativo || "",
-    isFromUnitec: !!data.isFromUnitec,
+  const getDocumentMaxLength = () => {
+    return TIPOS_DOCUMENTO.find((d) => d.value === data.tipoDocumento)?.maxLength || 20;
   };
 
-  await toast.promise(
-    (async () => {
-      if (candidatoExistente) {
-        const res = await updateCandidato(payload); // partial ok
-        if (!res) throw new Error("Erro ao atualizar dados");
-        return res;
-      } else {
-        const res = await adicionarCandidato(payload); // todos os campos obrigatórios presentes
-        if (!res.success) throw new Error(res.error || "Erro ao salvar dados");
-        return res;
+  const getDocumentPlaceholder = () => {
+    return TIPOS_DOCUMENTO.find((d) => d.value === data.tipoDocumento)?.placeholder || "";
+  };
+
+  const handleCertificadoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("O arquivo não pode exceder 10MB");
+        return;
       }
-    })(),
-    {
-      loading: candidatoExistente ? "Atualizando dados..." : "Salvando dados...",
-      success: candidatoExistente
-        ? "Dados atualizados com sucesso!"
-        : "Dados salvos com sucesso!",
-      error: (err) => err.message || "Erro ao salvar dados",
+      setCertificadoFile(file);
     }
-  );
+  };
 
-  setIsSaving(false);
-  setShowSuccess(true);
-  setIsEditing(false);
-  setCandidatoExistente(true);
-};
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
+    const newErrors: Partial<Record<keyof CandidateData, boolean>> = {};
+    Object.entries(data).forEach(([key, value]) => {
+      if (typeof value === "string" && !value.trim()) {
+        newErrors[key as keyof CandidateData] = true;
+      }
+    });
+
+    // validação do documento
+    if (!validateDocumentNumber(data.numeroBi, data.tipoDocumento)) {
+      newErrors.numeroBi = true;
+      toast.error("Número de documento inválido.");
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      await toast.promise(
+        (async () => {
+          if (candidatoExistente) {
+            const res = await updateCandidato(data);
+            if (!res) throw new Error("Erro ao atualizar dados");
+          } else {
+            const res = await adicionarCandidato(data);
+            if (!res.success) throw new Error(res.error || "Erro ao salvar dados");
+          }
+
+          return true;
+        })(),
+        {
+          loading: candidatoExistente ? "Atualizando dados..." : "Salvando dados...",
+          success: "Dados salvos com sucesso!",
+          error: (err) => err.message || "Erro ao salvar dados",
+        }
+      );
+
+      // 🔹 Agora dispara automaticamente o envio do certificado
+      if (data.isFromUnitec && certificadoFile) {
+        await toast.promise(
+          (async () => {
+            const certificadoResp = await adicionarCertificado(certificadoFile);
+            if (!certificadoResp.success) {
+              throw new Error(certificadoResp.error || "Erro ao enviar certificado");
+            }
+            return true;
+          })(),
+          {
+            loading: "Enviando certificado...",
+            success: "Certificado enviado com sucesso!",
+            error: (err) => err.message || "Erro ao enviar certificado",
+          }
+        );
+      }
+
+      setShowSuccess(true);
+      setIsEditing(false);
+      setCandidatoExistente(true);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
 
   return (
@@ -258,7 +274,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       </AnimatePresence>
 
       {/* Formulário */}
-      <form onSubmit={handleSubmit} className="space-y-5">
+     <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
           {/* WhatsApp */}
@@ -365,22 +381,58 @@ const handleSubmit = async (e: React.FormEvent) => {
             </select>
           </div>
 
-          {/* Número do BI */}
-          <div className="flex flex-col gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border">
-            <label className="text-sm font-medium flex items-center gap-2">
-              <IdCard className="w-4 h-4 text-red-500" />
-              Número do BI
-            </label>
-            <input
-              type="text"
-              value={data.numeroBi}
-              onChange={(e) => handleChange("numeroBi", e.target.value)}
-              className={`mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 ${
-                errors.numeroBi ? "border-red-500" : "border-gray-300"
-              }`}
-              placeholder="123456789LA045"
+         <div className="md:col-span-1 grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border">
+            <div className="md:col-span-2">
+              <label className="text-sm font-medium flex items-center gap-2 mb-2">
+                <IdCard className="w-4 h-4 text-red-500" />
+               Documento
+              </label>
+              <select
+              value={data.tipoDocumento}
+              onChange={(e) => {
+                const tipo = e.target.value;
+                setData(prev => ({
+                  ...prev,
+                  tipoDocumento: tipo,
+                  numeroBi: "" // reseta o número ao mudar o tipo
+                }));
+                setErrors(prev => ({ ...prev, numeroBi: false }));
+              }}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 appearance-none"
               disabled={!isEditing}
-            />
+            >
+              {TIPOS_DOCUMENTO.map((doc) => (
+                <option key={doc.value} value={doc.value}>
+                  {doc.label}
+                </option>
+              ))}
+            </select>
+
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="text-sm font-medium flex items-center gap-2 mb-2">
+                <IdCard className="w-4 h-4 text-blue-500" />
+                Número
+              </label>
+              <input
+                type="text"
+                value={data.numeroBi}
+                onChange={(e) => {
+                  const value = e.target.value.toUpperCase();
+                  handleChange("numeroBi", value);
+                }}
+                maxLength={getDocumentMaxLength()}
+                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 ${
+                  errors.numeroBi ? "border-red-500" : "border-gray-300"
+                }`}
+                placeholder={getDocumentPlaceholder()}
+                disabled={!isEditing}
+              />
+              <div className="text-xs text-gray-500 mt-1">
+                {data.numeroBi.length}/{getDocumentMaxLength()} caracteres
+              </div>
+            </div>
           </div>
 
           {/* Nível Acadêmico */}
@@ -442,7 +494,84 @@ const handleSubmit = async (e: React.FormEvent) => {
           <label className="text-sm font-medium">Frequentou algum curso na Unitec?</label>
         </div>
 
-        {/* Botões */}
+        {/* Upload de certificado */}
+        {isClient && data.isFromUnitec && isEditing && (
+  <div className="flex flex-col gap-4 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl border border-blue-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-all duration-300">
+    {/* Header */}
+    <div className="flex items-center gap-3">
+      <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+        <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      </div>
+      <div>
+        <h3 className="font-semibold text-gray-800 dark:text-white">Certificado Unitec</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-300">Envie seu certificado de conclusão</p>
+      </div>
+    </div>
+
+    {/* Upload Area */}
+    <label className="relative cursor-pointer group">
+      <input
+        type="file"
+        accept=".pdf,.jpg,.png,.jpeg"
+        onChange={handleCertificadoChange}
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+      />
+      <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-blue-300 dark:border-blue-600 rounded-xl bg-white dark:bg-gray-800/50 group-hover:border-blue-400 dark:group-hover:border-blue-500 group-hover:bg-blue-50 dark:group-hover:bg-gray-800 transition-all duration-200">
+        <svg className="w-10 h-10 text-blue-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+        <div className="text-center">
+          <p className="font-medium text-gray-700 dark:text-gray-200">Clique para selecionar o arquivo</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            PDF, JPG ou PNG (máximo 10MB)
+          </p>
+        </div>
+      </div>
+    </label>
+
+    {/* File Preview */}
+    {certificadoFile && (
+      <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg animate-in fade-in duration-300">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-green-100 dark:bg-green-800/30 rounded-lg">
+            <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div>
+            <p className="font-medium text-gray-800 dark:text-white text-sm">
+              {certificadoFile.name}
+            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-300">
+              {(certificadoFile.size / 1024 / 1024).toFixed(2)} MB • Pronto para enviar
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => setCertificadoFile(null)}
+          className="p-1 text-gray-400 hover:text-red-500 transition-colors duration-200"
+          title="Remover arquivo"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    )}
+
+    {/* Help Text */}
+    <div className="flex items-start gap-2 text-xs text-gray-500 dark:text-gray-400">
+      <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <p>O certificado será associado ao seu perfil após a validação pela nossa equipe.</p>
+    </div>
+  </div>
+)}
+
+        {/* Botão salvar */}
         <div className="pt-4 flex flex-col md:flex-row justify-end gap-3">
           {isEditing && (
             <motion.button
@@ -453,16 +582,11 @@ const handleSubmit = async (e: React.FormEvent) => {
               className="flex flex-row items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold bg-brand-main text-white shadow-md hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-70"
             >
               {isSaving ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  {candidatoExistente ? "Atualizando..." : "Salvando..."}
-                </>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
-                <>
-                  <Save className="w-4 h-4" />
-                  {candidatoExistente ? "Atualizar" : "Salvar"}
-                </>
+                <Save className="w-4 h-4" />
               )}
+              {candidatoExistente ? "Atualizar" : "Salvar"}
             </motion.button>
           )}
         </div>
