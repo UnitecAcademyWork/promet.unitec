@@ -22,5 +22,6 @@ export const routes = {
   addexperienciaprofissional: `${API_BASE_URL}/add-experiencia-profissional`,
   candidaturascandidato: `${API_BASE_URL}/candidaturas-candidato`,
   candidatura: `${API_BASE_URL}/candidatura`,
+  ListarCertificados: `${API_BASE_URL}/listar-certificados`,
   Adicionarcertificado: `${API_BASE_URL}/adicionar-certificado`,
 };

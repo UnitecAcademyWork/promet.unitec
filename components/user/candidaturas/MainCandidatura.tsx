@@ -13,6 +13,7 @@ import {
   GraduationCap,
   RefreshCw,
   AlertCircle,
+  Info,
 } from "lucide-react";
 
 import { getCandidaturas } from "../../../lib/candidaturas-get";
@@ -26,6 +27,7 @@ import ModalPagamento from "./ModalPagamento";
 import { efectuarPagamento } from "../../../lib/pagamento-actions";
 import { deleteCandidatura } from "../../../lib/candidaturas-get";
 import { addTesteDiagnostico } from "../../../lib/add-teste-actions";
+import ListaCertificados, { Certificado } from "./certificado";
 
 const MainCandidatura = () => {
   const [candidaturas, setCandidaturas] = useState<CandidaturaTeste[]>([]);
@@ -41,8 +43,9 @@ const MainCandidatura = () => {
   const [itemNomeSelecionado, setItemNomeSelecionado] = useState<
     "curso" | "teste" | null
   >(null);
+  const [certificados, setCertificados] = useState<Certificado[]>([]);
 
-  // modal de pagamento
+  // Modal de pagamento
   const abrirModal = (id: string, tipo: "curso" | "teste", valor: number) => {
     setItemIdSelecionado(id);
     setItemNomeSelecionado(tipo);
@@ -52,58 +55,55 @@ const MainCandidatura = () => {
   };
 
   // Confirmar pagamento
- const handleConfirmPagamento = async (dados: {
-  metodo: string;
-  numero?: string;
-  comprovativo?: File;
-}) => {
-  if (!itemIdSelecionado || !itemNomeSelecionado) {
-    toast.error("Dados do item não encontrados!");
-    return;
-  }
-
-  try {
-    if (dados.metodo === "mpesa") {
-      // fluxo específico para M-Pesa
-      await toast.promise(
-        efectuarPagamento({
-          metodoPagamento: "mpesa",
-          itemId: itemIdSelecionado,
-          itemNome: itemNomeSelecionado,
-          phoneNumber: dados.numero,
-        }),
-        {
-          loading: "Confirmando pagamento...",
-          success: "Pagamento efectuado com sucesso",
-          error: "Erro ao efectuar pagamento",
-        }
-      );
-    } else {
-      // fluxo transferência
-      await toast.promise(
-        efectuarPagamento({
-          metodoPagamento: dados.metodo,
-          itemId: itemIdSelecionado,
-          itemNome: itemNomeSelecionado,
-          comprovativo: dados.comprovativo,
-        }),
-        {
-          loading: "Enviando comprovativo...",
-          success: "Pagamento enviado para verificação",
-          error: "Erro ao enviar comprovativo",
-        }
-      );
+  const handleConfirmPagamento = async (dados: {
+    metodo: string;
+    numero?: string;
+    comprovativo?: File;
+  }) => {
+    if (!itemIdSelecionado || !itemNomeSelecionado) {
+      toast.error("Dados do item não encontrados!");
+      return;
     }
 
-    setTimeout(() => {
-      setModalOpen(false);
-      fetchCandidaturas();
-    }, 4000);
-  } catch (err) {
-    console.error(err);
-  }
-};
+    try {
+      if (dados.metodo === "mpesa") {
+        await toast.promise(
+          efectuarPagamento({
+            metodoPagamento: "mpesa",
+            itemId: itemIdSelecionado,
+            itemNome: itemNomeSelecionado,
+            phoneNumber: dados.numero,
+          }),
+          {
+            loading: "Confirmando pagamento...",
+            success: "Pagamento efectuado com sucesso",
+            error: "Erro ao efectuar pagamento",
+          }
+        );
+      } else {
+        await toast.promise(
+          efectuarPagamento({
+            metodoPagamento: dados.metodo,
+            itemId: itemIdSelecionado,
+            itemNome: itemNomeSelecionado,
+            comprovativo: dados.comprovativo,
+          }),
+          {
+            loading: "Enviando comprovativo...",
+            success: "Pagamento enviado para verificação",
+            error: "Erro ao enviar comprovativo",
+          }
+        );
+      }
 
+      setTimeout(() => {
+        setModalOpen(false);
+        fetchCandidaturas();
+      }, 4000);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // Nova tentativa de teste
   const handleNovaTentativa = async (candidaturaId: string) => {
@@ -159,20 +159,28 @@ const MainCandidatura = () => {
     );
   };
 
+  // Buscar candidaturas + testes
   const fetchCandidaturas = async () => {
     setLoading(true);
     try {
       if (!Cookies.get("auth_token")) throw new Error("Usuário não autenticado");
+
       const data = await getCandidaturas();
       const testesData = await getTestesByCandidatura();
 
-      const candidaturasComTestes = data.map((c) => {
-        const testes =
-          testesData.find((t) => t.id === c.id)?.testesdiagnosticos || [];
-        return { ...c, testesdiagnosticos: testes };
-      });
+      const candidaturasComExtras = await Promise.all(
+        data.map(async (c) => {
+          const testes =
+            testesData.find((t) => t.id === c.id)?.testesdiagnosticos || [];
 
-      setCandidaturas(candidaturasComTestes);
+          return {
+            ...c,
+            testesdiagnosticos: testes,
+          };
+        })
+      );
+
+      setCandidaturas(candidaturasComExtras);
     } catch (err: any) {
       toast.error(err.message || "Erro ao buscar candidaturas");
     } finally {
@@ -183,71 +191,6 @@ const MainCandidatura = () => {
   useEffect(() => {
     fetchCandidaturas();
   }, []);
-useEffect(() => {
-  const fetchAndLog = async () => {
-    setLoading(true);
-    try {
-      if (!Cookies.get("auth_token")) throw new Error("Usuário não autenticado");
-      
-      const data = await getCandidaturas();
-      const testesData = await getTestesByCandidatura();
-
-      console.log("=== CANDIDATURAS BRUTAS ===");
-      console.log(data);
-
-      console.log("=== TESTES POR CANDIDATURA ===");
-      console.log(testesData);
-
-      const candidaturasComTestes = data.map((c) => {
-        const testes =
-          testesData.find((t) => t.id === c.id)?.testesdiagnosticos || [];
-
-        // Log detalhado
-        console.log(`Candidatura: ${c.id} - ${c.cursos.nome}`);
-        console.log("Testes:", testes);
-
-        const existeTestePendente = testes.some((t: Teste) => t.status === "pendente");
-        const existeTesteAprovado = testes.some((t: Teste) => t.status === "aprovado");
-        const existeTesteReprovado = testes.some((t: Teste) => t.status === "reprovado");
-
-        console.log("Status dos testes:");
-        console.log("Pendentes:", existeTestePendente);
-        console.log("Aprovados:", existeTesteAprovado);
-        console.log("Reprovados:", existeTesteReprovado);
-
-        const testePago = testes.some((t: Teste) =>
-          t.pagamentos?.some((p: Pagamento) =>
-            ["processando", "concluido"].includes(p.status)
-          )
-        );
-        console.log("Algum teste pago?", testePago);
-
-        const cursoPago = testes.some((t: Teste) =>
-          t.pagamentos?.some(
-            (p: Pagamento) =>
-              p.itemNome === "curso" &&
-              ["processando", "concluido"].includes(p.status)
-          )
-        );
-        console.log("Curso pago?", cursoPago);
-
-        return { ...c, testesdiagnosticos: testes };
-      });
-
-      console.log("=== CANDIDATURAS FINAL COM TESTES ===");
-      console.log(candidaturasComTestes);
-
-      setCandidaturas(candidaturasComTestes);
-    } catch (err: any) {
-      console.error("Erro ao buscar candidaturas:", err.message || err);
-      toast.error(err.message || "Erro ao buscar candidaturas");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchAndLog();
-}, []);
 
   const candidaturasFiltradas = candidaturas.filter(
     (c) =>
@@ -270,6 +213,24 @@ useEffect(() => {
         text: "Aprovado",
       },
       rejeitado: {
+        icon: XCircle,
+        color: "text-red-600",
+        bg: "bg-red-100",
+        text: "Reprovado",
+      },
+      pendente: {
+        icon: Clock,
+        color: "text-blue-600",
+        bg: "bg-blue-100",
+        text: "Pendente",
+      },
+      aprovado: {
+        icon: CheckCircle,
+        color: "text-green-600",
+        bg: "bg-green-100",
+        text: "Aprovado",
+      },
+      reprovado: {
         icon: XCircle,
         color: "text-red-600",
         bg: "bg-red-100",
@@ -304,7 +265,7 @@ useEffect(() => {
             Minhas Candidaturas
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Acompanhe o status das suas inscrições
+            Acompanhe o status das suas inscrições e certificados
           </p>
         </div>
 
@@ -355,28 +316,9 @@ useEffect(() => {
               const { icon: Icon, color, bg, text } = getStatusInfo(c.status);
               const testes: Teste[] = c.testesdiagnosticos || [];
 
-              const existeTestePendente = testes.some(
-                (t: Teste) => t.status === "pendente"
-              );
-              const existeTesteAprovado = testes.some(
-                (t: Teste) => t.status === "aprovado"
-              );
-              const existeTesteReprovado = testes.some(
-                (t: Teste) => t.status === "reprovado"
-              );
-
-              const testePago = testes.some((t: Teste) =>
-                t.pagamentos?.some((p: Pagamento) =>
-                  ["processando", "concluido"].includes(p.status)
-                )
-              );
-
-              const cursoPago = c.testesdiagnosticos?.some((t: Teste) =>
-                t.pagamentos?.some(
-                  (p: Pagamento) =>
-                    p.itemNome === "curso" &&
-                    ["processando", "concluido"].includes(p.status)
-                )
+              // Verifica se tem certificado aprovado
+              const temCertificadoAprovado = certificados.some(
+                (cert) => cert.status === "aprovado"
               );
 
               return (
@@ -406,136 +348,133 @@ useEffect(() => {
                     </span>
                   </div>
 
-                  {/* Testes */}
-                  {testes.length > 0 && (
-                    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 mb-4">
-                      <h4 className="font-semibold text-gray-800 dark:text-white mb-2">
-                        Testes de Diagnóstico
-                      </h4>
-                      <ul className="space-y-2">
-                        {testes.map((t: Teste) => {
-                          const pagamentoProcessando = t.pagamentos?.some(
-                            (p: Pagamento) =>
-                              ["processando", "concluido"].includes(p.status)
-                          );
+                  {/* Componente de certificados */}
+                  <ListaCertificados onLoad={setCertificados} />
 
-                          return (
-                            <li
-                              key={t.id}
-                              className="flex justify-between items-center bg-white dark:bg-gray-800 p-2 rounded-md shadow-sm"
-                            >
-                              <div>
-                                <p className="text-sm text-gray-700 dark:text-gray-300">
-                                  {t.status.charAt(0).toUpperCase() +
-                                    t.status.slice(1)}{" "}
-                                  <span className="text-xs text-gray-500">
-                                    ({t.preco} MT)
-                                  </span>
-                                </p>
+                  {/* Se tem certificado aprovado, vai direto pagar curso */}
+                  {temCertificadoAprovado ? (
+                    <>
+                      {/* Informação de isenção do teste */}
+                      <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 mb-3">
+                        <div className="flex items-start gap-2">
+                          <Info className="w-4 h-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-sm text-green-800 dark:text-green-300 font-medium">
+                              Isenção do Teste de Diagnóstico
+                            </p>
+                            <p className="text-sm text-green-700 dark:text-green-400 mt-1">
+                              Você foi isento(a) do teste o certificado foi aprovado, 
+                              permitindo que avance directamente para o pagamento do curso.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
 
-                                {pagamentoProcessando && (
-                                  <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-                                    Aguarde a Verificação do Pagamento
-                                  </span>
-                                )}
-                              </div>
-                              <button
-                                onClick={() => abrirModal(t.id, "teste", t.preco)}
-                                disabled={pagamentoProcessando}
-                                className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
-                                  pagamentoProcessando
-                                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                    : "bg-yellow-500 text-white hover:bg-yellow-600"
-                                }`}
-                              >
-                                Pagar Teste
-                              </button>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* Botão pagar curso */}
-                  {existeTesteAprovado && !cursoPago && (
-                    <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 flex justify-between items-center">
-                      <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
-                        <GraduationCap className="w-4 h-4" />
-                        <span>
-                          Parabéns! Você foi aprovado. Valor do curso:{" "}
-                          <span className="font-semibold">
-                            {c.cursos.preco} MT
+                      <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 flex justify-between items-center">
+                        <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
+                          <GraduationCap className="w-4 h-4" />
+                          <span>
+                            Valor do curso:{" "}
+                            <span className="font-semibold">
+                              {c.cursos.preco} MT
+                            </span>
                           </span>
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => abrirModal(c.id, "curso", c.cursos.preco)}
-                        disabled={cursoPago}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                          cursoPago
-                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                            : "bg-green-600 text-white hover:bg-green-700"
-                        }`}
-                      >
-                        Pagar Curso
-                      </button>
-                    </div>
-                  )}
-
-                  {cursoPago && (
-                    <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                      <div className="flex items-center gap-2 text-yellow-700 dark:text-yellow-300">
-                        <Clock className="w-4 h-4" />
-                        <span className="font-medium">
-                          Pagamento do curso em processamento. Aguarde a
-                          confirmação.
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Nova tentativa - só aparece se tiver reprovado, não tiver aprovado e total de testes < 2 */}
-                  {existeTesteReprovado && !existeTesteAprovado && testes.length < 2 && (
-                    <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-                      <div className="flex items-center gap-2 text-red-700 dark:text-red-300 mb-3">
-                        <AlertCircle className="w-5 h-5" />
-                        <span className="font-medium">
-                          Infelizmente você não foi aprovado no teste.
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        </div>
                         <button
-                          onClick={() => handleNovaTentativa(c.id)}
-                          className="flex flex-col items-center p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                          onClick={() => abrirModal(c.id, "curso", c.cursos.preco)}
+                          className="px-4 py-2 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700"
                         >
-                          <RefreshCw className="w-5 h-5 text-blue-500 mb-1" />
-                          <span className="font-medium text-sm">
-                            Nova Tentativa
-                          </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {c.cursos.precoTeste} MT
-                          </span>
+                          Pagar Curso
                         </button>
                       </div>
-                    </div>
-                  )}
+                    </>
+                  ) : (
+                    <>
+                      {/* Nota para quem não tem certificado */}
+                      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 mt-3">
+                        <div className="flex items-start gap-2">
+                          <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-sm text-blue-800 dark:text-blue-300">
+                              <strong>Nota importante:</strong> Se você já frequentou um curso na UNITEC, 
+                              carregue seu certificado no seu{" "}
+                              <Link 
+                                href="/perfil" 
+                                className="underline font-medium hover:text-blue-900 dark:hover:text-blue-200"
+                              >
+                                perfil
+                              </Link>
+                              {" "}e será isento do teste, passando directamente para o pagamento do curso.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
 
-                  {existeTestePendente && (
-                    <p className="text-xs text-brand-main font-medium mt-2">
-                      Assim que concluir o teste passará para a fase seguinte.
-                    </p>
-                  )}
+                      {/* Se não tem certificado aprovado, segue a lógica dos testes */}
+                      {testes.length > 0 && (
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 mb-4 mt-3">
+                          <h4 className="font-semibold text-gray-800 dark:text-white mb-2">
+                            Testes de Diagnóstico
+                          </h4>
+                          <ul className="space-y-2">
+                            {testes.map((t: Teste) => {
+                              const pagamentoProcessando = t.pagamentos?.some(
+                                (p: Pagamento) =>
+                                  ["processando", "concluido"].includes(p.status)
+                              );
 
-                  {!existeTesteAprovado && !cursoPago && (
-                    <div className="flex justify-end mt-3">
-                      <button
-                        onClick={() => handleDeletarCandidatura(c.id)}
-                        className="px-3 py-1 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors"
-                      >
-                        Trocar Formação
-                      </button>
-                    </div>
+                              return (
+                                <li
+                                  key={t.id}
+                                  className="flex justify-between items-center bg-white dark:bg-gray-800 p-2 rounded-md shadow-sm"
+                                >
+                                  <div>
+                                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                                      {t.status.charAt(0).toUpperCase() +
+                                        t.status.slice(1)}{" "}
+                                      <span className="text-xs text-gray-500">
+                                        ({t.preco} MT)
+                                      </span>
+                                    </p>
+
+                                    {pagamentoProcessando && (
+                                      <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
+                                        Aguarde a Verificação do Pagamento
+                                      </span>
+                                    )}
+                                  </div>
+                                  <button
+                                    onClick={() =>
+                                      abrirModal(t.id, "teste", t.preco)
+                                    }
+                                    disabled={pagamentoProcessando}
+                                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                                      pagamentoProcessando
+                                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                        : "bg-yellow-500 text-white hover:bg-yellow-600"
+                                    }`}
+                                  >
+                                    Pagar Teste
+                                  </button>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Botão trocar formação (apenas se não tem teste aprovado) */}
+                      {!testes.some((t: Teste) => t.status === "aprovado") && (
+                        <div className="flex justify-end mt-3">
+                          <button
+                            onClick={() => handleDeletarCandidatura(c.id)}
+                            className="px-3 py-1 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors"
+                          >
+                            Trocar Formação
+                          </button>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               );

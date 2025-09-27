@@ -23,7 +23,7 @@ import {
   updateCandidato,
   Candidato,
 } from "../../../../lib/candidato-actions";
-import { adicionarCertificado } from "../../../../lib/addCertificadoAction";
+import { adicionarCertificado, listarCertificados } from "../../../../lib/addCertificadoAction";
 
 // Constantes
 const PROVINCIAS = [
@@ -99,27 +99,42 @@ export default function DadosPessoais() {
   useEffect(() => setIsClient(true), []);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const candidato: Candidato | null = await getCandidato();
-      if (candidato) {
-        setData({
-          provincia: candidato.provincia || "",
-          morada: candidato.morada || "",
-          dataNascimento: candidato.dataNascimento || "",
-          tipoDocumento: candidato.tipoDocumento || "BI",
-          numeroBi: candidato.numeroBi || "",
-          nivelAcademico: candidato.nivelAcademico || "",
-          whatsapp: candidato.whatsapp || "",
-          genero: candidato.genero || "",
-          idiomaNativo: candidato.idiomaNativo || "",
-          isFromUnitec: candidato.isFromUnitec || false,
-        });
-        setIsEditing(false);
-        setCandidatoExistente(true);
-      }
-    };
-    fetchData();
-  }, []);
+  const fetchData = async () => {
+    const candidato: Candidato | null = await getCandidato();
+
+    if (candidato) {
+      // busca certificados do candidato
+     const certificadosResp = await listarCertificados(candidato.id);
+
+// garante array vazio se não tiver data
+const certificados = certificadosResp.data || [];
+
+const hasCertificadoValido = certificados.some(
+  (c) => !["rejeitado", "reprovado", "em avaliacao"].includes(c.status.toLowerCase())
+);
+
+      setData({
+        provincia: candidato.provincia || "",
+        morada: candidato.morada || "",
+        dataNascimento: candidato.dataNascimento || "",
+        tipoDocumento: candidato.tipoDocumento || "BI",
+        numeroBi: candidato.numeroBi || "",
+        nivelAcademico: candidato.nivelAcademico || "",
+        whatsapp: candidato.whatsapp || "",
+        genero: candidato.genero || "",
+        idiomaNativo: candidato.idiomaNativo || "",
+        // 🔹 força o isFromUnitec a true se houver certificado válido
+        isFromUnitec: hasCertificadoValido || candidato.isFromUnitec || false,
+      });
+
+      setIsEditing(false);
+      setCandidatoExistente(true);
+    }
+  };
+
+  fetchData();
+}, []);
+
 
   const handleChange = (field: keyof CandidateData, value: string | boolean) => {
     setData({ ...data, [field]: value as never });
@@ -189,22 +204,27 @@ export default function DadosPessoais() {
       );
 
       // 🔹 Agora dispara automaticamente o envio do certificado
-      if (data.isFromUnitec && certificadoFile) {
-        await toast.promise(
-          (async () => {
-            const certificadoResp = await adicionarCertificado(certificadoFile);
-            if (!certificadoResp.success) {
-              throw new Error(certificadoResp.error || "Erro ao enviar certificado");
-            }
-            return true;
-          })(),
-          {
-            loading: "Enviando certificado...",
-            success: "Certificado enviado com sucesso!",
-            error: (err) => err.message || "Erro ao enviar certificado",
-          }
-        );
+      // 🔹 Agora dispara automaticamente o envio do certificado
+if (data.isFromUnitec && certificadoFile) {
+  await toast.promise(
+    (async () => {
+      const certificadoResp = await adicionarCertificado(certificadoFile);
+
+      if (!certificadoResp.success) {
+        throw new Error(certificadoResp.message || "Erro ao enviar certificado");
       }
+
+      return certificadoResp.message || "Certificado enviado com sucesso!";
+    })(),
+    {
+      loading: "Enviando certificado...",
+      success: (msg) => msg ?? "Certificado enviado com sucesso!", // 🔹 nunca undefined
+      error: (err) => err.message || "Erro ao enviar certificado",
+    }
+  );
+}
+
+
 
       setShowSuccess(true);
       setIsEditing(false);

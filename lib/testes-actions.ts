@@ -1,4 +1,5 @@
 import Cookies from "js-cookie";
+import { Candidato, listarCertificados } from "./addCertificadoAction";
 
 export interface Pagamento {
   id: string;
@@ -50,9 +51,20 @@ export interface CandidaturaTeste {
   updatedAt: string;
   testesdiagnosticos: Teste[];
   pagamentos?: Pagamento[];
-
+  certificados?: Certificado[];
+  certificadoAprovado?: boolean; // <-- adicionamos aqui
 }
-
+export type Certificado = {
+  id: string;
+  imgUrl: string;
+  motivo: string | null;
+  idCandidato: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  candidato: Candidato;
+};
+// Fetch dos testes com integração de certificados
 export const getTestesByCandidatura = async (): Promise<CandidaturaTeste[]> => {
   try {
     const token = Cookies.get("auth_token");
@@ -72,11 +84,25 @@ export const getTestesByCandidatura = async (): Promise<CandidaturaTeste[]> => {
 
     const data: CandidaturaTeste[] = await response.json();
 
-    // Garantir que cada candidatura tenha array de testes
-    const formattedData = data.map((c) => ({
-      ...c,
-      testesdiagnosticos: c.testesdiagnosticos || [],
-    }));
+    // Buscar certificados de cada candidatura
+    const formattedData: CandidaturaTeste[] = await Promise.all(
+      data.map(async (c) => {
+        const testes = c.testesdiagnosticos || [];
+
+        // Buscar certificados
+        const certificadosResp = await listarCertificados(c.idCandidato);
+        const certificados: Certificado[] = certificadosResp.data || [];
+        const certificadoAprovado = certificados.some(
+          (cert) => cert.status.toLowerCase() === "aprovado"
+        );
+
+        return {
+          ...c,
+          testesdiagnosticos: testes,
+          certificadoAprovado,
+        };
+      })
+    );
 
     return formattedData;
   } catch (error) {
