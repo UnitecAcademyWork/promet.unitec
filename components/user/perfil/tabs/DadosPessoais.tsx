@@ -58,7 +58,7 @@ const validateDocumentNumber = (numero: string, tipo: string) => {
   }
 };
 
-export type CandidatoPayload = {
+export type CandidateData = {
   provincia: string;
   morada: string;
   dataNascimento: string;
