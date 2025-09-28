@@ -44,10 +44,27 @@ export type ApiResponsee<T> = {
   message?: string;
 };
 
+/**
+ * Adicionar certificado (suporta imagens e PDFs)
+ */
 export async function adicionarCertificado(file: File): Promise<ApiResponse> {
   try {
     const token = (await cookies()).get("auth_token")?.value;
     if (!token) throw new Error("Erro de autenticação");
+
+    // Verificar tipo de arquivo permitido
+    const validTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/jpg",
+      "application/pdf",
+    ];
+    if (!validTypes.includes(file.type)) {
+      return {
+        success: false,
+        message: "Formato inválido. Apenas imagens (jpg, png) e PDF são aceitos.",
+      };
+    }
 
     const formData = new FormData();
     formData.append("file", file);
@@ -78,6 +95,9 @@ export async function adicionarCertificado(file: File): Promise<ApiResponse> {
   }
 }
 
+/**
+ * Listar certificados do candidato
+ */
 export async function listarCertificados(
   idCandidato: string
 ): Promise<ApiResponsee<Certificado[]>> {
@@ -85,12 +105,15 @@ export async function listarCertificados(
     const token = (await cookies()).get("auth_token")?.value;
     if (!token) throw new Error("Erro de autenticação");
 
-    const resp = await fetch( `https://backend-promet.unitec.academy/listar-certificados/${idCandidato}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const resp = await fetch(
+      `https://backend-promet.unitec.academy/listar-certificados/${idCandidato}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     const data = await resp.json().catch(() => null);
 
