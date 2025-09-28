@@ -17,6 +17,13 @@ export type ApiResponse<T = any> = {
 
 const API_URL = routes.backend_url;
 
+// Cache em memória (escopo do servidor)
+let idiomasCache: Idioma[] | null = null;
+let lastFetchTime: number | null = null;
+
+// Tempo de vida do cache (em ms) -> aqui coloquei 5 minutos
+const CACHE_TTL = 5 * 60 * 1000;
+
 // Headers com autenticação
 async function authHeaders() {
   const token = (await cookies()).get("auth_token")?.value;
@@ -32,6 +39,15 @@ async function authHeaders() {
 // GET - Lista de idiomas
 export async function getIdiomas(): Promise<ApiResponse<Idioma[]>> {
   try {
+    // Verificar se já temos cache válido
+    const now = Date.now();
+    if (idiomasCache && lastFetchTime && now - lastFetchTime < CACHE_TTL) {
+      return {
+        success: true,
+        data: idiomasCache,
+      };
+    }
+
     const res = await fetch(`${API_URL}/idiomas`, {
       method: "GET",
       headers: await authHeaders(),
@@ -46,6 +62,10 @@ export async function getIdiomas(): Promise<ApiResponse<Idioma[]>> {
         data: [],
       };
     }
+
+    // Atualiza cache
+    idiomasCache = data;
+    lastFetchTime = now;
 
     return {
       success: true,

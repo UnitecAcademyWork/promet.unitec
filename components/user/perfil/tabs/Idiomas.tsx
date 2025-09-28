@@ -18,7 +18,13 @@ export default function Idiomas() {
   const [showIdiomaDropdown, setShowIdiomaDropdown] = useState(false);
   const [showFluenciaDropdown, setShowFluenciaDropdown] = useState(false);
 
-  const niveisProficiencia = ["Basico", "Intermediario", "Avancado", "Fluente"];
+  // Agora no formato {label, value}
+  const niveisProficiencia = [
+    { label: "Básico", value: "Basico" },
+    { label: "Intermédiario", value: "Intermediario" },
+    { label: "Avançado", value: "Avancado" },
+    { label: "Fluente", value: "Fluente" },
+  ];
 
   useEffect(() => {
     loadIdiomas();
@@ -54,18 +60,17 @@ export default function Idiomas() {
     setShowIdiomaDropdown(false);
   };
 
-  const selectFluencia = (nivel: string) => {
-    setSelectedFluencia(nivel);
+  const selectFluencia = (nivelValue: string) => {
+    setSelectedFluencia(nivelValue);
     setShowFluenciaDropdown(false);
   };
 
   const handleSalvar = async () => {
     if (!selectedIdiomaId || !selectedFluencia) return;
 
-    // JSON a ser enviado
     const payload: IdiomaCandidato = {
       idIdioma: selectedIdiomaId,
-      fluencia: selectedFluencia,
+      fluencia: selectedFluencia, // já vai no formato sem acento
     };
 
     console.log(">>> Enviando idioma candidato (JSON):", payload);
@@ -77,13 +82,10 @@ export default function Idiomas() {
     });
 
     if (result.success) {
-      const idiomaInfo = idiomas.find((i) => i.id === selectedIdiomaId);
-      if (idiomaInfo) {
-        setUserIdiomas((prev) => [
-          ...prev,
-          { idIdioma: selectedIdiomaId, fluencia: selectedFluencia },
-        ]);
-      }
+      setUserIdiomas((prev) => [
+        ...prev,
+        { idIdioma: selectedIdiomaId, fluencia: selectedFluencia },
+      ]);
       setSelectedIdiomaId(null);
       setSelectedFluencia("");
     }
@@ -91,8 +93,6 @@ export default function Idiomas() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Deseja realmente remover este idioma?")) return;
-
-    console.log(">>> Removendo idioma ID:", id);
 
     const result = await toast.promise(deleteUserIdioma(id), {
       loading: "Removendo idioma...",
@@ -153,14 +153,18 @@ export default function Idiomas() {
         {/* Fluência */}
         <div className="relative">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Nivel de Proficiencia
+            Nível de Proficiência
           </label>
           <button
             type="button"
             onClick={() => setShowFluenciaDropdown(!showFluenciaDropdown)}
             className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:border-brand-main dark:hover:border-brand-lime transition-colors"
           >
-            <span>{selectedFluencia || "Selecione o nivel"}</span>
+            <span>
+              {selectedFluencia
+                ? niveisProficiencia.find((n) => n.value === selectedFluencia)?.label
+                : "Selecione o nível"}
+            </span>
             <ChevronDown
               size={16}
               className={`transform transition-transform ${showFluenciaDropdown ? "rotate-180" : ""}`}
@@ -170,13 +174,15 @@ export default function Idiomas() {
             <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
               {niveisProficiencia.map((nivel) => (
                 <div
-                  key={nivel}
-                  onClick={() => selectFluencia(nivel)}
+                  key={nivel.value}
+                  onClick={() => selectFluencia(nivel.value)}
                   className={`px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                    selectedFluencia === nivel ? "bg-brand-main/10 text-brand-main dark:text-brand-lime" : ""
+                    selectedFluencia === nivel.value
+                      ? "bg-brand-main/10 text-brand-main dark:text-brand-lime"
+                      : ""
                   }`}
                 >
-                  {nivel}
+                  {nivel.label}
                 </div>
               ))}
             </div>
@@ -188,7 +194,9 @@ export default function Idiomas() {
         onClick={handleSalvar}
         disabled={!selectedIdiomaId || !selectedFluencia}
         className={`w-full md:w-auto px-6 py-3 rounded-lg font-medium text-white transition-colors ${
-          selectedIdiomaId && selectedFluencia ? "bg-brand-main hover:bg-brand-main/90" : "bg-gray-400 cursor-not-allowed"
+          selectedIdiomaId && selectedFluencia
+            ? "bg-brand-main hover:bg-brand-main/90"
+            : "bg-gray-400 cursor-not-allowed"
         }`}
       >
         Salvar
@@ -199,7 +207,9 @@ export default function Idiomas() {
         <div className="text-center py-8 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg mt-6">
           <Languages className="w-12 h-12 mx-auto mb-4 opacity-50" />
           <p className="text-gray-500 dark:text-gray-400">Nenhum idioma adicionado ainda.</p>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Adicione seu primeiro idioma usando o formulario acima.</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+            Adicione seu primeiro idioma usando o formulário acima.
+          </p>
         </div>
       ) : (
         <div className="space-y-4 mt-6">
@@ -219,7 +229,7 @@ export default function Idiomas() {
                         className="bg-gradient-to-r from-brand-main to-brand-lime h-2.5 rounded-full"
                         style={{
                           width:
-                            idioma.fluencia.toLowerCase() === "fluente"
+                            idioma.fluencia === "Fluente"
                               ? "100%"
                               : idioma.fluencia === "Avancado"
                               ? "75%"
@@ -230,7 +240,10 @@ export default function Idiomas() {
                       ></div>
                     </div>
                     <span className="text-sm text-gray-600 dark:text-gray-400 ml-3 min-w-[100px]">
-                      {idioma.fluencia}
+                      {
+                        niveisProficiencia.find((n) => n.value === idioma.fluencia)?.label ||
+                        idioma.fluencia
+                      }
                     </span>
                   </div>
                 </div>

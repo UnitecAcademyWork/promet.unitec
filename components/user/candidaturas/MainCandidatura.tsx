@@ -116,7 +116,7 @@ const MainCandidatura = () => {
     toast(
       (t) => (
         <div className="flex flex-col gap-2">
-          <span>Tem certeza que deseja deletar esta candidatura?</span>
+          <span>Tem certeza que deseja trocar esta candidatura?</span>
           <div className="flex justify-end gap-2">
             <button
               onClick={async () => {
@@ -319,7 +319,7 @@ const MainCandidatura = () => {
 
               // Verifica se tem certificado em avaliação
               const temCertificadoEmAvaliacao = certificados.some(
-                (cert) => cert.status === "emAvaliacao"
+                (cert) => cert.status === "em avaliacao"
               );
 
               // Se o status for "emAvaliacao", não mostra opções de pagamento
@@ -449,7 +449,6 @@ const MainCandidatura = () => {
                                   </p>
                                   <p className="text-sm text-yellow-700 dark:text-yellow-400 mt-1">
                                     Seu certificado está sendo analisado pela nossa equipe. 
-                                    Enquanto isso, você pode realizar o teste de diagnóstico para dar continuidade ao processo.
                                     Assim que o certificado for aprovado, você será isento do teste.
                                   </p>
                                 </div>

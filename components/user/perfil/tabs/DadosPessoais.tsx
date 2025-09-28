@@ -30,7 +30,7 @@ const PROVINCIAS = [
   "Maputo Cidade","Maputo Província","Gaza","Inhambane","Sofala",
   "Manica","Tete","Zambézia","Nampula","Cabo Delgado","Niassa"
 ];
-const NIVEL_ACADEMICO = ["Nivel Básico","Nivel Médio","Bacharelato","Licenciatura","Mestrado","Doutoramento"];
+const NIVEL_ACADEMICO = ["Básico","Médio","Bacharelato","Licenciatura","Mestrado","Doutoramento"];
 const IDIOMAS = ["Português","Inglês","Espanhol","Francês","Mandarim","Changana","Cisena","Xichuwabu","Elomwe","Macua","Nhungue","Tsonga","Chuwabo","Makonde","Chisena","Ronga","Chiyao"];
 const GENEROS = ["Masculino","Feminino"];
 
@@ -58,6 +58,15 @@ const validateDocumentNumber = (numero: string, tipo: string) => {
   }
 };
 
+// Validação do WhatsApp (9 dígitos moçambicanos)
+const validateWhatsapp = (whatsapp: string) => {
+  // Remove tudo que não é número
+  const cleaned = whatsapp.replace(/\D/g, '');
+  // Verifica se tem exatamente 9 dígitos e começa com 8
+  return /^8\d{8}$/.test(cleaned);
+};
+
+
 export type CandidateData = {
   provincia: string;
   morada: string;
@@ -70,8 +79,6 @@ export type CandidateData = {
   idiomaNativo: string;
   isFromUnitec: boolean;
 };
-
-// interface CandidateData extends CandidatoPayload {}
 
 export default function DadosPessoais() {
   const [isClient, setIsClient] = useState(false);
@@ -135,10 +142,28 @@ const hasCertificadoValido = certificados.some(
   fetchData();
 }, []);
 
-
   const handleChange = (field: keyof CandidateData, value: string | boolean) => {
     setData({ ...data, [field]: value as never });
     setErrors({ ...errors, [field]: false });
+  };
+
+  // Formata o WhatsApp enquanto o usuário digita
+  const handleWhatsappChange = (value: string) => {
+    // Remove tudo que não é número
+    const numbers = value.replace(/\D/g, '');
+    
+    // Limita a 9 dígitos
+    const limited = numbers.slice(0, 9);
+    
+    // Formata para o padrão moçambicano (84 123 4567)
+    let formatted = limited;
+    if (limited.length > 3) {
+      formatted = `${limited.slice(0, 2)} ${limited.slice(2, 5)} ${limited.slice(5)}`;
+    } else if (limited.length > 2) {
+      formatted = `${limited.slice(0, 2)} ${limited.slice(2)}`;
+    }
+    
+    handleChange("whatsapp", formatted);
   };
 
   const getDocumentMaxLength = () => {
@@ -152,10 +177,26 @@ const hasCertificadoValido = certificados.some(
   const handleCertificadoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error("O arquivo não pode exceder 10MB");
+      
+      // Verifica se é documento (PDF, DOC, DOCX)
+      const allowedTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ];
+      
+      if (!allowedTypes.includes(file.type)) {
+        toast.error("Apenas documentos são permitidos (PDF, DOC, DOCX)");
+        e.target.value = ''; // Limpa o input
         return;
       }
+      
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("O arquivo não pode exceder 10MB");
+        e.target.value = ''; // Limpa o input
+        return;
+      }
+      
       setCertificadoFile(file);
     }
   };
@@ -174,6 +215,12 @@ const hasCertificadoValido = certificados.some(
     if (!validateDocumentNumber(data.numeroBi, data.tipoDocumento)) {
       newErrors.numeroBi = true;
       toast.error("Número de documento inválido.");
+    }
+
+    // validação do WhatsApp
+    if (!validateWhatsapp(data.whatsapp)) {
+      newErrors.whatsapp = true;
+      toast.error("WhatsApp deve ter 9 dígitos e começar com 8");
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -204,27 +251,24 @@ const hasCertificadoValido = certificados.some(
       );
 
       // 🔹 Agora dispara automaticamente o envio do certificado
-      // 🔹 Agora dispara automaticamente o envio do certificado
-if (data.isFromUnitec && certificadoFile) {
-  await toast.promise(
-    (async () => {
-      const certificadoResp = await adicionarCertificado(certificadoFile);
+      if (data.isFromUnitec && certificadoFile) {
+        await toast.promise(
+          (async () => {
+            const certificadoResp = await adicionarCertificado(certificadoFile);
 
-      if (!certificadoResp.success) {
-        throw new Error(certificadoResp.message || "Erro ao enviar certificado");
+            if (!certificadoResp.success) {
+              throw new Error(certificadoResp.message || "Erro ao enviar certificado");
+            }
+
+            return certificadoResp.message || "Certificado enviado com sucesso!";
+          })(),
+          {
+            loading: "Enviando certificado...",
+            success: (msg) => msg ?? "Certificado enviado com sucesso!", // 🔹 nunca undefined
+            error: (err) => err.message || "Erro ao enviar certificado",
+          }
+        );
       }
-
-      return certificadoResp.message || "Certificado enviado com sucesso!";
-    })(),
-    {
-      loading: "Enviando certificado...",
-      success: (msg) => msg ?? "Certificado enviado com sucesso!", // 🔹 nunca undefined
-      error: (err) => err.message || "Erro ao enviar certificado",
-    }
-  );
-}
-
-
 
       setShowSuccess(true);
       setIsEditing(false);
@@ -233,7 +277,6 @@ if (data.isFromUnitec && certificadoFile) {
       setIsSaving(false);
     }
   };
-
 
   return (
     <motion.div
@@ -306,13 +349,17 @@ if (data.isFromUnitec && certificadoFile) {
             <input
               type="text"
               value={data.whatsapp}
-              onChange={(e) => handleChange("whatsapp", e.target.value)}
+              onChange={(e) => handleWhatsappChange(e.target.value)}
               className={`mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 ${
                 errors.whatsapp ? "border-red-500" : "border-gray-300"
               }`}
-              placeholder="+258 84 123 4567"
+              placeholder="84 123 4567"
               disabled={!isEditing}
+              maxLength={11} // 9 dígitos + 2 espaços
             />
+            <div className="text-xs text-gray-500 mt-1">
+              {data.whatsapp.replace(/\D/g, '').length}/9 dígitos
+            </div>
           </div>
 
           {/* Província */}
@@ -526,7 +573,7 @@ if (data.isFromUnitec && certificadoFile) {
       </div>
       <div>
         <h3 className="font-semibold text-gray-800 dark:text-white">Certificado Unitec</h3>
-        <p className="text-sm text-gray-600 dark:text-gray-300">Envie seu certificado de conclusão</p>
+        <p className="text-sm text-gray-600 dark:text-gray-300">Envie seu certificado de conclusão (PDF, DOC, DOCX)</p>
       </div>
     </div>
 
@@ -534,7 +581,7 @@ if (data.isFromUnitec && certificadoFile) {
     <label className="relative cursor-pointer group">
       <input
         type="file"
-        accept=".pdf,.jpg,.png,.jpeg"
+        accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         onChange={handleCertificadoChange}
         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
       />
@@ -545,7 +592,7 @@ if (data.isFromUnitec && certificadoFile) {
         <div className="text-center">
           <p className="font-medium text-gray-700 dark:text-gray-200">Clique para selecionar o arquivo</p>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            PDF, JPG ou PNG (máximo 10MB)
+            PDF, DOC ou DOCX (máximo 10MB)
           </p>
         </div>
       </div>
@@ -586,7 +633,7 @@ if (data.isFromUnitec && certificadoFile) {
       <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      <p>O certificado será associado ao seu perfil após a validação pela nossa equipe.</p>
+      <p>Apenas documentos são aceitos (PDF, DOC, DOCX). O certificado será associado ao seu perfil após a validação pela nossa equipe.</p>
     </div>
   </div>
 )}
