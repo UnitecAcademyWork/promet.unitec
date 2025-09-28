@@ -1,7 +1,7 @@
 "use client";
 import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, User, Mail, Lock, UserPlus, RefreshCcw, UserCircle } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Lock, UserPlus, RefreshCcw, UserCircle, Phone } from "lucide-react";
 import { registerUser } from "../../lib/register-user-actions";
 import { toast, Toaster } from "react-hot-toast";
 import Image from "next/image";
@@ -13,6 +13,12 @@ type PasswordStrength = {
   label: string;
   color: string;
   width: string;
+};
+
+type FieldErrors = {
+  nome: boolean;
+  apelido: boolean;
+  contacto: boolean;
 };
 
 const FloatingShapes = () => (
@@ -66,6 +72,12 @@ export default function RegisterForm() {
     confirmPassword: "",
   });
 
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({
+    nome: false,
+    apelido: false,
+    contacto: false,
+  });
+
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -96,11 +108,57 @@ export default function RegisterForm() {
     }
   }, [form.nome, form.apelido, usernameEdited]);
 
+  // Função para validar se contém apenas letras (incluindo acentuadas e espaços)
+  const containsOnlyLetters = (text: string): boolean => {
+    return /^[A-Za-zÀ-ÿ\s]+$/.test(text);
+  };
+
+  // Função para validar o contacto
+  const isValidContact = (contact: string): boolean => {
+    // Remove espaços e outros caracteres não numéricos
+    const cleanContact = contact.replace(/\D/g, '');
+    
+    // Verifica se contém apenas números e se começa com os prefixos permitidos
+    const validPrefixes = ['84', '87', '86', '82', '83', '85'];
+    const hasValidPrefix = validPrefixes.some(prefix => cleanContact.startsWith(prefix));
+    
+    return /^\d+$/.test(contact.replace(/\s/g, '')) && hasValidPrefix;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    
+    // Validação em tempo real
+    if (name === "nome" || name === "apelido") {
+      const isValid = containsOnlyLetters(value);
+      setFieldErrors(prev => ({ ...prev, [name]: !isValid }));
+    }
+    
+    if (name === "contacto") {
+      const isValid = isValidContact(value);
+      setFieldErrors(prev => ({ ...prev, [name]: !isValid }));
+    }
+
     setForm((prev) => ({ ...prev, [name]: value }));
 
     if (name === "username") setUsernameEdited(true);
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    
+    // Validação no blur para campos que podem estar vazios
+    if (name === "nome" && value) {
+      setFieldErrors(prev => ({ ...prev, [name]: !containsOnlyLetters(value) }));
+    }
+    
+    if (name === "apelido" && value) {
+      setFieldErrors(prev => ({ ...prev, [name]: !containsOnlyLetters(value) }));
+    }
+    
+    if (name === "contacto" && value) {
+      setFieldErrors(prev => ({ ...prev, [name]: !isValidContact(value) }));
+    }
   };
 
   const passwordStrength: PasswordStrength = useMemo(() => {
@@ -129,18 +187,22 @@ export default function RegisterForm() {
   );
 
   const isFormValid = useMemo(() => {
-    return (
+    const fieldsFilled = 
       form.nome.trim() &&
       form.apelido.trim() &&
       form.email.trim() &&
       form.contacto.trim() &&
       form.username.trim() &&
       form.password.trim() &&
-      form.confirmPassword.trim() &&
-      passwordsMatch &&
-      acceptedTerms
-    );
-  }, [form, acceptedTerms, passwordsMatch]);
+      form.confirmPassword.trim();
+    
+    const fieldsValid = 
+      !fieldErrors.nome && 
+      !fieldErrors.apelido && 
+      !fieldErrors.contacto;
+
+    return fieldsFilled && fieldsValid && passwordsMatch && acceptedTerms;
+  }, [form, acceptedTerms, passwordsMatch, fieldErrors]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,8 +221,14 @@ export default function RegisterForm() {
           .replace(/\s+/g, ""),
       };
 
-      await registerUser(sanitizedUserData);
-      toast.success("Conta criada com sucesso!");
+      const result = await registerUser(sanitizedUserData);
+
+      if (!result.success) {
+        toast.error(result.message || "Erro ao criar conta.");
+        return;
+      }
+
+      toast.success(result.message || "Conta criada com sucesso!");
 
       setForm({
         nome: "",
@@ -173,10 +241,15 @@ export default function RegisterForm() {
       });
       setAcceptedTerms(false);
       setUsernameEdited(false);
+      setFieldErrors({
+        nome: false,
+        apelido: false,
+        contacto: false,
+      });
 
       setTimeout(() => router.push("/login"), 1000);
-    } catch (error) {
-      toast.error("Erro ao criar conta. Tente novamente.");
+    } catch (error: any) {
+      toast.error(error.message || "Erro inesperado ao criar conta.");
     } finally {
       setLoading(false);
     }
@@ -241,10 +314,18 @@ export default function RegisterForm() {
                       placeholder="Nome"
                       value={form.nome}
                       onChange={handleChange}
-                      className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-1 focus:ring-brand-main/30 focus:border-brand-main/20 transition-all dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                      onBlur={handleBlur}
+                      className={`w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-brand-main/30 focus:border-brand-main/20 transition-all dark:bg-gray-800 dark:text-white ${
+                        fieldErrors.nome 
+                          ? 'border-red-500 bg-red-50 dark:bg-red-900/20' 
+                          : 'border-gray-200 dark:border-gray-700'
+                      }`}
                       required
                     />
                   </div>
+                  {fieldErrors.nome && (
+                    <p className="text-xs text-red-500 mt-1">Apenas letras são permitidas</p>
+                  )}
                 </div>
                 <div>
                   <label htmlFor="apelido" className="sr-only">
@@ -259,10 +340,18 @@ export default function RegisterForm() {
                       placeholder="Apelido"
                       value={form.apelido}
                       onChange={handleChange}
-                      className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-1 focus:ring-brand-main/30 focus:border-brand-main/20 transition-all dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                      onBlur={handleBlur}
+                      className={`w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-brand-main/30 focus:border-brand-main/20 transition-all dark:bg-gray-800 dark:text-white ${
+                        fieldErrors.apelido 
+                          ? 'border-red-500 bg-red-50 dark:bg-red-900/20' 
+                          : 'border-gray-200 dark:border-gray-700'
+                      }`}
                       required
                     />
                   </div>
+                  {fieldErrors.apelido && (
+                    <p className="text-xs text-red-500 mt-1">Apenas letras são permitidas</p>
+                  )}
                 </div>
               </div>
 
@@ -285,23 +374,35 @@ export default function RegisterForm() {
                   />
                 </div>
               </div>
+
+              {/* Contacto */}
               <div>
                 <label htmlFor="contacto" className="sr-only">
                   Contacto
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     id="contacto"
                     type="text"
                     name="contacto"
-                    placeholder="contacto"
+                    placeholder="Contacto (ex: 84...)"
                     value={form.contacto}
                     onChange={handleChange}
-                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-1 focus:ring-brand-main/30 focus:border-brand-main/20 transition-all dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                    onBlur={handleBlur}
+                    className={`w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-brand-main/30 focus:border-brand-main/20 transition-all dark:bg-gray-800 dark:text-white ${
+                      fieldErrors.contacto 
+                        ? 'border-red-500 bg-red-50 dark:bg-red-900/20' 
+                        : 'border-gray-200 dark:border-gray-700'
+                    }`}
                     required
                   />
                 </div>
+                {fieldErrors.contacto && (
+                  <p className="text-xs text-red-500 mt-1">
+                    Apenas números são permitidos e deve começar com 84, 87, 86, 82, 83 ou 85
+                  </p>
+                )}
               </div>
 
               {/* Username */}

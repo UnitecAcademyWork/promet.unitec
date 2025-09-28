@@ -18,14 +18,23 @@ export async function registerUser(userData: {
       body: JSON.stringify(userData),
     });
 
+    const data = await response.json().catch(() => null);
+
     if (!response.ok) {
-      throw new Error("Erro ao registrar usuário");
+      // Se o backend devolver "message", usa essa mensagem
+      throw new Error(data?.message || "Erro ao registrar usuário");
     }
 
-    const data = await response.json();
-    return data;
-  } catch (error) {
+    return {
+      success: true,
+      data,
+      message: data?.message || "Usuário registrado com sucesso!",
+    };
+  } catch (error: any) {
     console.error("Erro no registerUser:", error);
-    throw error;
+    return {
+      success: false,
+      message: error.message || "Erro inesperado ao registrar usuário",
+    };
   }
 }

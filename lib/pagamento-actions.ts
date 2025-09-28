@@ -4,26 +4,67 @@ import { cookies } from "next/headers";
 
 const API_URL = routes.backend_url;
 
+// Tipos para o pagamento
+type PagamentoResponse = {
+  pagamento: {
+    id: string;
+    candidatoId: string;
+    itemNome: string;
+    itemId: string;
+    valor: number;
+    metodoPagamento: string;
+    referencia?: string;
+    status: "pendente" | "concluido" | "falhou";
+    edicaoId?: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  mpesa?: {
+    id: string;
+    pagamentoId: string;
+    contacto: string;
+    transacaoId: string;
+    status: boolean;
+    statusCode: number;
+    mensagem?: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  gatewayResponse?: {
+    success: boolean;
+    statusCode: number;
+    mensagem?: string;
+  };
+};
+
+type EfectuarPagamentoArgs = {
+  metodoPagamento: string;
+  itemId: string;
+  itemNome: string;
+  comprovativo?: File;
+  phoneNumber?: string;
+};
+
+type EfectuarPagamentoResult = {
+  success: boolean;
+  data?: PagamentoResponse;
+  error?: string;
+};
+
 export async function efectuarPagamento({
   metodoPagamento,
   itemId,
   itemNome,
   comprovativo,
-  phoneNumber, // ✅ corrigi aqui
-}: {
-  metodoPagamento: string;
-  itemId: string;
-  itemNome: string;
-  comprovativo?: File;
-  phoneNumber?: string; // ✅ minúsculo
-}) {
+  phoneNumber,
+}: EfectuarPagamentoArgs): Promise<EfectuarPagamentoResult> {
   try {
     const token = (await cookies()).get("auth_token")?.value;
 
     let res: Response;
 
+    // Pagamento por transferência com comprovativo
     if (metodoPagamento === "transferencia" && comprovativo) {
-      // fluxo transferência com comprovativo
       const formData = new FormData();
       formData.append("metodoPagamento", metodoPagamento);
       formData.append("itemId", itemId);
@@ -37,8 +78,9 @@ export async function efectuarPagamento({
         },
         body: formData,
       });
-    } else if (metodoPagamento === "mpesa" && phoneNumber) {
-      // fluxo mpesa com número de telefone
+    } 
+    // Pagamento Mpesa com número de telefone
+    else if (metodoPagamento === "mpesa" && phoneNumber) {
       res = await fetch(`${API_URL}/efectuar-pagamento`, {
         method: "POST",
         headers: {
@@ -49,11 +91,12 @@ export async function efectuarPagamento({
           metodoPagamento,
           itemId,
           itemNome,
-          phoneNumber, // ✅ enviado corretamente
+          phoneNumber,
         }),
       });
-    } else {
-      // fallback genérico
+    } 
+    // Fallback genérico
+    else {
       res = await fetch(`${API_URL}/efectuar-pagamento`, {
         method: "POST",
         headers: {
@@ -68,14 +111,47 @@ export async function efectuarPagamento({
       });
     }
 
+    const data: PagamentoResponse = await res.json();
+
+    // Tratamento baseado no Mpesa / gateway response
     if (res.status === 200 || res.status === 201) {
-      return { success: true, data: await res.json() };
+      if (data.mpesa && data.mpesa.statusCode >= 400) {
+        // Erro Mpesa
+        return {
+          success: false,
+          error: data.mpesa.mensagem || "Pagamento falhou via Mpesa. Verifique o PIN e tente novamente.",
+          data,
+        };
+      }
+
+      if (data.gatewayResponse && data.gatewayResponse.statusCode >= 400) {
+        // Erro genérico do gateway
+        return {
+          success: false,
+          error: data.gatewayResponse.mensagem || "Falha no pagamento. Tente novamente.",
+          data,
+        };
+      }
+
+      if (data.pagamento.status === "falhou") {
+        return {
+          success: false,
+          error: "O pagamento não foi concluído. Por favor, tente novamente ou contacte suporte.",
+          data,
+        };
+      }
+
+      // Pagamento concluído
+      return { success: true, data };
     } else {
-      const data = await res.json();
-      throw new Error(data?.message || "Erro ao efectuar pagamento");
+      return {
+        success: false,
+        error: data.gatewayResponse?.mensagem || "Erro ao efectuar pagamento.",
+        data,
+      };
     }
   } catch (error: any) {
     console.error("Pagamento falhou:", error);
-    return { success: false, error: error.message || "Erro no pagamento" };
+    return { success: false, error: error.message || "Erro inesperado no pagamento." };
   }
 }

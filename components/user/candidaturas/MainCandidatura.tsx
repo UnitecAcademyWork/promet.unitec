@@ -28,6 +28,7 @@ import { efectuarPagamento } from "../../../lib/pagamento-actions";
 import { deleteCandidatura } from "../../../lib/candidaturas-get";
 import { addTesteDiagnostico } from "../../../lib/add-teste-actions";
 import ListaCertificados, { Certificado } from "./certificado";
+import { listarPagamentos } from "../../../lib/listar-pagamentos-actions";
 
 const MainCandidatura = () => {
   const [candidaturas, setCandidaturas] = useState<CandidaturaTeste[]>([]);
@@ -35,6 +36,7 @@ const MainCandidatura = () => {
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [pesquisa, setPesquisa] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const [pagamentos, setPagamentos] = useState<Pagamento[]>([]);
   const [modalTitulo, setModalTitulo] = useState("");
   const [modalValor, setModalValor] = useState(0);
   const [itemIdSelecionado, setItemIdSelecionado] = useState<string | null>(
@@ -56,54 +58,43 @@ const MainCandidatura = () => {
 
   // Confirmar pagamento
   const handleConfirmPagamento = async (dados: {
-    metodo: string;
-    numero?: string;
-    comprovativo?: File;
-  }) => {
-    if (!itemIdSelecionado || !itemNomeSelecionado) {
-      toast.error("Dados do item não encontrados!");
-      return;
-    }
+  metodo: string;
+  numero?: string;
+  comprovativo?: File;
+}) => {
+  if (!itemIdSelecionado || !itemNomeSelecionado) {
+    toast.error("Dados do item não encontrados!");
+    return;
+  }
 
-    try {
-      if (dados.metodo === "mpesa") {
-        await toast.promise(
-          efectuarPagamento({
-            metodoPagamento: "mpesa",
-            itemId: itemIdSelecionado,
-            itemNome: itemNomeSelecionado,
-            phoneNumber: dados.numero,
-          }),
-          {
-            loading: "Confirmando pagamento...",
-            success: "Pagamento efectuado com sucesso",
-            error: "Erro ao efectuar pagamento",
-          }
-        );
-      } else {
-        await toast.promise(
-          efectuarPagamento({
-            metodoPagamento: dados.metodo,
-            itemId: itemIdSelecionado,
-            itemNome: itemNomeSelecionado,
-            comprovativo: dados.comprovativo,
-          }),
-          {
-            loading: "Enviando comprovativo...",
-            success: "Pagamento enviado para verificação",
-            error: "Erro ao enviar comprovativo",
-          }
-        );
-      }
+  try {
+    // Mostrar toast de loading
+    const loadingToast = toast.loading("Processando pagamento...");
 
-      setTimeout(() => {
-        setModalOpen(false);
-        fetchCandidaturas();
-      }, 4000);
-    } catch (err) {
-      console.error(err);
+    const result = await efectuarPagamento({
+      metodoPagamento: dados.metodo,
+      itemId: itemIdSelecionado,
+      itemNome: itemNomeSelecionado,
+      comprovativo: dados.comprovativo,
+      phoneNumber: dados.numero,
+    });
+
+    toast.dismiss(loadingToast);
+
+    if (result.success) {
+      toast.success("✅ Pagamento realizado com sucesso!");
+      setModalOpen(false);
+      fetchCandidaturas();
+    } else {
+      // 👇 mostra mensagem vinda da base de dados (ex: PIN, timeout, falhou, etc.)
+      toast.error(result.error || "❌ Erro desconhecido no pagamento.");
     }
-  };
+  } catch (err: any) {
+    toast.dismiss();
+    toast.error(err.message || "❌ Erro inesperado ao processar pagamento.");
+  }
+};
+
 
   // Nova tentativa de teste
   const handleNovaTentativa = async (candidaturaId: string) => {
@@ -161,32 +152,37 @@ const MainCandidatura = () => {
 
   // Buscar candidaturas + testes
   const fetchCandidaturas = async () => {
-    setLoading(true);
-    try {
-      if (!Cookies.get("auth_token")) throw new Error("Usuário não autenticado");
+  setLoading(true);
+  try {
+    if (!Cookies.get("auth_token")) throw new Error("Usuário não autenticado");
 
-      const data = await getCandidaturas();
-      const testesData = await getTestesByCandidatura();
+    const data = await getCandidaturas();
+    const testesData = await getTestesByCandidatura();
+    const pagamentosResp = await listarPagamentos();
 
-      const candidaturasComExtras = await Promise.all(
-        data.map(async (c) => {
-          const testes =
-            testesData.find((t) => t.id === c.id)?.testesdiagnosticos || [];
-
-          return {
-            ...c,
-            testesdiagnosticos: testes,
-          };
-        })
-      );
-
-      setCandidaturas(candidaturasComExtras);
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao buscar candidaturas");
-    } finally {
-      setLoading(false);
+    if (pagamentosResp.success && pagamentosResp.data) {
+      setPagamentos(pagamentosResp.data);
     }
-  };
+
+    const candidaturasComExtras = await Promise.all(
+      data.map(async (c) => {
+        const testes =
+          testesData.find((t) => t.id === c.id)?.testesdiagnosticos || [];
+        return {
+          ...c,
+          testesdiagnosticos: testes,
+        };
+      })
+    );
+
+    setCandidaturas(candidaturasComExtras);
+  } catch (err: any) {
+    toast.error(err.message || "Erro ao buscar candidaturas");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     fetchCandidaturas();
@@ -321,6 +317,14 @@ const MainCandidatura = () => {
                 (cert) => cert.status === "aprovado"
               );
 
+              // Verifica se tem certificado em avaliação
+              const temCertificadoEmAvaliacao = certificados.some(
+                (cert) => cert.status === "emAvaliacao"
+              );
+
+              // Se o status for "emAvaliacao", não mostra opções de pagamento
+              const isEmAvaliacao = c.status === "emAvaliacao";
+
               return (
                 <div
                   key={c.id}
@@ -351,128 +355,197 @@ const MainCandidatura = () => {
                   {/* Componente de certificados */}
                   <ListaCertificados onLoad={setCertificados} />
 
-                  {/* Se tem certificado aprovado, vai direto pagar curso */}
-                  {temCertificadoAprovado ? (
-                    <>
-                      {/* Informação de isenção do teste */}
-                      <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 mb-3">
-                        <div className="flex items-start gap-2">
-                          <Info className="w-4 h-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-sm text-green-800 dark:text-green-300 font-medium">
-                              Isenção do Teste de Diagnóstico
-                            </p>
-                            <p className="text-sm text-green-700 dark:text-green-400 mt-1">
-                              Você foi isento(a) do teste o certificado foi aprovado, 
-                              permitindo que avance directamente para o pagamento do curso.
-                            </p>
-                          </div>
+                  {/* Se está em avaliação, mostra apenas mensagem informativa */}
+                  {isEmAvaliacao ? (
+                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-start gap-2">
+                        <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm text-blue-800 dark:text-blue-300 font-medium">
+                            Candidatura em Análise
+                          </p>
+                          <p className="text-sm text-blue-700 dark:text-blue-400 mt-1">
+                            Sua candidatura está sendo analisada pela nossa equipe. 
+                            Você receberá atualizações em breve sobre o próximo passo.
+                          </p>
                         </div>
                       </div>
-
-                      <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 flex justify-between items-center">
-                        <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
-                          <GraduationCap className="w-4 h-4" />
-                          <span>
-                            Valor do curso:{" "}
-                            <span className="font-semibold">
-                              {c.cursos.preco} MT
-                            </span>
-                          </span>
-                        </div>
-                        <button
-                          onClick={() => abrirModal(c.id, "curso", c.cursos.preco)}
-                          className="px-4 py-2 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700"
-                        >
-                          Pagar Curso
-                        </button>
-                      </div>
-                    </>
+                    </div>
                   ) : (
                     <>
-                      {/* Nota para quem não tem certificado */}
-                      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 mt-3">
-                        <div className="flex items-start gap-2">
-                          <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-sm text-blue-800 dark:text-blue-300">
-                              <strong>Nota importante:</strong> Se você já frequentou um curso na UNITEC, 
-                              carregue seu certificado no seu{" "}
-                              <Link 
-                                href="/user/perfil" 
-                                className="underline font-medium hover:text-blue-900 dark:hover:text-blue-200"
-                              >
-                                perfil
-                              </Link>
-                              {" "}e será isento do teste, passando directamente para o pagamento do curso.
-                            </p>
+                      {/* Se tem certificado aprovado, vai direto pagar curso */}
+                      {temCertificadoAprovado ? (
+                        <>
+                          {/* Informação de isenção do teste */}
+                          <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 mb-3">
+                            <div className="flex items-start gap-2">
+                              <Info className="w-4 h-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="text-sm text-green-800 dark:text-green-300 font-medium">
+                                  Isenção do Teste de Diagnóstico
+                                </p>
+                                <p className="text-sm text-green-700 dark:text-green-400 mt-1">
+                                  Você foi isento(a) do teste por ter frequentado um curso na UNITEC. 
+                                  Sua experiência anterior foi validada através do certificado aprovado, 
+                                  permitindo que avance diretamente para o pagamento do curso.
+                                </p>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
 
-                      {/* Se não tem certificado aprovado, segue a lógica dos testes */}
-                      {testes.length > 0 && (
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 mb-4 mt-3">
-                          <h4 className="font-semibold text-gray-800 dark:text-white mb-2">
-                            Testes de Diagnóstico
-                          </h4>
-                          <ul className="space-y-2">
-                            {testes.map((t: Teste) => {
-                              const pagamentoProcessando = t.pagamentos?.some(
-                                (p: Pagamento) =>
-                                  ["processando", "concluido"].includes(p.status)
-                              );
+                          {/* Bloco de pagamento do curso */}
+                          {(() => {
+                            const pagamentoCursoAtivo = pagamentos.some(
+                              (p) =>
+                                p.itemNome === "curso" &&
+                                p.itemId === c.cursos.id &&
+                                (p.status === "processando" || p.status === "confirmado")
+                            );
 
-                              return (
-                                <li
-                                  key={t.id}
-                                  className="flex justify-between items-center bg-white dark:bg-gray-800 p-2 rounded-md shadow-sm"
-                                >
-                                  <div>
-                                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                                      {t.status.charAt(0).toUpperCase() +
-                                        t.status.slice(1)}{" "}
-                                      <span className="text-xs text-gray-500">
-                                        ({t.preco} MT)
-                                      </span>
-                                    </p>
+                            return (
+                              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 flex justify-between items-center">
+                                <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
+                                  <GraduationCap className="w-4 h-4" />
+                                  <span>
+                                    Valor do curso:{" "}
+                                    <span className="font-semibold">{c.cursos.preco} MT</span>
+                                  </span>
+                                </div>
 
-                                    {pagamentoProcessando && (
-                                      <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-                                        Aguarde a Verificação do Pagamento
-                                      </span>
-                                    )}
-                                  </div>
+                                {pagamentoCursoAtivo ? (
+                                  <span className="px-3 py-1 text-sm font-medium bg-yellow-100 text-yellow-700 rounded-lg">
+                                    Pagamento{" "}
+                                    {
+                                      pagamentos.find((p) => p.itemId === c.cursos.id)?.status ===
+                                      "confirmado"
+                                        ? "confirmado"
+                                        : "em processamento ⏳"
+                                    }
+                                  </span>
+                                ) : (
                                   <button
                                     onClick={() =>
-                                      abrirModal(t.id, "teste", t.preco)
+                                      abrirModal(c.cursos.id, "curso", c.cursos.preco)
                                     }
-                                    disabled={pagamentoProcessando}
-                                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
-                                      pagamentoProcessando
-                                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                        : "bg-yellow-500 text-white hover:bg-yellow-600"
-                                    }`}
+                                    className="px-4 py-2 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700"
                                   >
-                                    Pagar Teste
+                                    Pagar Curso
                                   </button>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        </div>
-                      )}
+                                )}
+                              </div>
+                            );
+                          })()}
+                        </>
+                      ) : (
+                        <>
+                          {/* Se tem certificado em avaliação, mostra nota informativa */}
+                          {temCertificadoEmAvaliacao && (
+                            <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800 mb-3">
+                              <div className="flex items-start gap-2">
+                                <Info className="w-4 h-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <p className="text-sm text-yellow-800 dark:text-yellow-300 font-medium">
+                                    Certificado em Verificação
+                                  </p>
+                                  <p className="text-sm text-yellow-700 dark:text-yellow-400 mt-1">
+                                    Seu certificado está sendo analisado pela nossa equipe. 
+                                    Enquanto isso, você pode realizar o teste de diagnóstico para dar continuidade ao processo.
+                                    Assim que o certificado for aprovado, você será isento do teste.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
 
-                      {/* Botão trocar formação (apenas se não tem teste aprovado) */}
-                      {!testes.some((t: Teste) => t.status === "aprovado") && (
-                        <div className="flex justify-end mt-3">
-                          <button
-                            onClick={() => handleDeletarCandidatura(c.id)}
-                            className="px-3 py-1 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors"
-                          >
-                            Trocar Formação
-                          </button>
-                        </div>
+                          {/* Nota para quem não tem certificado OU tem certificado em avaliação */}
+                          {!temCertificadoEmAvaliacao && (
+                            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 mt-3">
+                              <div className="flex items-start gap-2">
+                                <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <p className="text-sm text-blue-800 dark:text-blue-300">
+                                    <strong>Nota importante:</strong> Se você já frequentou um curso na UNITEC, 
+                                    carregue seu certificado no seu{" "}
+                                    <Link 
+                                      href="/perfil" 
+                                      className="underline font-medium hover:text-blue-900 dark:hover:text-blue-200"
+                                    >
+                                      perfil
+                                    </Link>
+                                    {" "}e será isento do teste, passando diretamente para o pagamento do curso.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Se não tem certificado aprovado (incluindo quando tem certificado em avaliação), mostra os testes */}
+                          {testes.length > 0 && (
+                            <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 mb-4 mt-3">
+                              <h4 className="font-semibold text-gray-800 dark:text-white mb-2">
+                                Testes de Diagnóstico
+                              </h4>
+                              <ul className="space-y-2">
+                                {testes.map((t: Teste) => {
+  const pagamentoTesteAtivo = pagamentos.some(
+    (p) =>
+      p.itemNome === "teste" &&
+      p.itemId === t.id &&
+      (p.status === "processando" || p.status === "confirmado")
+  );
+
+  return (
+    <li
+      key={t.id}
+      className="flex justify-between items-center bg-white dark:bg-gray-800 p-2 rounded-md shadow-sm"
+    >
+      <div>
+        <p className="text-sm text-gray-700 dark:text-gray-300">
+          {t.status.charAt(0).toUpperCase() + t.status.slice(1)}{" "}
+          <span className="text-xs text-gray-500">({t.preco} MT)</span>
+        </p>
+
+        {pagamentoTesteAtivo && (
+          <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
+            Pagamento{" "}
+            {
+              pagamentos.find((p) => p.itemId === t.id)?.status ===
+              "confirmado"
+                ? "confirmado"
+                : "em processamento ⏳"
+            }
+          </span>
+        )}
+      </div>
+
+      {pagamentoTesteAtivo ? null : (
+        <button
+          onClick={() => abrirModal(t.id, "teste", t.preco)}
+          className="px-3 py-1 rounded-lg text-xs font-medium transition-colors bg-yellow-500 text-white hover:bg-yellow-600"
+        >
+          Pagar Teste
+        </button>
+      )}
+    </li>
+  );
+})}
+
+                              </ul>
+                            </div>
+                          )}
+
+                          {/* Botão trocar formação (apenas se não tem teste aprovado) */}
+                          {!testes.some((t: Teste) => t.status === "aprovado") && (
+                            <div className="flex justify-end mt-3">
+                              <button
+                                onClick={() => handleDeletarCandidatura(c.id)}
+                                className="px-3 py-1 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors"
+                              >
+                                Trocar Formação
+                              </button>
+                            </div>
+                          )}
+                        </>
                       )}
                     </>
                   )}
