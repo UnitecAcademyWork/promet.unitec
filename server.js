@@ -18,8 +18,8 @@ app.prepare().then(() => {
     return handle(req, res);
   });
 
-  server.listen(7005, (err) => {
+  server.listen(3003, (err) => {
     if (err) throw err;
-    console.log('> Ready on http://localhost:7005');
+    console.log('> Ready on http://localhost:3003');
   });
 });
