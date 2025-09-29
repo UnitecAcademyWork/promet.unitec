@@ -7,6 +7,7 @@ import { toast, Toaster } from "react-hot-toast";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import GoogleLoginButton from "../common/google-login-button";
 
 type PasswordStrength = {
   strength: number;
@@ -517,7 +518,6 @@ export default function RegisterForm() {
                   </Link>
                 </label>
               </div>
-
               {/* Submit */}
               <button
                 type="submit"
@@ -526,6 +526,15 @@ export default function RegisterForm() {
               >
                 {loading ? "Cadastrando..." : "Criar Conta"}
               </button>
+                <div className="relative flex items-center justify-center my-4">
+                <div className="border-t border-gray-200 w-full"></div>
+                <span className="bg-white  text-xs text-gray-500">ou</span>
+                <div className="border-t border-gray-200 w-full"></div>
+              </div>
+
+              <div className="flex items-center justify-center w-full">
+                <GoogleLoginButton/>
+              </div>
             </form>
 
             <div className="text-center mt-5">

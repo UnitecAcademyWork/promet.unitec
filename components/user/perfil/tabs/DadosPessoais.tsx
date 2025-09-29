@@ -35,7 +35,7 @@ const IDIOMAS = ["Português","Inglês","Espanhol","Francês","Mandarim","Changa
 const GENEROS = ["Masculino","Feminino"];
 
 const TIPOS_DOCUMENTO = [
-  { value: "BI", label: "Bilhete de Identidade", maxLength: 12, placeholder: "123456789LA0" },
+  { value: "BI", label: "Bilhete de Identidade", maxLength: 13, placeholder: "123456789123P" },
   { value: "PASSAPORTE", label: "Passaporte", maxLength: 9, placeholder: "AB1234567" },
   { value: "CARTA_CONDUCAO", label: "Carta de Condução", maxLength: 11, placeholder: "12345678901" },
 ];
@@ -48,7 +48,7 @@ const validateDocumentNumber = (numero: string, tipo: string) => {
 
   switch (tipo) {
     case "BI":
-      return /^\d{11}[A-Z]{1}$/.test(numero); // 9 números + 2 letras + 1 número
+      return /^\d{12}[A-Z]{1}$/.test(numero); // 12 números + 1 letras
     case "PASSAPORTE":
       return /^[A-Z]{2}\d{7}$/.test(numero); // 2 letras + 7 números
     case "CARTA_CONDUCAO":
@@ -178,19 +178,27 @@ const hasCertificadoValido = certificados.some(
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       
-      // Verifica se é documento (PDF, DOC, DOCX)
+      // Tipos de arquivo permitidos (imagens + documentos)
       const allowedTypes = [
+        // Documentos
         'application/pdf',
         'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        // Imagens
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/webp'
       ];
       
+      // Verifica o tipo do arquivo
       if (!allowedTypes.includes(file.type)) {
-        toast.error("Apenas documentos são permitidos (PDF, DOC, DOCX)");
+        toast.error("Tipo de arquivo não permitido. Use PDF, DOC, DOCX ou imagens (JPG, PNG, WEBP)");
         e.target.value = ''; // Limpa o input
         return;
       }
       
+      // Verifica o tamanho do arquivo (10MB)
       if (file.size > 10 * 1024 * 1024) {
         toast.error("O arquivo não pode exceder 10MB");
         e.target.value = ''; // Limpa o input
@@ -573,7 +581,7 @@ const hasCertificadoValido = certificados.some(
       </div>
       <div>
         <h3 className="font-semibold text-gray-800 dark:text-white">Certificado Unitec</h3>
-        <p className="text-sm text-gray-600 dark:text-gray-300">Envie seu certificado de conclusão (PDF, DOC, DOCX)</p>
+        <p className="text-sm text-gray-600 dark:text-gray-300">Envie seu certificado de conclusão (PDF, DOC, DOCX, JPG, PNG, WEBP)</p>
       </div>
     </div>
 
@@ -581,7 +589,7 @@ const hasCertificadoValido = certificados.some(
     <label className="relative cursor-pointer group">
       <input
         type="file"
-        accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/jpeg,image/jpg,image/png,image/webp,"
         onChange={handleCertificadoChange}
         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
       />
@@ -592,7 +600,7 @@ const hasCertificadoValido = certificados.some(
         <div className="text-center">
           <p className="font-medium text-gray-700 dark:text-gray-200">Clique para selecionar o arquivo</p>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            PDF, DOC ou DOCX (máximo 10MB)
+            Documentos (PDF, DOC, DOCX) ou Imagens (JPG, PNG,WEBP) - máximo 10MB
           </p>
         </div>
       </div>
@@ -612,7 +620,7 @@ const hasCertificadoValido = certificados.some(
               {certificadoFile.name}
             </p>
             <p className="text-xs text-gray-600 dark:text-gray-300">
-              {(certificadoFile.size / 1024 / 1024).toFixed(2)} MB • Pronto para enviar
+              {(certificadoFile.size / 1024 / 1024).toFixed(2)} MB • {certificadoFile.type.includes('image/') ? 'Imagem' : 'Documento'} • Pronto para enviar
             </p>
           </div>
         </div>
@@ -633,7 +641,7 @@ const hasCertificadoValido = certificados.some(
       <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      <p>Apenas documentos são aceitos (PDF, DOC, DOCX). O certificado será associado ao seu perfil após a validação pela nossa equipe.</p>
+      <p>Documentos (PDF, DOC, DOCX) e imagens (JPG, PNG, WEBP) são aceitos. O certificado será associado ao seu perfil após a validação pela nossa equipe.</p>
     </div>
   </div>
 )}
