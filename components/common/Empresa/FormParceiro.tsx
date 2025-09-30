@@ -106,7 +106,7 @@ const PartnershipForm = () => {
   {
     icon: <Users className="w-6 h-6" />,
     title: "Networking com Profissionais Qualificados",
-    description: "Participe em workshops e eventos e seja o primeiro a identificá-los"
+    description: "Participe em workshops e eventos para interagir com os candidatos"
   },
   {
     icon: <GraduationCap className="w-6 h-6" />,
