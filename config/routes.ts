@@ -12,6 +12,7 @@ export const routes = {
   forgotpassword: `${API_BASE_URL}/auth/forgot-password`,
   userprofile: `${API_BASE_URL}/user-perfil`,
   usereditprofile: `${API_BASE_URL}/editar-perfil`,
+  empresaparceira: `${API_BASE_URL}/empresa-parceira`,
   adicionarcandidato: `${API_BASE_URL}/adicionar-candidato`,
   candidato: `${API_BASE_URL}/candidato`,
   cursos: `${API_BASE_URL}/cursos`,
@@ -22,6 +23,8 @@ export const routes = {
   addexperienciaprofissional: `${API_BASE_URL}/add-experiencia-profissional`,
   candidaturascandidato: `${API_BASE_URL}/candidaturas-candidato`,
   candidatura: `${API_BASE_URL}/candidatura`,
+  candidaturastestescandidato: `${API_BASE_URL}/candidaturas-testes-candidato`,
   ListarCertificados: `${API_BASE_URL}/listar-certificados`,
   Adicionarcertificado: `${API_BASE_URL}/adicionar-certificado`,
+  pagamentoscandidato: `${API_BASE_URL}/pagamentos-candidato`,
 };

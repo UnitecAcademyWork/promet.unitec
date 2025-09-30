@@ -1,5 +1,6 @@
 // /lib/parceria-actions.ts
 import Cookies from "js-cookie";
+import { routes } from "../config/routes";
 
 export interface ParceriaData {
   nomeEmpresa: string;
@@ -43,7 +44,7 @@ export interface ParceriaResponse {
 export const criarParceria = async (data: ParceriaData): Promise<ParceriaResponse> => {
   try {
 
-    const response = await fetch("https://backend-promet.unitec.academy/empresa-parceira", {
+    const response = await fetch(routes.empresaparceira, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

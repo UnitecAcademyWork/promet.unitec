@@ -1,5 +1,6 @@
 // /lib/enviar-candidatura-actions.ts
 import Cookies from "js-cookie";
+import { routes } from "../config/routes";
 
 export interface CandidaturaData {
   idCurso: string;
@@ -10,7 +11,7 @@ export const enviarCandidatura = async (data: CandidaturaData) => {
     const token = Cookies.get("auth_token");
     if (!token) throw new Error("Token de autenticação não encontrado");
 
-    const response = await fetch("https://backend-promet.unitec.academy/candidatura", {
+    const response = await fetch(routes.candidatura, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

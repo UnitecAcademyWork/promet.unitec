@@ -79,7 +79,7 @@ export async function efectuarPagamento({
         body: formData,
       });
     } 
-    // Pagamento Mpesa com número de telefone
+    // Pagamento Mpesa
     else if (metodoPagamento === "mpesa" && phoneNumber) {
       res = await fetch(`${API_URL}/efectuar-pagamento`, {
         method: "POST",
@@ -95,7 +95,6 @@ export async function efectuarPagamento({
         }),
       });
     } 
-    // Fallback genérico
     else {
       res = await fetch(`${API_URL}/efectuar-pagamento`, {
         method: "POST",
@@ -113,10 +112,8 @@ export async function efectuarPagamento({
 
     const data: PagamentoResponse = await res.json();
 
-    // Tratamento baseado no Mpesa / gateway response
     if (res.status === 200 || res.status === 201) {
       if (data.mpesa && data.mpesa.statusCode >= 400) {
-        // Erro Mpesa
         return {
           success: false,
           error: data.mpesa.mensagem || "Pagamento falhou via Mpesa. Verifique o PIN e tente novamente.",
@@ -125,7 +122,6 @@ export async function efectuarPagamento({
       }
 
       if (data.gatewayResponse && data.gatewayResponse.statusCode >= 400) {
-        // Erro genérico do gateway
         return {
           success: false,
           error: data.gatewayResponse.mensagem || "Falha no pagamento. Tente novamente.",

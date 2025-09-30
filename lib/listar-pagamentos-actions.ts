@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { routes } from "../config/routes";
 
 export type ApiResponse<T> = {
   success: boolean;
@@ -70,7 +71,7 @@ export async function listarPagamentos(): Promise<ApiResponse<Pagamento[]>> {
       };
     }
 
-    const resp = await fetch("https://backend-promet.unitec.academy/pagamentos-candidato", {
+    const resp = await fetch(routes.pagamentoscandidato, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

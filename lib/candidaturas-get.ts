@@ -1,4 +1,5 @@
 import Cookies from "js-cookie";
+import { routes } from "../config/routes";
 
 export interface Curso {
   id: string;
@@ -35,8 +36,7 @@ export const getCandidaturas = async (): Promise<Candidatura[]> => {
     const token = Cookies.get("auth_token");
     if (!token) throw new Error("Token de autenticação não encontrado");
 
-    const response = await fetch(
-      `https://backend-promet.unitec.academy/candidaturas-candidato`,
+    const response = await fetch(routes.candidaturascandidato,
       {
         headers: {
           Authorization: `Bearer ${token}`,
