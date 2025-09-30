@@ -466,7 +466,7 @@ const MainCandidatura = () => {
                                     <strong>Nota importante:</strong> Se você já frequentou um curso na UNITEC, 
                                     carregue seu certificado no seu{" "}
                                     <Link 
-                                      href="user/perfil" 
+                                      href="perfil" 
                                       className="underline font-medium hover:text-blue-900 dark:hover:text-blue-200"
                                     >
                                       perfil
