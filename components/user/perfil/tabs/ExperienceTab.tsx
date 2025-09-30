@@ -115,15 +115,15 @@ export default function Experiencia({ isEditing }: ExperienciaProps) {
 
     await toast.promise(
       updateExperience(id.toString(), serverExperience).then((result) => {
-        if (!result.success) throw new Error(result.error || "Erro ao atualizar experiência");
+        if (!result.success) throw new Error(result.error || "Erro ao actualizar experiência");
         return loadExperiences().then(() => {
           setShowForm(false);
           setEditingId(null);
         });
       }),
       {
-        loading: "Atualizando experiência...",
-        success: "Experiência atualizada!",
+        loading: "Actualizando experiência...",
+        success: "Experiência actualizada!",
         error: (err) => err.message,
       }
     );
@@ -257,7 +257,7 @@ export default function Experiencia({ isEditing }: ExperienciaProps) {
 
               <div className="flex items-center">
                 <input type="checkbox" id="current" checked={form.current} onChange={(e) => setForm({ ...form, current: e.target.checked, endDate: "" })} className="rounded focus:ring-blue-500 text-blue-600" />
-                <label htmlFor="current" className="ml-2 text-sm text-gray-700 dark:text-gray-300">Trabalho atualmente aqui</label>
+                <label htmlFor="current" className="ml-2 text-sm text-gray-700 dark:text-gray-300">Trabalho actualmente aqui</label>
               </div>
 
               <div>
@@ -266,9 +266,9 @@ export default function Experiencia({ isEditing }: ExperienciaProps) {
               </div>
 
               <div className="flex gap-2">
-                <button type="button" onClick={() => { setShowForm(false); setEditingId(null); }} className="px-4 py-2 bg-brand-lime text-gray-700 rounded-lg dark:bg-gray-700 dark:text-gray-300">Refazer</button>
+                <button type="button" onClick={() => { setShowForm(false); setEditingId(null); }} className="px-4 py-2 bg-brand-lime text-white rounded-lg dark:bg-gray-700 dark:text-gray-300">Refazer</button>
                 <button type="submit" className="px-4 py-2 bg-brand-main text-white rounded-lg hover:bg-blue-600 transition">
-                  {editingId ? "Atualizar Experiência" : "Adicionar Experiência"}
+                  {editingId ? "Actualizar Experiência" : "Adicionar Experiência"}
                 </button>
               </div>
             </form>
@@ -288,7 +288,7 @@ export default function Experiencia({ isEditing }: ExperienciaProps) {
               <div>
                 <h3 className="font-bold text-lg text-gray-800 dark:text-white">{exp.position}</h3>
                 <p className="text-gray-600 dark:text-gray-300 flex items-center gap-1 mt-1"><Building className="w-4 h-4" /> {exp.company}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1"><Calendar className="w-4 h-4 inline-block" /> {formatDate(exp.startDate)} - {exp.current ? "Atual" : formatDate(exp.endDate)}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1"><Calendar className="w-4 h-4 inline-block" /> {formatDate(exp.startDate)} - {exp.current ? "Actual" : formatDate(exp.endDate)}</p>
                 {exp.description && <p className="mt-2 text-gray-700 dark:text-gray-300">{exp.description}</p>}
               </div>
               {isEditing && (
