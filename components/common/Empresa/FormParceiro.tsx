@@ -102,28 +102,29 @@ const PartnershipForm = () => {
     { id: 'Colaboração', icon: <HeartHandshake className="w-5 h-5" /> },
   ];
 
-  const benefits = [
-    // {
-    //   icon: <Users className="w-6 h-6" />,
-    //   title: "Acesso a Talentos Qualificados",
-    //   description: "Conecte-se com profissionais treinados e prontos para o mercado"
-    // },
-    {
-      icon: <GraduationCap className="w-6 h-6" />,
-      title: "Desenvolvimento de Colaboradores",
-      description: "Capacite sua equipe com nossos programas de formação"
-    },
-    {
-      icon: <Award className="w-6 h-6" />,
-      title: "Visibilidade Institucional",
-      description: "Fortaleça sua marca como empresa comprometida com a educação"
-    },
-    {
-      icon: <Database className="w-6 h-6" />,
-      title: "Base de Dados Exclusiva",
-      description: "Acesso privilegiado ao banco de currículos de talentos PROMET"
-    }
-  ];
+ const benefits = [
+  {
+    icon: <Users className="w-6 h-6" />,
+    title: "Networking com Profissionais Qualificados",
+    description: "Participe em workshops e eventos e seja o primeiro a identificá-los"
+  },
+  {
+    icon: <GraduationCap className="w-6 h-6" />,
+    title: "Desenvolvimento de Colaboradores",
+    description: "Capacite sua equipe com nossos programas de formação"
+  },
+  {
+    icon: <Award className="w-6 h-6" />,
+    title: "Visibilidade Institucional",
+    description: "Fortaleça sua marca como empresa comprometida com a educação"
+  },
+  {
+    icon: <Database className="w-6 h-6" />,
+    title: "Base de Dados Exclusiva",
+    description: "Acesso privilegiado ao banco de currículos de talentos qualificados"
+  }
+];
+
 
   useEffect(() => {
     const fetchCursos = async () => {

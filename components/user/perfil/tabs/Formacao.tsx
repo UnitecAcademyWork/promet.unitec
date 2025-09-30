@@ -448,7 +448,7 @@ export default function Formacao() {
                   }}
                   className="px-4 py-2 text-white bg-brand-lime rounded-lg hover:bg-gray-300 dark:text-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
                 >
-                  refazer
+                  Refazer
                 </button>
                 <button
                   type="submit"
