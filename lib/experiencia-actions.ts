@@ -88,7 +88,7 @@ export async function updateExperience(id: string, data: Experience): Promise<Ap
     if (!id) throw new Error("ID é obrigatório para atualização");
     validateExperienceData(data);
     
-    const res = await fetch(`${API_URL}/update-experiencia/${id}`, {
+    const res = await fetch(`${API_URL}/actualizar-experiencia-profissional/${id}`, {
       method: "PUT",
       headers: await authHeaders(),
       body: JSON.stringify(data),
