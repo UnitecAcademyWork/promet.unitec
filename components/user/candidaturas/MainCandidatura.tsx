@@ -82,16 +82,16 @@ const MainCandidatura = () => {
     toast.dismiss(loadingToast);
 
     if (result.success) {
-      toast.success("✅ Pagamento realizado com sucesso!");
+      toast.success("Pagamento realizado com sucesso!");
       setModalOpen(false);
       fetchCandidaturas();
     } else {
       // 👇 mostra mensagem vinda da base de dados (ex: PIN, timeout, falhou, etc.)
-      toast.error(result.error || "❌ Erro desconhecido no pagamento.");
+      toast.error(result.error || "Erro desconhecido no pagamento.");
     }
   } catch (err: any) {
     toast.dismiss();
-    toast.error(err.message || "❌ Erro inesperado ao processar pagamento.");
+    toast.error(err.message || "Erro inesperado ao processar pagamento.");
   }
 };
 
