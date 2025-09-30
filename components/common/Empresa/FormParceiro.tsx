@@ -103,11 +103,11 @@ const PartnershipForm = () => {
   ];
 
   const benefits = [
-    {
-      icon: <Users className="w-6 h-6" />,
-      title: "Acesso a Talentos Qualificados",
-      description: "Conecte-se com profissionais treinados e prontos para o mercado"
-    },
+    // {
+    //   icon: <Users className="w-6 h-6" />,
+    //   title: "Acesso a Talentos Qualificados",
+    //   description: "Conecte-se com profissionais treinados e prontos para o mercado"
+    // },
     {
       icon: <GraduationCap className="w-6 h-6" />,
       title: "Desenvolvimento de Colaboradores",
