@@ -266,7 +266,7 @@ export default function Experiencia({ isEditing }: ExperienciaProps) {
               </div>
 
               <div className="flex gap-2">
-                <button type="button" onClick={() => { setShowForm(false); setEditingId(null); }} className="px-4 py-2 bgbrand-lime text-gray-700 rounded-lg dark:bg-gray-700 dark:text-gray-300">Refazer</button>
+                <button type="button" onClick={() => { setShowForm(false); setEditingId(null); }} className="px-4 py-2 bg-brand-lime text-gray-700 rounded-lg dark:bg-gray-700 dark:text-gray-300">Refazer</button>
                 <button type="submit" className="px-4 py-2 bg-brand-main text-white rounded-lg hover:bg-blue-600 transition">
                   {editingId ? "Atualizar Experiência" : "Adicionar Experiência"}
                 </button>
