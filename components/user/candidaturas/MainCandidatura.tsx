@@ -236,6 +236,9 @@ const MainCandidatura = () => {
     return statusInfo[status as keyof typeof statusInfo] || statusInfo.emAvaliacao;
   };
 
+  // Verificar se pode adicionar mais candidaturas
+  const podeAdicionarCandidatura = candidaturas.length < 2;
+
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -263,6 +266,23 @@ const MainCandidatura = () => {
           <p className="text-gray-600 dark:text-gray-400">
             Acompanhe o status das suas inscrições e certificados
           </p>
+          
+          {/* Contador de candidaturas */}
+          <div className="mt-4 bg-white dark:bg-gray-800 rounded-lg p-3 inline-block">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-gray-600 dark:text-gray-400">
+                Candidaturas:{" "}
+                <span className="font-semibold text-brand-main dark:text-brand-lime">
+                  {candidaturas.length}/2
+                </span>
+              </span>
+              {candidaturas.length >= 2 && (
+                <span className="text-xs bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-2 py-1 rounded-full">
+                  Limite atingido
+                </span>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Filtros */}
@@ -308,6 +328,24 @@ const MainCandidatura = () => {
           </div>
         ) : (
           <div className="space-y-3">
+            {/* Informação sobre limite de candidaturas */}
+            {candidaturas.length >= 2 && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
+                <div className="flex items-start gap-3">
+                  <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-blue-800 dark:text-blue-300 font-medium mb-1">
+                      Limite de Candidaturas Atingido
+                    </p>
+                    <p className="text-sm text-blue-700 dark:text-blue-400">
+                      Você já atingiu o limite máximo de 2 candidaturas. 
+                      Para candidatar-se a um novo curso, primeiro delete uma das suas candidaturas atuais.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {candidaturasFiltradas.map((c) => {
               const { icon: Icon, color, bg, text } = getStatusInfo(c.status);
               const testes: Teste[] = c.testesdiagnosticos || [];
@@ -551,6 +589,21 @@ const MainCandidatura = () => {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* Botão para adicionar nova candidatura se ainda tiver vaga */}
+        {podeAdicionarCandidatura && (
+          <div className="text-center mt-8">
+            <Link
+              href="/cursos"
+              className="inline-block bg-brand-main text-white font-semibold py-3 px-6 rounded-lg hover:bg-brand-lime transition-colors"
+            >
+              Adicionar Nova Candidatura ({candidaturas.length}/2)
+            </Link>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+              Você ainda pode candidatar-se a {2 - candidaturas.length} curso(s)
+            </p>
           </div>
         )}
       </div>

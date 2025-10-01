@@ -42,7 +42,8 @@ const CursoCandidatura = () => {
   const params = useParams();
   const [curso, setCurso] = useState<CursoReal | null>(null);
   const [loading, setLoading] = useState(true);
-  const [hasCandidatura, setHasCandidatura] = useState(false);
+  const [candidaturasCount, setCandidaturasCount] = useState(0);
+  const [hasCandidaturaForThisCourse, setHasCandidaturaForThisCourse] = useState(false);
   const [candidaturaLoading, setCandidaturaLoading] = useState(true);
   const [finalizando, setFinalizando] = useState(false);
 
@@ -110,9 +111,9 @@ const CursoCandidatura = () => {
     fetchCurso();
   }, [params.id]);
 
-  // Verificar se o candidato já tem uma candidatura
+  // Verificar candidaturas do candidato
   useEffect(() => {
-    const checkCandidatura = async () => {
+    const checkCandidaturas = async () => {
       try {
         const candidato = await getCandidato();
         if (!candidato) {
@@ -121,26 +122,35 @@ const CursoCandidatura = () => {
         }
 
         const candidaturas: Candidatura[] = await getCandidaturas();
-        const jaInscrito = candidaturas.some(
-          (c) => c.idCandidato === candidato.id
+        
+        // Contar candidaturas ativas
+        const count = candidaturas.filter(c => c.idCandidato === candidato.id).length;
+        setCandidaturasCount(count);
+        
+        // Verificar se já tem candidatura para este curso específico
+        const jaCandidatadoEsteCurso = candidaturas.some(
+          (c) => c.idCandidato === candidato.id && c.idCurso === params.id
         );
-        setHasCandidatura(jaInscrito);
+        setHasCandidaturaForThisCourse(jaCandidatadoEsteCurso);
       } catch (error: any) {
-        toast.error(error.message || "Erro ao verificar candidatura.");
+        toast.error(error.message || "Erro ao verificar candidaturas.");
       } finally {
         setCandidaturaLoading(false);
       }
     };
 
-    checkCandidatura();
-  }, []);
+    checkCandidaturas();
+  }, [params.id]);
 
   // Função para candidatar-se
   const handleCandidatarSe = async (cursoId: string) => {
-    if (hasCandidatura) {
-      toast.error(
-        "Já tens uma candidatura ativa. Não podes inscrever-te em mais cursos."
-      );
+    if (hasCandidaturaForThisCourse) {
+      toast.error("Já te candidataste a este curso.");
+      return;
+    }
+
+    if (candidaturasCount >= 2) {
+      toast.error("Já atingiste o limite de 2 candidaturas. Não podes inscrever-te em mais cursos.");
       return;
     }
 
@@ -153,7 +163,8 @@ const CursoCandidatura = () => {
       }
 
       await enviarCandidatura({ idCurso: cursoId });
-      setHasCandidatura(true);
+      setCandidaturasCount(prev => prev + 1);
+      setHasCandidaturaForThisCourse(true);
 
       toast.success("Candidatura enviada com sucesso!");
       router.push("/user/candidaturas");
@@ -163,6 +174,8 @@ const CursoCandidatura = () => {
       setFinalizando(false);
     }
   };
+
+  const canApply = candidaturasCount < 2 && !hasCandidaturaForThisCourse;
 
   if (loading || candidaturaLoading) {
     return (
@@ -221,21 +234,26 @@ const CursoCandidatura = () => {
                 <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
                   {curso.nome}
                 </h1>
-                {/* <p className="text-gray-600 text-sm dark:text-gray-300 mt-1">
-                  Teste de Diagnóstico{" "}
-                  <span className="text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full mb-2">
-                    {curso.precoTeste}MT
+                {/* Status das candidaturas */}
+                <div className="flex items-center mt-2 gap-4">
+                  <span className="text-sm text-gray-600 dark:text-gray-300">
+                    Candidaturas: {candidaturasCount}/2
                   </span>
-                </p> */}
+                  {candidaturasCount >= 2 && (
+                    <span className="text-xs bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-2 py-1 rounded-full">
+                      Limite atingido
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
             <div className="flex flex-col items-end">
               <button
                 onClick={() => handleCandidatarSe(curso.id)}
-                disabled={hasCandidatura || finalizando}
+                disabled={!canApply || finalizando}
                 className={`px-6 py-3 font-semibold rounded-lg transition-colors duration-300 flex items-center justify-center min-w-[180px] ${
-                  hasCandidatura || finalizando
+                  !canApply || finalizando
                     ? "bg-gray-400 text-gray-700 cursor-not-allowed"
                     : "bg-brand-main text-white hover:bg-brand-main/70"
                 }`}
@@ -245,17 +263,26 @@ const CursoCandidatura = () => {
                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                     Finalizando...
                   </>
-                ) : hasCandidatura ? (
+                ) : hasCandidaturaForThisCourse ? (
                   "Já Candidatado"
+                ) : candidaturasCount >= 2 ? (
+                  "Limite Atingido"
                 ) : (
                   "Finalizar Candidatura"
                 )}
               </button>
 
-              {hasCandidatura && (
+              {hasCandidaturaForThisCourse && (
                 <div className="mt-2 flex items-center text-sm text-amber-600 dark:text-amber-400">
                   <AlertTriangle className="w-4 h-4 mr-1" />
-                  <span>Já tens uma candidatura activa</span>
+                  <span>Já te candidataste a este curso</span>
+                </div>
+              )}
+              
+              {candidaturasCount >= 2 && !hasCandidaturaForThisCourse && (
+                <div className="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                  <AlertTriangle className="w-4 h-4 mr-1" />
+                  <span>Limite de 2 candidaturas atingido</span>
                 </div>
               )}
             </div>
@@ -294,7 +321,6 @@ const CursoCandidatura = () => {
               </div>
             </div>
           </div>
-
         </div>
 
         {/* Processo após candidatura */}
@@ -410,6 +436,7 @@ const CursoCandidatura = () => {
               <li>• Modalidade: Presencial</li>
               <li>• Local: Após a aprovação da candidatura</li>
               <li>• Horário: Segunda a Sexta, 08:35-11:35 - 16:00-19:00</li>
+              <li>• Limite: Máximo 2 candidaturas por candidato</li>
             </ul>
           </div>
 
@@ -433,9 +460,9 @@ const CursoCandidatura = () => {
         <div className="text-center mt-10">
           <button
             onClick={() => handleCandidatarSe(curso.id)}
-            disabled={hasCandidatura || finalizando}
+            disabled={!canApply || finalizando}
             className={`px-8 py-4 font-bold rounded-lg transition-colors duration-300 text-lg flex items-center justify-center mx-auto min-w-[280px] gap-2 ${
-              hasCandidatura || finalizando
+              !canApply || finalizando
                 ? "bg-gray-400 text-gray-700 cursor-not-allowed"
                 : "bg-brand-main text-white hover:bg-brand-lime"
             }`}
@@ -445,12 +472,22 @@ const CursoCandidatura = () => {
                 <Loader2 className="w-5 h-5 animate-spin" />
                 Finalizando...
               </>
-            ) : hasCandidatura ? (
+            ) : hasCandidaturaForThisCourse ? (
               "Já Candidatado"
+            ) : candidaturasCount >= 2 ? (
+              "Limite de Candidaturas Atingido"
             ) : (
               "Quero me Candidatar Agora"
             )}
           </button>
+          
+          {/* Informação sobre o limite */}
+          <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+            <p>
+              Podes candidatar-te a até 2 cursos diferentes. 
+              {candidaturasCount > 0 && ` Já usaste ${candidaturasCount} de 2 candidaturas.`}
+            </p>
+          </div>
         </div>
       </div>
     </div>
