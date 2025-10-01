@@ -9,13 +9,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import GoogleLoginButton from "../../../components/common/google-login-button";
-import { useRouter } from "next/navigation"; // ✅ correto para app router
-import type { Metadata } from "next";
-export const metadata: Metadata = {
-  title: "Entrar | Promet",
-  description:
-    "Acesse sua conta no (PROMET) para gerir candidaturas e ou actualizar seus dados.",
-};
+import { useRouter } from "next/navigation"; 
+
 
 export default function LoginForm() {
   const [form, setForm] = useState({ identifier: "", password: "" });
