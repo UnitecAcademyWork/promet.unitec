@@ -9,7 +9,7 @@ import Beneficios from "../components/Landing/Beneficios/beneficio";
 
 export const metadata: Metadata = {
   title: "Promet",
-  description: "",
+  description: "Programa de Melhoria de Empregabilidade e Trabalho que fortalece competências, promove inserção profissional e apoia carreiras sustentáveis.",
 };
 
 export default function Home() {

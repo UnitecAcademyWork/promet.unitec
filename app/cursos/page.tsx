@@ -14,6 +14,7 @@ import {
 import Link from "next/link";
 import { Curso, getCursos } from "../../lib/cursos-actions";
 
+
 const CursosPage = () => {
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [searchTerm, setSearchTerm] = useState("");

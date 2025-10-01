@@ -18,6 +18,7 @@ import {
   AlertCircle,
   AlertTriangle,
   Loader2,
+  BookA,
 } from "lucide-react";
 import { enviarCandidatura } from "../../../lib/enviar-candidatura-actions";
 import toast from "react-hot-toast";
@@ -254,28 +255,46 @@ const CursoCandidatura = () => {
               {hasCandidatura && (
                 <div className="mt-2 flex items-center text-sm text-amber-600 dark:text-amber-400">
                   <AlertTriangle className="w-4 h-4 mr-1" />
-                  <span>Já tens uma candidatura ativa noutro curso</span>
+                  <span>Já tens uma candidatura activa</span>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center text-sm">
-              <Calendar className="w-4 h-4 text-brand-main mr-2" />
-              <span className="text-gray-600 dark:text-gray-300">
-                Início: {dataInicio}
-              </span>
+          <div className="flex justify-between flex-wrap gap-4 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            {/* Esquerda - 3 primeiros */}
+            <div className="flex flex-wrap gap-4">
+              <div className="flex items-center text-sm">
+                <Calendar className="w-4 h-4 text-brand-main mr-2" />
+                <span className="text-gray-600 dark:text-gray-300">
+                  Início: {dataInicio}
+                </span>
+              </div>
+              <div className="flex items-center text-sm">
+                <Clock className="w-4 h-4 text-brand-main mr-2" />
+                <span className="text-gray-600 dark:text-gray-300">Duração: 30 Dias</span>
+              </div>
+              <div className="flex items-center text-sm">
+                <User className="w-4 h-4 text-brand-main mr-2" />
+                <span className="text-gray-600 dark:text-gray-300">Vagas limitadas</span>
+              </div>
             </div>
-            <div className="flex items-center text-sm">
-              <Clock className="w-4 h-4 text-brand-main mr-2" />
-              <span className="text-gray-600 dark:text-gray-300">Duração: 30 Dias</span>
-            </div>
-            <div className="flex items-center text-sm">
-              <User className="w-4 h-4 text-brand-main mr-2" />
-              <span className="text-gray-600 dark:text-gray-300">Vagas limitadas</span>
+
+            {/* Direita - 3 últimos */}
+            <div className="flex flex-wrap gap-4">
+              <div className="flex items-center text-sm">
+                <BookA className="w-4 h-4 text-brand-main mr-2" />
+                <span className="text-gray-600 dark:text-gray-300">
+                  Teste de Diagnóstico: Online
+                </span>
+              </div>
+              <div className="flex items-center text-sm">
+                <Clock className="w-4 h-4 text-brand-main mr-2" />
+                <span className="text-gray-600 dark:text-gray-300">Período: 09-14 de Agosto</span>
+              </div>
             </div>
           </div>
+
         </div>
 
         {/* Processo após candidatura */}
@@ -427,7 +446,7 @@ const CursoCandidatura = () => {
                 Finalizando...
               </>
             ) : hasCandidatura ? (
-              "Já Candidatado a Outro Curso"
+              "Já Candidatado"
             ) : (
               "Quero me Candidatar Agora"
             )}
