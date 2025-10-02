@@ -511,9 +511,9 @@ export default function RegisterForm() {
                   id="terms"
                   className="w-4 h-4 text-brand-main border-gray-300 rounded focus:ring-1 focus:ring-brand-main/30"
                 />
-                <label htmlFor="terms" className="text-xs text-gray-500 dark:text-gray-400">
+                <label htmlFor="nossos-termos" className="text-xs text-gray-500 dark:text-gray-400">
                   Aceito os{" "}
-                  <Link href="/terms" className="text-brand-main hover:text-brand-lime">
+                  <Link href="/nossos-termos" target="_blank" className="text-brand-main hover:text-brand-lime">
                     Termos e Condições
                   </Link>
                 </label>

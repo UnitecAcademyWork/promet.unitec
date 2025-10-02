@@ -22,11 +22,12 @@ const PartnerSlider = () => {
     { id: 13, name: "PRI", image: "/images/PRI.png" },
     { id: 14, name: "TC", image: "/images/TC.png" },
     { id: 15, name: "Enviro Works - Solucões ambientais", image: "/images/enviroWorks.jpg" },
-    { id: 20, name: "Auto Suiça", image: "/images/AutoSuica.jpg" },
     { id: 16, name: "Aro Moçambique", image: "/images/Aro.png" },
     { id: 17, name: "Agência de Desenvolvimento e Empreendedorismo", image: "/images/ADE.png" },
     { id: 18, name: "Blue Art Files", image: "/images/blue_art.png" },
     { id: 21, name: "Charles Metalomecânica", image: "/images/charlesMetal.png" },
+    { id: 19, name: "Espaço Tlangano", image: "/images/Tlangano.png" },
+    { id: 20, name: "Auto Suiça", image: "/images/AutoSuica.jpg" },
   ];
 
   // Duplicar a lista para o efeito de loop infinito

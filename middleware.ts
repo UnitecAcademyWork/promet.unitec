@@ -12,6 +12,7 @@ export function middleware(req: NextRequest) {
     "/recuperar-senha",
     "/formulario/parceiro",
     "/cursos",
+    "/nossos-termos",
      "/nova-senha",         // adicionado
     "/nova-senha/[otp]",
   ];
