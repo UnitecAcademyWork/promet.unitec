@@ -346,7 +346,38 @@ const CursoCandidatura = () => {
             ))}
           </div>
         </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-5">
+            <h3 className="text-md font-semibold text-blue-800 dark:text-blue-200 mb-3 flex items-center">
+              <AlertCircle className="w-5 h-5 mr-2" />
+              Informações Importantes
+            </h3>
+            <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-2">
+              <li>• As vagas são limitadas</li>
+              <li>• Início das aulas: {dataInicio}</li>
+              <li>• Duração: 30 Dias</li>
+              <li>• Modalidade: Presencial</li>
+              <li>• Local: Após a aprovação da candidatura</li>
+              <li>• Horário: Segunda a Sexta, 08:35-11:35 - 16:00-19:00</li>
+              <li>• Limite: Máximo 2 candidaturas por candidato</li>
+            </ul>
+          </div>
 
+          <div className="bg-brand-main/5 dark:bg-brand-main/10 rounded-xl p-5">
+            <h3 className="text-md font-semibold text-brand-main dark:text-brand-lime mb-3 flex items-center">
+              <HeartHandshake className="w-5 h-5 mr-2" />
+              Por que escolher este curso?
+            </h3>
+            <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
+              <li>• Sector em crescimento em Moçambique</li>
+              <li>• Professores com experiência prática</li>
+              <li>• Infraestrutura moderna e adequada</li>
+              <li>• Parcerias com empresas do sector</li>
+              <li>• Alta taxa de empregabilidade</li>
+              <li>• Certificação reconhecida nacionalmente</li>
+            </ul>
+          </div>
+        </div>
         {/* Grid de cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {/* Benefícios do curso */}
@@ -423,38 +454,7 @@ const CursoCandidatura = () => {
         </div>
 
         {/* Informações adicionais */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-5">
-            <h3 className="text-md font-semibold text-blue-800 dark:text-blue-200 mb-3 flex items-center">
-              <AlertCircle className="w-5 h-5 mr-2" />
-              Informações Importantes
-            </h3>
-            <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-2">
-              <li>• As vagas são limitadas</li>
-              <li>• Início das aulas: {dataInicio}</li>
-              <li>• Duração: 30 Dias</li>
-              <li>• Modalidade: Presencial</li>
-              <li>• Local: Após a aprovação da candidatura</li>
-              <li>• Horário: Segunda a Sexta, 08:35-11:35 - 16:00-19:00</li>
-              <li>• Limite: Máximo 2 candidaturas por candidato</li>
-            </ul>
-          </div>
-
-          <div className="bg-brand-main/5 dark:bg-brand-main/10 rounded-xl p-5">
-            <h3 className="text-md font-semibold text-brand-main dark:text-brand-lime mb-3 flex items-center">
-              <HeartHandshake className="w-5 h-5 mr-2" />
-              Por que escolher este curso?
-            </h3>
-            <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
-              <li>• Sector em crescimento em Moçambique</li>
-              <li>• Professores com experiência prática</li>
-              <li>• Infraestrutura moderna e adequada</li>
-              <li>• Parcerias com empresas do sector</li>
-              <li>• Alta taxa de empregabilidade</li>
-              <li>• Certificação reconhecida nacionalmente</li>
-            </ul>
-          </div>
-        </div>
+        
 
         {/* CTA Final */}
         <div className="text-center mt-10">

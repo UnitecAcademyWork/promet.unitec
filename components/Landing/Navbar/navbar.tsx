@@ -264,7 +264,7 @@ const Navbar = () => {
                     <>
                       <li className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
                         <Link
-                          href="/perfil"
+                          href="/user/perfil"
                           onClick={() => setIsMobileOpen(false)}
                           className="flex items-center px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
                         >
@@ -274,7 +274,7 @@ const Navbar = () => {
                       </li>
                       <li>
                         <Link
-                          href="/minhas-candidaturas"
+                          href="/user/candidaturas"
                           onClick={() => setIsMobileOpen(false)}
                           className="flex items-center px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
                         >
