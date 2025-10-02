@@ -90,6 +90,11 @@ export default function Footer() {
               <div className="flex space-x-6">
                 <PrivacyPolicyModal />
               </div>
+              <div className="flex space-x-6">
+                <Link href="/nossos-termos" target="_blank" className="text-gray-500 hover:text-white text-sm transition-colors duration-300 hover:underline underline-offset-2">
+                  Termos e Condições
+                </Link>
+              </div>
             </div>
           </div>
           
@@ -227,6 +232,11 @@ export default function Footer() {
           </p>
           <div className="flex">
             <PrivacyPolicyModal />
+          </div>
+          <div className="flex">
+            <Link href="/nossos-termos" target="_blank" className="text-gray-500 hover:text-white text-sm transition-colors duration-300 hover:underline underline-offset-2">
+                  Termos e Condições
+                </Link>
           </div>
         </div>
       </div>
