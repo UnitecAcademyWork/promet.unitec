@@ -127,10 +127,10 @@ const MainCandidatura = () => {
                     toast.success("Candidatura deletada com sucesso!");
                     fetchCandidaturas();
                   } else {
-                    toast.error("Erro ao deletar candidatura");
+                    toast.error("Erro ao trocar candidatura");
                   }
                 } catch (err: any) {
-                  toast.error(err.message || "Erro ao deletar candidatura");
+                  toast.error(err.message || "Erro ao trocar candidatura");
                 }
               }}
               className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-sm"
@@ -339,7 +339,7 @@ const MainCandidatura = () => {
                     </p>
                     <p className="text-sm text-blue-700 dark:text-blue-400">
                       Você já atingiu o limite máximo de 2 candidaturas. 
-                      Para candidatar-se a um novo curso, primeiro delete uma das suas candidaturas atuais.
+                      Para candidatar-se a um novo curso, primeiro troque uma das suas candidaturas atuais.
                     </p>
                   </div>
                 </div>

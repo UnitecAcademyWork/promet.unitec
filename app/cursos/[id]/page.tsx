@@ -24,6 +24,7 @@ import { enviarCandidatura } from "../../../lib/enviar-candidatura-actions";
 import toast from "react-hot-toast";
 import CursoCandidaturaSkeleton from "../../../components/common/CursosSkeleton";
 import { getCandidato } from "../../../lib/candidato-actions";
+import Link from "next/link";
 
 interface CursoReal {
   id: string;
@@ -243,6 +244,7 @@ const CursoCandidatura = () => {
                     <span className="text-xs bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-2 py-1 rounded-full">
                       Limite atingido
                     </span>
+                    
                   )}
                 </div>
               </div>
@@ -280,9 +282,14 @@ const CursoCandidatura = () => {
               )}
               
               {candidaturasCount >= 2 && !hasCandidaturaForThisCourse && (
-                <div className="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
-                  <AlertTriangle className="w-4 h-4 mr-1" />
-                  <span>Limite de 2 candidaturas atingido</span>
+                <div className="mt-2 flex flex-col items-center text-sm text-red-600 dark:text-red-400">
+                  <div>
+                  {/* <span>Limite de 2 candidaturas atingido</span> */}
+                  </div>
+                  <p>
+                    <Link href="/user/candidaturas" className="text-brand-main underline decoration-solid">Ver Minhas Candidaturas</Link>
+                  </p>
+                  
                 </div>
               )}
             </div>
@@ -346,7 +353,7 @@ const CursoCandidatura = () => {
             ))}
           </div>
         </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
           <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-5">
             <h3 className="text-md font-semibold text-blue-800 dark:text-blue-200 mb-3 flex items-center">
               <AlertCircle className="w-5 h-5 mr-2" />
@@ -485,7 +492,7 @@ const CursoCandidatura = () => {
           <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
             <p>
               Podes candidatar-te a até 2 cursos diferentes. 
-              {candidaturasCount > 0 && ` Já usaste ${candidaturasCount} de 2 candidaturas.`}
+              Ver as <Link href="/user/candidaturas" className="text-brand-main underline decoration-solid hover:text-brand-lime font-bold"> minhas Candidatturas</Link>
             </p>
           </div>
         </div>
