@@ -287,7 +287,7 @@ const CursoCandidatura = () => {
                   {/* <span>Limite de 2 candidaturas atingido</span> */}
                   </div>
                   <p>
-                    <Link href="/user/candidaturas" className="text-brand-main underline decoration-solid">Ver Minhas Candidaturas</Link>
+                    <Link href="/user/candidaturas" className="text-brand-main hover:text-brand-lime font-bold underline decoration-solid">Ver Minhas Candidaturas</Link>
                   </p>
                   
                 </div>
