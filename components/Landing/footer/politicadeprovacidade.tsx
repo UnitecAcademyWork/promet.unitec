@@ -205,9 +205,11 @@ export default function PrivacyPolicyModal() {
 
                 {/* 6. Os Seus Direitos */}
                 <div className="mb-8 p-5 bg-gray-50 rounded-lg border border-gray-200">
+                  <h3 className="text-lg font-semibold mt-0 mb-3 flex items-center">
                   <Book className="w-5 h-5 mr-2 text-blue-500" />
-                  <h3 className="text-lg font-semibold mt-0 mb-3">6. Os Seus Direitos</h3>
-                  <p className="text-gray-600 mb-3">
+                    6. Os Seus Direitos
+                    </h3>
+                  <p className="text-gray-600 mb-3 flex items-center">
                     Você tem o direito de:
                   </p>
                   <ul className="list-disc pl-5 mt-2 text-gray-600 space-y-2">
@@ -225,8 +227,10 @@ export default function PrivacyPolicyModal() {
 
                 {/* 7. Conservação dos Dados */}
                 <div className="mb-8 p-5 bg-gray-50 rounded-lg border border-gray-200">
+                  <h3 className="text-lg font-semibold mt-0 mb-3 flex items-center">
                   <ShieldHalf className="w-5 h-5 mr-2 text-blue-500" />
-                  <h3 className="text-lg font-semibold mt-0 mb-3">7. Conservação dos Dados</h3>
+                  7. Conservação dos Dados
+                  </h3>
                   <p className="text-gray-600">
                     Conservaremos os seus dados pessoais durante o período necessário para cumprir 
                     os fins descritos nesta política, incluindo para fins de manutenção da base de 
@@ -237,8 +241,10 @@ export default function PrivacyPolicyModal() {
 
                 {/* 8. Alterações a Esta Política */}
                 <div className="mb-8 p-5 bg-gray-50 rounded-lg border border-gray-200">
+                  <h3 className="text-lg font-semibold mt-0 mb-3 flex items-center">
                   <NotepadText className="w-5 h-5 mr-2 text-blue-500" />
-                  <h3 className="text-lg font-semibold mt-0 mb-3">8. Alterações a Esta Política</h3>
+                  8. Alterações a Esta Política
+                  </h3>
                   <p className="text-gray-600">
                     Podemos atualizar esta Política de Privacidade periodicamente. Quaisquer 
                     alterações serão publicadas nesta página, com a data de atualização devidamente revista.
@@ -247,8 +253,10 @@ export default function PrivacyPolicyModal() {
 
                 {/* 9. Contactos */}
                 <div className="p-5 bg-blue-50 rounded-lg border border-blue-200">
+                  <h3 className="text-lg font-semibold mt-0 mb-3 flex items-center text-blue-800">
                   <ContactIcon className="w-5 h-5 mr-2 text-blue-800" />
-                  <h3 className="text-lg font-semibold mt-0 mb-3 text-blue-800">9. Contactos</h3>
+                  9. Contactos
+                  </h3>
                   <p className="text-blue-700 mb-4">
                     Se tiver alguma dúvida sobre esta Política de Privacidade ou o tratamento 
                     dos seus dados pessoais, entre em contacto connosco:
