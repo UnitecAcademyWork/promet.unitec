@@ -113,7 +113,7 @@ const AdicionarQuestao: React.FC<AdicionarQuestaoProps> = ({
           <li>Escreva enunciados claros e objetivos</li>
           <li>Você poderá adicionar alternativas depois</li>
           <li>Adicione quantas questões desejar</li>
-          <li>Clique em "Finalizar" quando terminar</li>
+          <li>Clique em Finalizar quando terminar</li>
         </ul>
       </div>
 
