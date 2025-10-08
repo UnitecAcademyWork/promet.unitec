@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
+import { routes } from '../../config/routes';
 
 interface AdicionarQuestaoProps {
   idTeste: string;
@@ -37,7 +38,7 @@ const AdicionarQuestao: React.FC<AdicionarQuestaoProps> = ({
     const loadingToast = toast.loading('Adicionando questão...');
 
     try {
-      const response = await fetch('https://backend-promet.unitec.academy/adicionar-questao', {
+      const response = await fetch(routes.adicionarquestao, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

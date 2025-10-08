@@ -58,43 +58,40 @@ const MainCandidatura = () => {
 
   // Confirmar pagamento
   const handleConfirmPagamento = async (dados: {
-  metodo: string;
-  numero?: string;
-  comprovativo?: File;
-}) => {
-  if (!itemIdSelecionado || !itemNomeSelecionado) {
-    toast.error("Dados do item não encontrados!");
-    return;
-  }
-
-  try {
-    // Mostrar toast de loading
-    const loadingToast = toast.loading("Processando pagamento...");
-
-    const result = await efectuarPagamento({
-      metodoPagamento: dados.metodo,
-      itemId: itemIdSelecionado,
-      itemNome: itemNomeSelecionado,
-      comprovativo: dados.comprovativo,
-      phoneNumber: dados.numero,
-    });
-
-    toast.dismiss(loadingToast);
-
-    if (result.success) {
-      toast.success("Pagamento realizado com sucesso!");
-      setModalOpen(false);
-      fetchCandidaturas();
-    } else {
-      // 👇 mostra mensagem vinda da base de dados (ex: PIN, timeout, falhou, etc.)
-      toast.error(result.error || "Erro desconhecido no pagamento.");
+    metodo: string;
+    numero?: string;
+    comprovativo?: File;
+  }) => {
+    if (!itemIdSelecionado || !itemNomeSelecionado) {
+      toast.error("Dados do item não encontrados!");
+      return;
     }
-  } catch (err: any) {
-    toast.dismiss();
-    toast.error(err.message || "Erro inesperado ao processar pagamento.");
-  }
-};
 
+    try {
+      const loadingToast = toast.loading("Processando pagamento...");
+
+      const result = await efectuarPagamento({
+        metodoPagamento: dados.metodo,
+        itemId: itemIdSelecionado,
+        itemNome: itemNomeSelecionado,
+        comprovativo: dados.comprovativo,
+        phoneNumber: dados.numero,
+      });
+
+      toast.dismiss(loadingToast);
+
+      if (result.success) {
+        toast.success("Pagamento realizado com sucesso!");
+        setModalOpen(false);
+        fetchCandidaturas();
+      } else {
+        toast.error(result.error || "Erro desconhecido no pagamento.");
+      }
+    } catch (err: any) {
+      toast.dismiss();
+      toast.error(err.message || "Erro inesperado ao processar pagamento.");
+    }
+  };
 
   // Nova tentativa de teste
   const handleNovaTentativa = async (candidaturaId: string) => {
@@ -152,37 +149,36 @@ const MainCandidatura = () => {
 
   // Buscar candidaturas + testes
   const fetchCandidaturas = async () => {
-  setLoading(true);
-  try {
-    if (!Cookies.get("auth_token")) throw new Error("Usuário não autenticado");
+    setLoading(true);
+    try {
+      if (!Cookies.get("auth_token")) throw new Error("Usuário não autenticado");
 
-    const data = await getCandidaturas();
-    const testesData = await getTestesByCandidatura();
-    const pagamentosResp = await listarPagamentos();
+      const data = await getCandidaturas();
+      const testesData = await getTestesByCandidatura();
+      const pagamentosResp = await listarPagamentos();
 
-    if (pagamentosResp.success && pagamentosResp.data) {
-      setPagamentos(pagamentosResp.data);
+      if (pagamentosResp.success && pagamentosResp.data) {
+        setPagamentos(pagamentosResp.data);
+      }
+
+      const candidaturasComExtras = await Promise.all(
+        data.map(async (c) => {
+          const testes =
+            testesData.find((t) => t.id === c.id)?.testesdiagnosticos || [];
+          return {
+            ...c,
+            testesdiagnosticos: testes,
+          };
+        })
+      );
+
+      setCandidaturas(candidaturasComExtras);
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao buscar candidaturas");
+    } finally {
+      setLoading(false);
     }
-
-    const candidaturasComExtras = await Promise.all(
-      data.map(async (c) => {
-        const testes =
-          testesData.find((t) => t.id === c.id)?.testesdiagnosticos || [];
-        return {
-          ...c,
-          testesdiagnosticos: testes,
-        };
-      })
-    );
-
-    setCandidaturas(candidaturasComExtras);
-  } catch (err: any) {
-    toast.error(err.message || "Erro ao buscar candidaturas");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   useEffect(() => {
     fetchCandidaturas();
@@ -517,66 +513,113 @@ const MainCandidatura = () => {
                           )}
 
                           {/* Se não tem certificado aprovado (incluindo quando tem certificado em avaliação), mostra os testes */}
-                          {testes.length > 0 && (
-                            <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 mb-4 mt-3">
-                              <h4 className="font-semibold text-gray-800 dark:text-white mb-2">
-                                Testes de Diagnóstico
-                              </h4>
-                              <ul className="space-y-2">
-                                {testes.map((t: Teste) => {
-  const pagamentoTesteAtivo = pagamentos.some(
-    (p) =>
-      p.itemNome === "teste" &&
-      p.itemId === t.id &&
-      (p.status === "processando" || p.status === "confirmado")
-  );
+                          <div className="space-y-2 mt-3">
+                            {testes.map((t: Teste) => {
+                              const pagamentoTesteAtivo = pagamentos.some(
+                                (p) =>
+                                  p.itemNome === "teste" &&
+                                  p.itemId === t.id &&
+                                  (p.status === "processando" || p.status === "confirmado")
+                              );
 
-  return (
-    <li
-      key={t.id}
-      className="flex justify-between items-center bg-white dark:bg-gray-800 p-2 rounded-md shadow-sm"
-    >
-      <div>
-        <p className="text-sm text-gray-700 dark:text-gray-300">
-          {t.status.charAt(0).toUpperCase() + t.status.slice(1)}{" "}
-          <span className="text-xs text-gray-500">({t.preco} MT)</span>
-        </p>
+                              const pagamentoConfirmado = pagamentos.some(
+                                (p) => p.itemNome === "teste" && p.itemId === t.id && p.status === "confirmado"
+                              );
 
-        {pagamentoTesteAtivo && (
-          <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-            Pagamento{" "}
-            {
-              pagamentos.find((p) => p.itemId === t.id)?.status ===
-              "confirmado"
-                ? "confirmado"
-                : "em processamento ⏳"
-            }
-          </span>
-        )}
-      </div>
+                              const testeAprovado = t.status === "aprovado";
+                              const testeReprovado = t.status === "reprovado";
 
-      {pagamentoTesteAtivo ? null : (
-        <button
-          onClick={() => abrirModal(t.id, "teste", t.preco)}
-          className="px-3 py-1 rounded-lg text-xs font-medium transition-colors bg-yellow-500 text-white hover:bg-yellow-600"
-        >
-          Pagar Teste
-        </button>
-      )}
-    </li>
-  );
-})}
+                              return (
+                                <div
+                                  key={t.id}
+                                  className="flex justify-between items-center bg-gray-50 dark:bg-gray-750 p-3 rounded-lg border border-gray-200 dark:border-gray-700"
+                                >
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className={`text-sm font-medium ${
+                                        testeAprovado ? "text-green-600 dark:text-green-400" :
+                                        testeReprovado ? "text-red-600 dark:text-red-400" :
+                                        "text-gray-700 dark:text-gray-300"
+                                      }`}>
+                                        Teste de Diagnóstico
+                                      </span>
+                                      <span className="text-xs text-gray-500">({t.preco} MT)</span>
+                                    </div>
 
-                              </ul>
-                            </div>
-                          )}
+                                    {/* Status do teste */}
+                                    <div className="flex items-center gap-2">
+                                      <span className={`text-xs px-2 py-1 rounded-full ${
+                                        testeAprovado ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" :
+                                        testeReprovado ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" :
+                                        "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+                                      }`}>
+                                        {t.status.charAt(0).toUpperCase() + t.status.slice(1)}
+                                      </span>
+
+                                      {pagamentoTesteAtivo && (
+                                        <span className="inline-block px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-full">
+                                          Pagamento{" "}
+                                          {
+                                            pagamentos.find((p) => p.itemId === t.id)?.status === "confirmado"
+                                              ? "confirmado"
+                                              : "em processamento ⏳"
+                                          }
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-2">
+                                    {/* 🔹 Se teste foi reprovado, mostra botão Nova Tentativa */}
+                                    {testeReprovado && (
+                                      <button
+                                        onClick={() => handleNovaTentativa(c.id)}
+                                        className="flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium transition-colors bg-orange-500 text-white hover:bg-orange-600"
+                                      >
+                                        <RefreshCw className="w-3 h-3" />
+                                        Nova Tentativa
+                                      </button>
+                                    )}
+
+                                    {/* 🔹 Se pagamento confirmado E teste não está finalizado, mostra botão Fazer Teste */}
+                                    {/* {pagamentoConfirmado && !testeAprovado && !testeReprovado && (
+                                      <Link
+                                        href={`/user/teste/${c.cursos.id}`}
+                                        target="_blank"
+                                        className="px-3 py-1 rounded-lg text-xs font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"
+                                      >
+                                        Fazer Teste
+                                      </Link>
+                                    )} */}
+
+                                    {/* 🔹 Se não tem pagamento ativo E teste não está finalizado, mostra botão Pagar Teste */}
+                                    {!pagamentoTesteAtivo && !testeAprovado && !testeReprovado && (
+                                      <button
+                                        onClick={() => abrirModal(t.id, "teste", t.preco)}
+                                        className="px-3 py-1 rounded-lg text-xs font-medium transition-colors bg-yellow-500 text-white hover:bg-yellow-600"
+                                      >
+                                        Pagar Teste
+                                      </button>
+                                    )}
+
+                                    {/* 🔹 Se teste está aprovado/reprovado, botões de pagamento/fazer teste ficam desabilitados */}
+                                    {(testeAprovado || testeReprovado) && !pagamentoTesteAtivo && (
+                                      <span className="px-3 py-1 rounded-lg text-xs font-medium bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-400 cursor-not-allowed">
+                                        {testeAprovado ? "Teste Concluído" : "Teste Reprovado"}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
 
                           {/* Botão trocar formação (apenas se não tem teste aprovado) */}
                           {!testes.some((t: Teste) => t.status === "aprovado") && (
                             <div className="flex justify-end mt-3">
                               <button
                                 onClick={() => handleDeletarCandidatura(c.id)}
-                                className="px-3 py-1 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors"
+                                className="px-3 py-1 rounded-lg bg-brand-lime text-white text-sm font-medium hover:bg-red-700 transition-colors"
                               >
                                 Trocar Formação
                               </button>
