@@ -14,6 +14,9 @@ import {
   RefreshCw,
   AlertCircle,
   Info,
+  FileText,
+  BookOpen,
+  CreditCard,
 } from "lucide-react";
 
 import { getCandidaturas } from "../../../lib/candidaturas-get";
@@ -58,43 +61,39 @@ const MainCandidatura = () => {
 
   // Confirmar pagamento
   const handleConfirmPagamento = async (dados: {
-  metodo: string;
-  numero?: string;
-  comprovativo?: File;
-}) => {
-  if (!itemIdSelecionado || !itemNomeSelecionado) {
-    toast.error("Dados do item não encontrados!");
-    return;
-  }
-
-  try {
-    // Mostrar toast de loading
-    const loadingToast = toast.loading("Processando pagamento...");
-
-    const result = await efectuarPagamento({
-      metodoPagamento: dados.metodo,
-      itemId: itemIdSelecionado,
-      itemNome: itemNomeSelecionado,
-      comprovativo: dados.comprovativo,
-      phoneNumber: dados.numero,
-    });
-
-    toast.dismiss(loadingToast);
-
-    if (result.success) {
-      toast.success("Pagamento realizado com sucesso!");
-      setModalOpen(false);
-      fetchCandidaturas();
-    } else {
-      // 👇 mostra mensagem vinda da base de dados (ex: PIN, timeout, falhou, etc.)
-      toast.error(result.error || "Erro desconhecido no pagamento.");
+    metodo: string;
+    numero?: string;
+    comprovativo?: File;
+  }) => {
+    if (!itemIdSelecionado || !itemNomeSelecionado) {
+      toast.error("Dados do item não encontrados!");
+      return;
     }
-  } catch (err: any) {
-    toast.dismiss();
-    toast.error(err.message || "Erro inesperado ao processar pagamento.");
-  }
-};
 
+    try {
+      const loadingToast = toast.loading("Processando pagamento...");
+      const result = await efectuarPagamento({
+        metodoPagamento: dados.metodo,
+        itemId: itemIdSelecionado,
+        itemNome: itemNomeSelecionado,
+        comprovativo: dados.comprovativo,
+        phoneNumber: dados.numero,
+      });
+
+      toast.dismiss(loadingToast);
+
+      if (result.success) {
+        toast.success("Pagamento realizado com sucesso!");
+        setModalOpen(false);
+        fetchCandidaturas();
+      } else {
+        toast.error(result.error || "Erro desconhecido no pagamento.");
+      }
+    } catch (err: any) {
+      toast.dismiss();
+      toast.error(err.message || "Erro inesperado ao processar pagamento.");
+    }
+  };
 
   // Nova tentativa de teste
   const handleNovaTentativa = async (candidaturaId: string) => {
@@ -111,20 +110,41 @@ const MainCandidatura = () => {
     }
   };
 
-  // Deletar candidatura
-  const handleDeletarCandidatura = (id: string) => {
+  // Deletar candidatura (só permite se não tiver teste aprovado)
+  const handleDeletarCandidatura = (id: string, temTesteAprovado: boolean) => {
+    if (temTesteAprovado) {
+      toast.error("Não é possível trocar uma formação com teste aprovado.");
+      return;
+    }
+
     toast(
       (t) => (
-        <div className="flex flex-col gap-2">
-          <span>Tem certeza que deseja trocar esta candidatura?</span>
+        <div className="flex flex-col gap-3 p-2">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-semibold text-gray-900 dark:text-white">
+                Confirmar troca de candidatura
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Tem certeza que deseja trocar esta candidatura? Esta ação não pode ser desfeita.
+              </p>
+            </div>
+          </div>
           <div className="flex justify-end gap-2">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition-colors text-sm font-medium"
+            >
+              Cancelar
+            </button>
             <button
               onClick={async () => {
                 toast.dismiss(t.id);
                 try {
                   const resp = await deleteCandidatura(id);
                   if (resp.success) {
-                    toast.success("Candidatura deletada com sucesso!");
+                    toast.success("Candidatura trocada com sucesso!");
                     fetchCandidaturas();
                   } else {
                     toast.error("Erro ao trocar candidatura");
@@ -133,56 +153,57 @@ const MainCandidatura = () => {
                   toast.error(err.message || "Erro ao trocar candidatura");
                 }
               }}
-              className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-sm"
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
             >
-              Sim
-            </button>
-            <button
-              onClick={() => toast.dismiss(t.id)}
-              className="px-3 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition-colors text-sm"
-            >
-              Não
+              Sim, Trocar
             </button>
           </div>
         </div>
       ),
-      { duration: Infinity }
+      { duration: 10000 }
     );
   };
 
-  // Buscar candidaturas + testes
+  // Buscar candidaturas + testes (APENAS para candidaturas concluídas)
   const fetchCandidaturas = async () => {
-  setLoading(true);
-  try {
-    if (!Cookies.get("auth_token")) throw new Error("Usuário não autenticado");
+    setLoading(true);
+    try {
+      if (!Cookies.get("auth_token")) throw new Error("Usuário não autenticado");
 
-    const data = await getCandidaturas();
-    const testesData = await getTestesByCandidatura();
-    const pagamentosResp = await listarPagamentos();
+      const data = await getCandidaturas();
+      const pagamentosResp = await listarPagamentos();
 
-    if (pagamentosResp.success && pagamentosResp.data) {
-      setPagamentos(pagamentosResp.data);
+      if (pagamentosResp.success && pagamentosResp.data) {
+        setPagamentos(pagamentosResp.data);
+      }
+
+      const candidaturasConcluidas = data.filter(c => c.status === "concluido");
+      
+      let testesData: any[] = [];
+      if (candidaturasConcluidas.length > 0) {
+        testesData = await getTestesByCandidatura();
+      }
+
+      const candidaturasComExtras = await Promise.all(
+        data.map(async (c) => {
+          const testes = c.status === "concluido" 
+            ? testesData.find((t) => t.id === c.id)?.testesdiagnosticos || []
+            : [];
+
+          return {
+            ...c,
+            testesdiagnosticos: testes,
+          };
+        })
+      );
+
+      setCandidaturas(candidaturasComExtras);
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao buscar candidaturas");
+    } finally {
+      setLoading(false);
     }
-
-    const candidaturasComExtras = await Promise.all(
-      data.map(async (c) => {
-        const testes =
-          testesData.find((t) => t.id === c.id)?.testesdiagnosticos || [];
-        return {
-          ...c,
-          testesdiagnosticos: testes,
-        };
-      })
-    );
-
-    setCandidaturas(candidaturasComExtras);
-  } catch (err: any) {
-    toast.error(err.message || "Erro ao buscar candidaturas");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   useEffect(() => {
     fetchCandidaturas();
@@ -201,53 +222,47 @@ const MainCandidatura = () => {
         color: "text-yellow-600",
         bg: "bg-yellow-100",
         text: "Em Avaliação",
+        desc: "Sua candidatura está sendo analisada"
       },
       concluido: {
         icon: CheckCircle,
         color: "text-green-600",
         bg: "bg-green-100",
         text: "Aprovado",
+        desc: "Candidatura aprovada - Próximo passo: Teste"
       },
       rejeitado: {
         icon: XCircle,
         color: "text-red-600",
         bg: "bg-red-100",
         text: "Reprovado",
+        desc: "Candidatura não aprovada"
       },
       pendente: {
         icon: Clock,
         color: "text-blue-600",
         bg: "bg-blue-100",
         text: "Pendente",
-      },
-      aprovado: {
-        icon: CheckCircle,
-        color: "text-green-600",
-        bg: "bg-green-100",
-        text: "Aprovado",
-      },
-      reprovado: {
-        icon: XCircle,
-        color: "text-red-600",
-        bg: "bg-red-100",
-        text: "Reprovado",
+        desc: "Aguardando processamento"
       },
     };
     return statusInfo[status as keyof typeof statusInfo] || statusInfo.emAvaliacao;
   };
 
-  // Verificar se pode adicionar mais candidaturas
   const podeAdicionarCandidatura = candidaturas.length < 2;
 
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader className="w-8 h-8 animate-spin text-brand-main" />
+        <div className="text-center">
+          <Loader className="w-12 h-12 animate-spin text-brand-main mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">Carregando suas candidaturas...</p>
+        </div>
       </div>
     );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div className="min-h-screen  dark:bg-gray-900 py-8">
       <Toaster position="top-right" />
       <ModalPagamento
         isOpen={modalOpen}
@@ -257,358 +272,499 @@ const MainCandidatura = () => {
         onConfirm={handleConfirmPagamento}
       />
 
-      <div className="container mx-auto px-4 max-w-4xl">
+      <div className="container mx-auto px-4 max-w-6xl">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-brand-main dark:text-white mb-2">
-            Minhas Candidaturas
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Acompanhe o status das suas inscrições e certificados
-          </p>
-          
-          {/* Contador de candidaturas */}
-          <div className="mt-4 bg-white dark:bg-gray-800 rounded-lg p-3 inline-block">
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-gray-600 dark:text-gray-400">
-                Candidaturas:{" "}
-                <span className="font-semibold text-brand-main dark:text-brand-lime">
-                  {candidaturas.length}/2
-                </span>
-              </span>
-              {candidaturas.length >= 2 && (
-                <span className="text-xs bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-2 py-1 rounded-full">
-                  Limite atingido
-                </span>
-              )}
+          <div className="inline-flex items-center gap-3 bg-white dark:bg-gray-800 rounded-2xl px-6 py-4 shadow-sm border border-gray-100 dark:border-gray-700 mb-4">
+            <BookOpen className="w-8 h-8 text-brand-main" />
+            <div className="text-left">
+              <h1 className="text-2xl font-bold text-brand-main dark:text-white">
+                Minhas Candidaturas
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                Acompanhe o status das suas inscrições
+              </p>
+            </div>
+          </div>
+      
+        </div>
+
+        {/* Filtros e Pesquisa */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 mb-8 shadow-sm border border-gray-100 dark:border-gray-700">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                placeholder="Pesquisar por nome do curso..."
+                value={pesquisa}
+                onChange={(e) => setPesquisa(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-brand-main focus:border-transparent dark:bg-gray-750 dark:text-white transition-all duration-200"
+                aria-label="Pesquisar cursos"
+              />
+            </div>
+            <div className="flex gap-4">
+              <select
+                value={filtroStatus}
+                onChange={(e) => setFiltroStatus(e.target.value)}
+                className="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-brand-main focus:border-transparent dark:bg-gray-750 dark:text-white transition-all duration-200"
+                aria-label="Filtrar por status"
+              >
+                <option value="todos">Todos os status</option>
+                <option value="emAvaliacao">Em Avaliação</option>
+                <option value="concluido">Aprovadas</option>
+                <option value="rejeitado">Reprovadas</option>
+              </select>
             </div>
           </div>
         </div>
 
-        {/* Filtros */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 mb-6 flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              placeholder="Pesquisar curso..."
-              value={pesquisa}
-              onChange={(e) => setPesquisa(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand-main dark:bg-gray-750 dark:text-white"
-            />
-          </div>
-          <select
-            value={filtroStatus}
-            onChange={(e) => setFiltroStatus(e.target.value)}
-            className="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand-main dark:bg-gray-750 dark:text-white"
-          >
-            <option value="todos">Todos</option>
-            <option value="emAvaliacao">Em Avaliação</option>
-            <option value="concluido">Aprovado</option>
-            <option value="rejeitado">Reprovado</option>
-          </select>
-        </div>
-
         {candidaturas.length === 0 ? (
-          <div
-            id="testes"
-            className="flex flex-col items-center justify-center text-center bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm"
-          >
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
-              Nenhuma candidatura
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Você ainda não se candidatou a nenhum curso.
-            </p>
-            <Link
-              href="/cursos"
-              className="inline-block bg-brand-main text-white font-semibold py-3 px-6 rounded-lg hover:bg-brand-lime transition-colors"
-            >
-              Ver Cursos Disponíveis
-            </Link>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="max-w-md mx-auto">
+              <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                <BookOpen className="w-10 h-10 text-gray-400" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                Nenhuma candidatura encontrada
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+                Você ainda não se candidatou a nenhum curso. Explore nossa lista de cursos disponíveis e comece sua jornada educacional.
+              </p>
+              <Link
+                href="/cursos"
+                className="inline-flex items-center gap-2 bg-brand-main text-white font-semibold py-4 px-8 rounded-xl hover:bg-brand-lime transition-all duration-200 transform hover:scale-105 shadow-lg"
+              >
+                <GraduationCap className="w-5 h-5" />
+                Explorar Cursos Disponíveis
+              </Link>
+            </div>
           </div>
         ) : (
-          <div className="space-y-3">
-            {/* Informação sobre limite de candidaturas */}
-            {candidaturas.length >= 2 && (
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
-                <div className="flex items-start gap-3">
-                  <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-blue-800 dark:text-blue-300 font-medium mb-1">
+          <div className="space-y-6">
+            {/* Aviso de limite */}
+            {/* {candidaturas.length >= 2 && (
+              <div className="bg-amber-50 dark:bg-amber-900/20 rounded-2xl p-6 border border-amber-200 dark:border-amber-800">
+                <div className="flex items-start gap-4">
+                  <Info className="w-6 h-6 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-amber-900 dark:text-amber-300 mb-2">
                       Limite de Candidaturas Atingido
-                    </p>
-                    <p className="text-sm text-blue-700 dark:text-blue-400">
-                      Você já atingiu o limite máximo de 2 candidaturas. 
-                      Para candidatar-se a um novo curso, primeiro troque uma das suas candidaturas atuais.
+                    </h3>
+                    <p className="text-amber-800 dark:text-amber-400 leading-relaxed">
+                      Você já atingiu o limite máximo de 2 candidaturas ativas. 
+                      Para se candidatar a um novo curso, será necessário trocar uma das suas candidaturas atuais.
                     </p>
                   </div>
                 </div>
               </div>
-            )}
+            )} */}
 
-            {candidaturasFiltradas.map((c) => {
-              const { icon: Icon, color, bg, text } = getStatusInfo(c.status);
-              const testes: Teste[] = c.testesdiagnosticos || [];
+            {/* Lista de Candidaturas */}
+            <div className="grid gap-6">
+              {candidaturasFiltradas.map((c) => {
+                const { icon: Icon, color, bg, text, desc } = getStatusInfo(c.status);
+                const testes: Teste[] = c.testesdiagnosticos || [];
+                const temTesteAprovado = testes.some((t: Teste) => t.status === "aprovado");
+                const temTesteReprovado = testes.some((t: Teste) => t.status === "reprovado");
+                const totalTestes = testes.length;
+                const podeFazerOutroTeste = totalTestes < 2; // Máximo 2 testes por candidatura
+                const temCertificadoAprovado = certificados.some(
+                  (cert) => cert.status === "aprovado"
+                );
+                const temCertificadoEmAvaliacao = certificados.some(
+                  (cert) => cert.status === "em avaliacao"
+                );
+                const isEmAvaliacao = c.status === "emAvaliacao";
+                const isRejeitado = c.status === "rejeitado";
+                const isConcluido = c.status === "concluido";
 
-              // Verifica se tem certificado aprovado
-              const temCertificadoAprovado = certificados.some(
-                (cert) => cert.status === "aprovado"
-              );
-
-              // Verifica se tem certificado em avaliação
-              const temCertificadoEmAvaliacao = certificados.some(
-                (cert) => cert.status === "em avaliacao"
-              );
-
-              // Se o status for "emAvaliacao", não mostra opções de pagamento
-              const isEmAvaliacao = c.status === "emAvaliacao";
-
-              return (
-                <div
-                  key={c.id}
-                  className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700"
-                >
-                  <div className="flex justify-between items-center mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-full ${bg}`}>
-                        <Icon className={`w-4 h-4 ${color}`} />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                          {c.cursos.nome}
-                        </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Inscrição:{" "}
-                          {new Date(c.createdAt).toLocaleDateString("pt-BR")}
-                        </p>
-                      </div>
-                    </div>
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${bg} ${color}`}
-                    >
-                      {text}
-                    </span>
-                  </div>
-
-                  {/* Componente de certificados */}
-                  <ListaCertificados onLoad={setCertificados} />
-
-                  {/* Se está em avaliação, mostra apenas mensagem informativa */}
-                  {isEmAvaliacao ? (
-                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                      <div className="flex items-start gap-2">
-                        <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-sm text-blue-800 dark:text-blue-300 font-medium">
-                            Candidatura em Análise
-                          </p>
-                          <p className="text-sm text-blue-700 dark:text-blue-400 mt-1">
-                            Sua candidatura está sendo analisada pela nossa equipe. 
-                            Você receberá atualizações em breve sobre o próximo passo.
-                          </p>
+                return (
+                  <div
+                    key={c.id}
+                    className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm border border-gray-100 dark:border-gray-700 transition-all duration-200 hover:shadow-md"
+                  >
+                    {/* Header da Candidatura */}
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+                      <div className="flex items-start gap-4 flex-1">
+                        <div className={`p-3 rounded-xl ${bg} transition-colors duration-200`}>
+                          <Icon className={`w-6 h-6 ${color}`} />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-xl font-bold text-brand-main dark:text-white mb-2">
+                            {c.cursos.nome}
+                          </h3>
+                          <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-4 h-4" />
+                              Inscrição: {new Date(c.createdAt).toLocaleDateString("pt-BR")}
+                            </span>
+                            <span className={`flex items-center gap-1 px-3 py-1 rounded-full ${bg} ${color} font-medium`}>
+                              <Icon className="w-3 h-3" />
+                              {text}
+                            </span>
+                          </div>
+                          {/* <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{desc}</p> */}
                         </div>
                       </div>
                     </div>
-                  ) : (
-                    <>
-                      {/* Se tem certificado aprovado, vai direto pagar curso */}
-                      {temCertificadoAprovado ? (
-                        <>
-                          {/* Informação de isenção do teste */}
-                          <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 mb-3">
-                            <div className="flex items-start gap-2">
-                              <Info className="w-4 h-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                              <div>
-                                <p className="text-sm text-green-800 dark:text-green-300 font-medium">
-                                  Isenção do Teste de Diagnóstico
-                                </p>
-                                <p className="text-sm text-green-700 dark:text-green-400 mt-1">
-                                  Você foi isento(a) do teste por ter frequentado um curso na UNITEC. 
-                                  Sua experiência anterior foi validada através do certificado aprovado, 
-                                  permitindo que avance diretamente para o pagamento do curso.
-                                </p>
+
+                    {/* Certificados */}
+                    <div className="mb-6">
+                      <ListaCertificados onLoad={setCertificados} />
+                    </div>
+
+                    {/* Conteúdo Baseado no Status */}
+                    {isEmAvaliacao || isRejeitado ? (
+                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
+                        <div className="flex items-start gap-3">
+                          <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-2">
+                              {isEmAvaliacao ? "Candidatura em Análise" : "Candidatura Reprovada"}
+                            </h4>
+                            <p className="text-blue-800 dark:text-blue-400 leading-relaxed">
+                              {isEmAvaliacao 
+                                ? "Sua candidatura está sendo cuidadosamente analisada pela nossa equipe. Você receberá atualizações por email em breve sobre o próximo passo do processo."
+                                : "Infelizmente sua candidatura não foi aprovada. Você pode trocar esta candidatura por outro curso caso deseje tentar novamente."
+                              }
+                            </p>
+                            {isRejeitado && (
+                              <div className="flex justify-end mt-4">
+                                <button
+                                  onClick={() => handleDeletarCandidatura(c.id, temTesteAprovado)}
+                                  className="px-6 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors duration-200"
+                                  disabled={temTesteAprovado}
+                                >
+                                  Trocar Formação
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        {/* Fluxo com Certificado Aprovado */}
+                        {temCertificadoAprovado ? (
+                          <div className="space-y-4">
+                            <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-6 border border-green-200 dark:border-green-800">
+                              <div className="flex items-start gap-3">
+                                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                                <div className="flex-1">
+                                  <h4 className="font-semibold text-green-900 dark:text-green-300 mb-2">
+                                    Isenção de Teste Concedida
+                                  </h4>
+                                  <p className="text-green-800 dark:text-green-400 leading-relaxed">
+                                    Parabéns! Seu certificado UNITEC foi validado e você está isento do teste de diagnóstico. 
+                                    Você pode prosseguir diretamente para o pagamento do curso.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Pagamento do Curso */}
+                            <div className="bg-gray-50 dark:bg-gray-750 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                <div className="flex items-center gap-3">
+                                  <CreditCard className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                                  <div>
+                                    <p className="font-semibold text-gray-900 dark:text-white">Valor do Curso</p>
+                                    <p className="text-2xl font-bold text-brand-main">{c.cursos.preco} MT</p>
+                                  </div>
+                                </div>
+                                {(() => {
+                                  const pagamentoCursoAtivo = pagamentos.some(
+                                    (p) => p.itemNome === "curso" && p.itemId === c.cursos.id && 
+                                    (p.status === "processando" || p.status === "confirmado")
+                                  );
+
+                                  return pagamentoCursoAtivo ? (
+                                    <div className="flex items-center gap-2 px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg">
+                                      <Clock className="w-4 h-4" />
+                                      <span className="font-medium">
+                                        {pagamentos.find((p) => p.itemId === c.cursos.id)?.status === "confirmado"
+                                          ? "Pagamento Confirmado"
+                                          : "Pagamento em Processamento"}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={() => abrirModal(c.cursos.id, "curso", c.cursos.preco)}
+                                      className="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-all duration-200 transform hover:scale-105"
+                                    >
+                                      Pagar Curso
+                                    </button>
+                                  );
+                                })()}
                               </div>
                             </div>
                           </div>
+                        ) : (
+                          /* Fluxo sem Certificado Aprovado */
+                          <div className="space-y-6">
+                            {/* Avisos de Certificado */}
+                            {temCertificadoEmAvaliacao && (
+                              <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-6 border border-yellow-200 dark:border-yellow-800">
+                                <div className="flex items-start gap-3">
+                                  <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+                                  <div>
+                                    <h4 className="font-semibold text-yellow-900 dark:text-yellow-300 mb-2">
+                                      Certificado em Verificação
+                                    </h4>
+                                    <p className="text-yellow-800 dark:text-yellow-400">
+                                      Seu certificado está sendo analisado. Quando aprovado, você será isento do teste.
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
 
-                          {/* Bloco de pagamento do curso */}
-                          {(() => {
-                            const pagamentoCursoAtivo = pagamentos.some(
-                              (p) =>
-                                p.itemNome === "curso" &&
-                                p.itemId === c.cursos.id &&
-                                (p.status === "processando" || p.status === "confirmado")
-                            );
+                            {!temCertificadoEmAvaliacao && (
+                              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
+                                <div className="flex items-start gap-3">
+                                  <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                                  <div>
+                                    <p className="text-blue-800 dark:text-blue-400">
+                                      Se você já frequentou um curso na UNITEC, carregue seu certificado no{' '}
+                                      <Link href="perfil" className="underline font-medium hover:text-blue-900 dark:hover:text-blue-200">
+                                        seu perfil
+                                      </Link>{' '}
+                                      e seja isento do teste!
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
 
-                            return (
-                              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 flex justify-between items-center">
-                                <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
-                                  <GraduationCap className="w-4 h-4" />
-                                  <span>
-                                    Valor do curso:{" "}
-                                    <span className="font-semibold">{c.cursos.preco} MT</span>
+                            {/* Testes (apenas para candidaturas concluídas) */}
+                            {isConcluido && testes.length > 0 && (
+                              <div className="bg-gray-50 dark:bg-gray-750 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                                <div className="flex items-center justify-between mb-4">
+                                  <h4 className="font-semibold text-brand-main dark:text-white flex items-center gap-2">
+                                    <FileText className="w-5 h-5 text-brand-lime" />
+                                    Teste de Diagnóstico
+                                  </h4>
+                                  <span className="text-sm text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                                    {totalTestes}/2 tentativas
                                   </span>
                                 </div>
+                                <div className="space-y-3">
+                                  {testes.map((t: Teste) => {
+                                    const pagamentoTesteAtivo = pagamentos.some(
+                                      (p) => p.itemNome === "teste" && p.itemId === t.id && 
+                                      (p.status === "processando" || p.status === "confirmado")
+                                    );
+                                    const pagamentoConfirmado = pagamentos.some(
+                                      (p) => p.itemNome === "teste" && p.itemId === t.id && p.status === "confirmado"
+                                    );
 
-                                {pagamentoCursoAtivo ? (
-                                  <span className="px-3 py-1 text-sm font-medium bg-yellow-100 text-yellow-700 rounded-lg">
-                                    Pagamento{" "}
-                                    {
-                                      pagamentos.find((p) => p.itemId === c.cursos.id)?.status ===
-                                      "confirmado"
-                                        ? "confirmado"
-                                        : "em processamento ⏳"
-                                    }
-                                  </span>
-                                ) : (
+                                    return (
+                                      <div
+                                        key={t.id}
+                                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+                                      >
+                                        <div className="flex-1">
+                                          <div className="flex items-center gap-3 mb-2">
+                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                              t.status === 'aprovado' ? 'bg-green-100 text-green-800' :
+                                              t.status === 'reprovado' ? 'bg-red-100 text-red-800' :
+                                              'bg-blue-100 text-blue-800'
+                                            }`}>
+                                              {t.status.charAt(0).toUpperCase() + t.status.slice(1)}
+                                            </span>
+                                            <span className="text-sm text-gray-500">{t.preco} MT</span>
+                                          </div>
+                                          {pagamentoTesteAtivo && (
+                                            <div className="flex items-center gap-2 text-sm">
+                                              {pagamentos.find((p) => p.itemId === t.id)?.status === "confirmado"
+                                                  ? <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                                                  : <Clock className="w-4 h-4 text-yellow-600" />
+                                                  }
+                                              
+                                              <span className="text-yellow-700 font-medium">
+                                                {pagamentos.find((p) => p.itemId === t.id)?.status === "confirmado"
+                                                  ? <span className="text-green-600">Pagamento Confirmado</span>
+                                                  : "Pagamento em Processamento"}
+                                              </span>
+                                            </div>
+                                          )}
+                                        </div>
+                                        <div className="flex gap-2">
+                                          {pagamentoConfirmado ? (
+                                            t.status === "aprovado" ? (
+                                              // Teste Aprovado - Mostrar botão Pagar Curso
+                                              <button
+                                                onClick={() => abrirModal(c.cursos.id, "curso", c.cursos.preco)}
+                                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium text-sm"
+                                              >
+                                                Pagar Curso
+                                              </button>
+                                            ) : t.status === "reprovado" ? (
+                                              // Teste Reprovado - Mostrar botão Fazer Outro Teste (se ainda puder)
+                                              podeFazerOutroTeste ? (
+                                                <button
+                                                  onClick={() => handleNovaTentativa(c.id)}
+                                                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium text-sm flex items-center gap-2"
+                                                >
+                                                  <RefreshCw className="w-4 h-4" />
+                                                  Fazer Outro Teste
+                                                </button>
+                                              ) : (
+                                                <span className="px-4 py-2 bg-gray-400 text-white rounded-lg font-medium text-sm cursor-not-allowed">
+                                                  Limite de tentativas
+                                                </span>
+                                              )
+                                            ) : (
+                                              // Teste Pendente ou Outro Status - Mostrar botão Fazer Teste
+                                              <Link
+                                                href={`/user/teste/${c.cursos.id}`}
+                                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium text-sm"
+                                              >
+                                                Fazer Teste
+                                              </Link>
+                                            )
+                                          ) : !pagamentoTesteAtivo ? (
+                                            <button
+                                              onClick={() => abrirModal(t.id, "teste", t.preco)}
+                                              className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors duration-200 font-medium text-sm"
+                                            >
+                                              Pagar Teste
+                                            </button>
+                                          ) : null}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Seção de Pagamento do Curso quando teste está aprovado */}
+                            {temTesteAprovado && (
+                              <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-6 border border-green-200 dark:border-green-800">
+                                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                  <div className="flex items-center gap-3">
+                                    <CheckCircle className="w-5 h-5 text-green-600" />
+                                    <div>
+                                      <h4 className="font-semibold text-green-900 dark:text-green-300">
+                                        Teste Aprovado!
+                                      </h4>
+                                      <p className="text-green-800 dark:text-green-400 text-sm">
+                                        Parabéns! Você pode prosseguir com o pagamento do curso.
+                                      </p>
+                                    </div>
+                                  </div>
+                                  {(() => {
+                                    const pagamentoCursoAtivo = pagamentos.some(
+                                      (p) => p.itemNome === "curso" && p.itemId === c.cursos.id && 
+                                      (p.status === "processando" || p.status === "confirmado")
+                                    );
+
+                                    return pagamentoCursoAtivo ? (
+                                      <div className="flex items-center gap-2 px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg">
+                                        <Clock className="w-4 h-4" />
+                                        <span className="font-medium">
+                                          {pagamentos.find((p) => p.itemId === c.cursos.id)?.status === "confirmado"
+                                            ? "Pagamento Confirmado"
+                                            : "Pagamento em Processamento"}
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      <button
+                                        onClick={() => abrirModal(c.cursos.id, "curso", c.cursos.preco)}
+                                        className="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-all duration-200 transform hover:scale-105"
+                                      >
+                                        Pagar Curso - {c.cursos.preco} MT
+                                      </button>
+                                    );
+                                  })()}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Seção para teste reprovado */}
+                            {temTesteReprovado && !temTesteAprovado && podeFazerOutroTeste && (
+                              <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-6 border border-red-200 dark:border-red-800">
+                                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                  <div className="flex items-center gap-3">
+                                    <XCircle className="w-5 h-5 text-red-600" />
+                                    <div>
+                                      <h4 className="font-semibold text-red-900 dark:text-red-300">
+                                        Teste Reprovado
+                                      </h4>
+                                      <p className="text-red-800 dark:text-red-400 text-sm">
+                                        Não desanime! Você pode tentar novamente com um novo teste.
+                                      </p>
+                                    </div>
+                                  </div>
                                   <button
-                                    onClick={() =>
-                                      abrirModal(c.cursos.id, "curso", c.cursos.preco)
-                                    }
-                                    className="px-4 py-2 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700"
+                                    onClick={() => handleNovaTentativa(c.id)}
+                                    className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all duration-200 transform hover:scale-105 flex items-center gap-2"
                                   >
-                                    Pagar Curso
+                                    <RefreshCw className="w-4 h-4" />
+                                    Fazer Outro Teste
                                   </button>
-                                )}
-                              </div>
-                            );
-                          })()}
-                        </>
-                      ) : (
-                        <>
-                          {/* Se tem certificado em avaliação, mostra nota informativa */}
-                          {temCertificadoEmAvaliacao && (
-                            <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800 mb-3">
-                              <div className="flex items-start gap-2">
-                                <Info className="w-4 h-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
-                                <div>
-                                  <p className="text-sm text-yellow-800 dark:text-yellow-300 font-medium">
-                                    Certificado em Verificação
-                                  </p>
-                                  <p className="text-sm text-yellow-700 dark:text-yellow-400 mt-1">
-                                    Seu certificado está sendo analisado pela nossa equipe. 
-                                    Assim que o certificado for aprovado, você será isento do teste.
-                                  </p>
                                 </div>
                               </div>
-                            </div>
-                          )}
+                            )}
 
-                          {/* Nota para quem não tem certificado OU tem certificado em avaliação */}
-                          {!temCertificadoEmAvaliacao && (
-                            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 mt-3">
-                              <div className="flex items-start gap-2">
-                                <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                                <div>
-                                  <p className="text-sm text-blue-800 dark:text-blue-300">
-                                    <strong>Nota importante:</strong> Se você já frequentou um curso na UNITEC, 
-                                    carregue seu certificado no seu{" "}
-                                    <Link 
-                                      href="perfil" 
-                                      className="underline font-medium hover:text-blue-900 dark:hover:text-blue-200"
-                                    >
-                                      perfil
-                                    </Link>
-                                    {" "}e será isento do teste, passando diretamente para o pagamento do curso.
-                                  </p>
+                            {/* Aviso de limite de testes atingido */}
+                            {temTesteReprovado && !temTesteAprovado && !podeFazerOutroTeste && (
+                              <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-6 border border-amber-200 dark:border-amber-800">
+                                <div className="flex items-center gap-3">
+                                  <AlertCircle className="w-5 h-5 text-amber-600" />
+                                  <div>
+                                    <h4 className="font-semibold text-amber-900 dark:text-amber-300">
+                                      Limite de Tentativas Atingido
+                                    </h4>
+                                    <p className="text-amber-800 dark:text-amber-400 text-sm">
+                                      Você já utilizou todas as 2 tentativas disponíveis para o teste.
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          )}
+                            )}
 
-                          {/* Se não tem certificado aprovado (incluindo quando tem certificado em avaliação), mostra os testes */}
-                          {testes.map((t: Teste) => {
-  const pagamentoTesteAtivo = pagamentos.some(
-    (p) =>
-      p.itemNome === "teste" &&
-      p.itemId === t.id &&
-      (p.status === "processando" || p.status === "confirmado")
-  );
-
-  const pagamentoConfirmado = pagamentos.some(
-    (p) => p.itemNome === "teste" && p.itemId === t.id && p.status === "confirmado"
-  );
-
-  return (
-    <li
-      key={t.id}
-      className="flex justify-between items-center bg-white dark:bg-gray-800 p-2 rounded-md shadow-sm"
-    >
-      <div>
-        <p className="text-sm text-gray-700 dark:text-gray-300">
-          {t.status.charAt(0).toUpperCase() + t.status.slice(1)}{" "}
-          <span className="text-xs text-gray-500">({t.preco} MT)</span>
-        </p>
-
-        {pagamentoTesteAtivo && (
-          <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-            Pagamento{" "}
-            {
-              pagamentos.find((p) => p.itemId === t.id)?.status === "confirmado"
-                ? "confirmado"
-                : "em processamento ⏳"
-            }
-          </span>
-        )}
-      </div>
-
-      {/* 🔹 Se pagamento confirmado, mostra botão Fazer Teste */}
-      {pagamentoConfirmado ? (
-        <Link
-          href={`/user/teste/${c.cursos.id}`}
-          target="_blank"
-          className="px-3 py-1 rounded-lg text-xs font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"
-        >
-          Fazer Teste
-        </Link>
-      ) : (
-        !pagamentoTesteAtivo && (
-          <button
-            onClick={() => abrirModal(t.id, "teste", t.preco)}
-            className="px-3 py-1 rounded-lg text-xs font-medium transition-colors bg-yellow-500 text-white hover:bg-yellow-600"
-          >
-            Pagar Teste
-          </button>
-        )
-      )}
-    </li>
-  );
-})}
-
-
-                          {/* Botão trocar formação (apenas se não tem teste aprovado) */}
-                          {!testes.some((t: Teste) => t.status === "aprovado") && (
-                            <div className="flex justify-end mt-3">
-                              <button
-                                onClick={() => handleDeletarCandidatura(c.id)}
-                                className="px-3 py-1 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors"
-                              >
-                                Trocar Formação
-                              </button>
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </>
-                  )}
-                </div>
-              );
-            })}
+                            {/* Botão Trocar Formação (apenas se não tiver teste aprovado) */}
+                            {!temTesteAprovado && (
+                              <div className="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
+                                <button
+                                  onClick={() => handleDeletarCandidatura(c.id, temTesteAprovado)}
+                                  className="px-6 py-2 rounded-lg bg-gray-600 text-white font-medium hover:bg-gray-700 transition-colors duration-200"
+                                >
+                                  Trocar Formação
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
-        {/* Botão para adicionar nova candidatura se ainda tiver vaga */}
+        {/* Botão Nova Candidatura */}
         {podeAdicionarCandidatura && (
-          <div className="text-center mt-8">
-            <Link
-              href="/cursos"
-              className="inline-block bg-brand-main text-white font-semibold py-3 px-6 rounded-lg hover:bg-brand-lime transition-colors"
-            >
-              Adicionar Nova Candidatura ({candidaturas.length}/2)
-            </Link>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-              Você ainda pode candidatar-se a {2 - candidaturas.length} curso(s)
-            </p>
+          <div className="text-center mt-12">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm border border-gray-100 dark:border-gray-700">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
+                Adicionar Nova Candidatura
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Você ainda pode candidatar-se a {2 - candidaturas.length} curso(s) adicional(es)
+              </p>
+              <Link
+                href="/cursos"
+                className="inline-flex items-center gap-2 bg-brand-main text-white font-semibold py-4 px-8 rounded-xl hover:bg-brand-lime transition-all duration-200 transform hover:scale-105 shadow-lg"
+              >
+                <GraduationCap className="w-5 h-5" />
+                Nova Candidatura ({candidaturas.length}/2)
+              </Link>
+            </div>
           </div>
         )}
       </div>
