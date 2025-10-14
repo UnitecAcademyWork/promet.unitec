@@ -157,7 +157,7 @@ const Navbar = () => {
                         onClick={() => setIsProfileDropdownOpen(false)}
                       >
                         <User className="w-4 h-4 mr-2" />
-                        <span>Meu Perfil</span>
+                        <span>Perfil</span>
                       </Link>
                       <Link
                         href="/user/candidaturas"
