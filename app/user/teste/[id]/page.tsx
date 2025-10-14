@@ -112,7 +112,7 @@ export default function RealizarTeste() {
         setQuestoes(dados.questoes || []);
         setTempoRestante((dados.duracao || 45) * 60);
         
-        toast.success("Teste carregado! Mantenha o foco na janela. 🎯");
+        toast.success("Teste carregado! Mantenha o foco na janela.");
       } catch (error) {
         toast.error("Erro ao carregar o teste");
       } finally {
@@ -152,7 +152,7 @@ export default function RealizarTeste() {
   const finalizarPorSeguranca = async () => {
     if (testeFinalizado || submitting) return;
 
-    console.log("🚨 Finalizando teste por segurança - Perda de foco detectada");
+    console.log("Finalizando teste por segurança - Perda de foco detectada");
     
     setSubmitting(true);
     
@@ -205,8 +205,8 @@ export default function RealizarTeste() {
         toastIdRef.current = toast.loading(
           <div className="text-center">
             <AlertTriangle className="w-6 h-6 mx-auto mb-2 text-orange-500" />
-            <div className="font-semibold">Volte para a janela! ⚠️</div>
-            <div className="text-sm">Teste será enviado em 3 segundos</div>
+            <div className="font-semibold">Volte para a janela!</div>
+            <div className="text-sm">Teste será enviado em 5 segundos</div>
           </div>,
           { 
             duration: 3000,
@@ -220,7 +220,7 @@ export default function RealizarTeste() {
             toast.dismiss('focus-warning');
             finalizarPorSeguranca();
           }
-        }, 3000);
+        }, 5000);
       } else {
         // REGRA 2: Voltou antes de 3s - Cancela a contagem
         if (timerRef.current) {
@@ -231,8 +231,8 @@ export default function RealizarTeste() {
           
           if (perdaFocoRef.current > 0) {
             const tempoFora = Date.now() - perdaFocoRef.current;
-            if (tempoFora < 3000) {
-              toast.success("Bem-vindo de volta! ✅", { duration: 2000 });
+            if (tempoFora < 5000) {
+              toast.success("Bem-vindo de volta!", { duration: 4000 });
             }
           }
         }
@@ -698,7 +698,7 @@ export default function RealizarTeste() {
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-pulse border-2 border-white">
           <AlertCircle className="w-6 h-6" />
           <div>
-            <div className="font-bold">Atenção! ⚡</div>
+            <div className="font-bold">Atenção!</div>
             <div className="text-sm">Tempo restante: {formatarTempo(tempoRestante)}</div>
           </div>
         </div>

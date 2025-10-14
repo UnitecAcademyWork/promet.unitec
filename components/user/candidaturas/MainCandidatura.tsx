@@ -9,6 +9,7 @@ import {
   Search,
   CheckCircle,
   Clock,
+  CircleAlert,
   XCircle,
   GraduationCap,
   RefreshCw,
@@ -18,7 +19,7 @@ import {
   BookOpen,
   CreditCard,
 } from "lucide-react";
-
+import ProgramaTeste from "./ProgramaTeste";
 import { getCandidaturas } from "../../../lib/candidaturas-get";
 import {
   CandidaturaTeste,
@@ -164,7 +165,7 @@ const MainCandidatura = () => {
     );
   };
 
-  // Buscar candidaturas + testes (APENAS para candidaturas concluídas)
+  // Buscar candidaturas + testes (Candidaturas concluídas)
   const fetchCandidaturas = async () => {
     setLoading(true);
     try {
@@ -178,7 +179,7 @@ const MainCandidatura = () => {
       }
 
       const candidaturasConcluidas = data.filter(c => c.status === "concluido");
-      
+
       let testesData: any[] = [];
       if (candidaturasConcluidas.length > 0) {
         testesData = await getTestesByCandidatura();
@@ -186,7 +187,7 @@ const MainCandidatura = () => {
 
       const candidaturasComExtras = await Promise.all(
         data.map(async (c) => {
-          const testes = c.status === "concluido" 
+          const testes = c.status === "concluido"
             ? testesData.find((t) => t.id === c.id)?.testesdiagnosticos || []
             : [];
 
@@ -286,7 +287,7 @@ const MainCandidatura = () => {
               </p>
             </div>
           </div>
-      
+
         </div>
 
         {/* Filtros e Pesquisa */}
@@ -423,7 +424,7 @@ const MainCandidatura = () => {
                               {isEmAvaliacao ? "Candidatura em Análise" : "Candidatura Reprovada"}
                             </h4>
                             <p className="text-blue-800 dark:text-blue-400 leading-relaxed">
-                              {isEmAvaliacao 
+                              {isEmAvaliacao
                                 ? "Sua candidatura está sendo cuidadosamente analisada pela nossa equipe. Você receberá atualizações por email em breve sobre o próximo passo do processo."
                                 : "Infelizmente sua candidatura não foi aprovada. Você pode trocar esta candidatura por outro curso caso deseje tentar novamente."
                               }
@@ -455,7 +456,7 @@ const MainCandidatura = () => {
                                     Isenção de Teste Concedida
                                   </h4>
                                   <p className="text-green-800 dark:text-green-400 leading-relaxed">
-                                    Parabéns! Seu certificado UNITEC foi validado e você está isento do teste de diagnóstico. 
+                                    Parabéns! Seu certificado UNITEC foi validado e você está isento do teste de diagnóstico.
                                     Você pode prosseguir diretamente para o pagamento do curso.
                                   </p>
                                 </div>
@@ -474,8 +475,8 @@ const MainCandidatura = () => {
                                 </div>
                                 {(() => {
                                   const pagamentoCursoAtivo = pagamentos.some(
-                                    (p) => p.itemNome === "curso" && p.itemId === c.cursos.id && 
-                                    (p.status === "processando" || p.status === "confirmado")
+                                    (p) => p.itemNome === "curso" && p.itemId === c.cursos.id &&
+                                      (p.status === "processando" || p.status === "confirmado")
                                   );
 
                                   return pagamentoCursoAtivo ? (
@@ -548,11 +549,15 @@ const MainCandidatura = () => {
                                     {totalTestes}/2 tentativas
                                   </span>
                                 </div>
+                                <div className="mb-4">
+                                  <ProgramaTeste cursoId={c.cursos.id} cursoNome={c.cursos.nome} />
+                                </div>
+
                                 <div className="space-y-3">
                                   {testes.map((t: Teste) => {
                                     const pagamentoTesteAtivo = pagamentos.some(
-                                      (p) => p.itemNome === "teste" && p.itemId === t.id && 
-                                      (p.status === "processando" || p.status === "confirmado")
+                                      (p) => p.itemNome === "teste" && p.itemId === t.id &&
+                                        (p.status === "processando" || p.status === "confirmado")
                                     );
                                     const pagamentoConfirmado = pagamentos.some(
                                       (p) => p.itemNome === "teste" && p.itemId === t.id && p.status === "confirmado"
@@ -565,11 +570,10 @@ const MainCandidatura = () => {
                                       >
                                         <div className="flex-1">
                                           <div className="flex items-center gap-3 mb-2">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                              t.status === 'aprovado' ? 'bg-green-100 text-green-800' :
+                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${t.status === 'aprovado' ? 'bg-green-100 text-green-800' :
                                               t.status === 'reprovado' ? 'bg-red-100 text-red-800' :
-                                              'bg-blue-100 text-blue-800'
-                                            }`}>
+                                                'bg-blue-100 text-blue-800'
+                                              }`}>
                                               {t.status.charAt(0).toUpperCase() + t.status.slice(1)}
                                             </span>
                                             <span className="text-sm text-gray-500">{t.preco} MT</span>
@@ -577,10 +581,10 @@ const MainCandidatura = () => {
                                           {pagamentoTesteAtivo && (
                                             <div className="flex items-center gap-2 text-sm">
                                               {pagamentos.find((p) => p.itemId === t.id)?.status === "confirmado"
-                                                  ? <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                                                  : <Clock className="w-4 h-4 text-yellow-600" />
-                                                  }
-                                              
+                                                ? <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                                                : <Clock className="w-4 h-4 text-yellow-600" />
+                                              }
+
                                               <span className="text-yellow-700 font-medium">
                                                 {pagamentos.find((p) => p.itemId === t.id)?.status === "confirmado"
                                                   ? <span className="text-green-600">Pagamento Confirmado</span>
@@ -636,6 +640,14 @@ const MainCandidatura = () => {
                                     );
                                   })}
                                 </div>
+                                <div className="flex items-center pt-4 gap-2">
+                                    <CircleAlert className="w-5 h-5 text-blue-600" />
+                                    <div>
+                                      <p className="text-brand-main text-sm">
+                                        Verifique a sua Internet antes de iniciar o teste.
+                                      </p>
+                                    </div>
+                                  </div>
                               </div>
                             )}
 
@@ -656,8 +668,8 @@ const MainCandidatura = () => {
                                   </div>
                                   {(() => {
                                     const pagamentoCursoAtivo = pagamentos.some(
-                                      (p) => p.itemNome === "curso" && p.itemId === c.cursos.id && 
-                                      (p.status === "processando" || p.status === "confirmado")
+                                      (p) => p.itemNome === "curso" && p.itemId === c.cursos.id &&
+                                        (p.status === "processando" || p.status === "confirmado")
                                     );
 
                                     return pagamentoCursoAtivo ? (
