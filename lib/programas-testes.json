@@ -69,9 +69,9 @@
       "cursoId": "57406c6a-f1cc-46ce-8caa-94f6fc0ce9ff",
       "cursoNome": "Eletricidade Industrial",
       "temas": [
-        "Circuitos elétricos básicos",
-        "Comandos elétricos",
-        "Instrumentação industrial",
+        "Dispositivos de Proteção e Manobra",
+        "Tipos de Instalações Elétricas",
+        "Detecção de Avarias",
         "Normas de segurança NR-10",
         "Leitura de diagramas elétricos",
         "Manutenção de sistemas elétricos"
@@ -176,12 +176,13 @@
       "cursoId": "ed4049cf-b063-44e9-9702-800c477a8bec",
       "cursoNome": "Contabilidade, Fiscalidade e Auditoria",
       "temas": [
-        "Princípios contábeis",
-        "Plano de contas",
-        "Impostos diretos e indiretos",
-        "Demonstrações financeiras",
-        "Normas de auditoria",
-        "Legislação comercial e fiscal"
+        "Introdução à Contabilidade",
+        "Património, Inventário e Balanço",
+        "Documentos Comerciais e Contabilização",
+        "Transações e NCRF 1 e 2",
+        "Fiscalidade",
+        "LAuditoria Interna",
+        "Software e Prática"
       ]
     }
   ]
