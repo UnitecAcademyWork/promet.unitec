@@ -329,7 +329,7 @@ const CursoCandidatura = () => {
               </div>
               <div className="flex items-center text-sm">
                 <Clock className="w-4 h-4 text-brand-main mr-2" />
-                <span className="text-gray-600 dark:text-gray-300">Período: 09-17 de Agosto</span>
+                <span className="text-gray-600 dark:text-gray-300">Período: 09-24 de Outubro</span>
               </div>
             </div>
           </div>
@@ -502,7 +502,6 @@ const CursoCandidatura = () => {
           <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
             <p>
               Podes candidatar-te a até 2 cursos diferentes. 
-              Ver <Link href="/user/candidaturas" className="text-brand-main underline decoration-solid hover:text-brand-lime font-bold"> Candidatura{"s"}</Link>
             </p>
           </div>
         </div>

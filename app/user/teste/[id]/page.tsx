@@ -80,19 +80,20 @@ export default function RealizarTeste() {
   const tentativaSaidaRef = useRef<boolean>(false);
   const toastIdRef = useRef<string | null>(null);
   const redirecionamentoRef = useRef<boolean>(false);
+  const tempoIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timerIniciadoRef = useRef<boolean>(false);
 
-  // 🔹 Função para redirecionar após teste finalizado
-  const redirecionarParaCandidaturas = () => {
-    if (redirecionamentoRef.current) return; // Evitar múltiplos redirecionamentos
-    
-    redirecionamentoRef.current = true;
-    
-    toast.success("Redirecionando para suas candidaturas...");
-    
-    // Pequeno delay para o usuário ver o resultado
-    setTimeout(() => {
-      router.push("/user/candidaturas");
-    }, 3000);
+  // 🔹 Função para limpar todos os timers
+  const limparTimers = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    if (tempoIntervalRef.current) {
+      clearInterval(tempoIntervalRef.current);
+      tempoIntervalRef.current = null;
+    }
+    timerIniciadoRef.current = false;
   };
 
   // 🔹 Buscar teste real da API
@@ -121,32 +122,36 @@ export default function RealizarTeste() {
     };
 
     carregarTeste();
+
+    return () => {
+      limparTimers();
+    };
   }, [idCurso]);
 
-  // 🔹 Timer do teste
+  // 🔹 Timer do teste CORRIGIDO - usando 1000ms (1 segundo) - AGORA SÓ INICIA UMA VEZ
   useEffect(() => {
-    if (loading || testeFinalizado || tempoRestante <= 0) return;
+  if (!teste || testeFinalizado) return;
 
-    const timer = setInterval(() => {
-      setTempoRestante((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          handleFinalizarTeste();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 15000);
+  // Marca o início e calcula o final com base na duração em minutos
+  const start = Date.now();
+  const durationMs = teste.duracao * 60 * 1000; // duração total em ms
+  const end = start + durationMs;
 
-    return () => clearInterval(timer);
-  }, [loading, testeFinalizado]);
+  // Atualiza o tempo restante de acordo com o relógio real
+  const interval = setInterval(() => {
+    const remainingSeconds = Math.max(0, Math.round((end - Date.now()) / 1000));
+    setTempoRestante(remainingSeconds);
 
-  // 🔹 Redirecionar quando o teste for finalizado
-  useEffect(() => {
-    if (testeFinalizado && resultado) {
-      redirecionarParaCandidaturas();
+    // Finaliza automaticamente quando o tempo acaba
+    if (remainingSeconds <= 0) {
+      clearInterval(interval);
+      handleFinalizarTeste();
     }
-  }, [testeFinalizado, resultado]);
+  }, 1000);
+
+  return () => clearInterval(interval);
+}, [teste, testeFinalizado]);
+ // Adicionado tempoRestante como dependência
 
   // 🔹 Função para finalizar teste automaticamente por segurança
   const finalizarPorSeguranca = async () => {
@@ -177,6 +182,7 @@ export default function RealizarTeste() {
 
         setResultado({ acertos, total: questoes.length });
         setTesteFinalizado(true);
+        limparTimers(); // Para todos os timers
         
         toast.success(
           <div className="text-center">
@@ -184,7 +190,7 @@ export default function RealizarTeste() {
             <div className="font-bold">Teste Enviado Automaticamente</div>
             <div className="text-sm">Perda de foco detectada</div>
           </div>,
-          { duration: 25000 }
+          { duration: 5000 }
         );
       }
     } catch (error) {
@@ -199,7 +205,7 @@ export default function RealizarTeste() {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && !testeFinalizado && !submitting) {
-        // REGRA 1: Saiu da aba - inicia contagem de 3s
+        // REGRA 1: Saiu da aba - inicia contagem de 5s
         perdaFocoRef.current = Date.now();
         
         toastIdRef.current = toast.loading(
@@ -209,13 +215,13 @@ export default function RealizarTeste() {
             <div className="text-sm">Teste será enviado em 5 segundos</div>
           </div>,
           { 
-            duration: 3000,
+            duration: 5000,
             id: 'focus-warning'
           }
         );
 
         timerRef.current = setTimeout(() => {
-          if (document.hidden) {
+          if (document.hidden && !testeFinalizado) {
             // REGRA 1: Passaram 5s - Finaliza automaticamente
             toast.dismiss('focus-warning');
             finalizarPorSeguranca();
@@ -225,14 +231,16 @@ export default function RealizarTeste() {
         // REGRA 2: Voltou antes de 5s - Cancela a contagem
         if (timerRef.current) {
           clearTimeout(timerRef.current);
+          timerRef.current = null;
           if (toastIdRef.current) {
             toast.dismiss(toastIdRef.current);
+            toastIdRef.current = null;
           }
           
           if (perdaFocoRef.current > 0) {
             const tempoFora = Date.now() - perdaFocoRef.current;
             if (tempoFora < 5000) {
-              toast.success("Bem-vindo de volta!", { duration: 4000 });
+              toast.success("Bem-vindo de volta!", { duration: 2000 });
             }
           }
         }
@@ -257,7 +265,7 @@ export default function RealizarTeste() {
               <div className="text-xs mt-1">Respostas: {respostas.length}/{questoes.length}</div>
             </div>,
             { 
-              duration: 5000,
+              duration: 3000,
               icon: '⚠️'
             }
           );
@@ -270,13 +278,18 @@ export default function RealizarTeste() {
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    // Só adiciona os event listeners se o teste não estiver finalizado
+    if (!testeFinalizado) {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      window.addEventListener('beforeunload', handleBeforeUnload);
+    }
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      if (timerRef.current) clearTimeout(timerRef.current);
+      if (!testeFinalizado) {
+        limparTimers();
+      }
     };
   }, [testeFinalizado, submitting, respostas.length, questoes.length]);
 
@@ -316,9 +329,8 @@ export default function RealizarTeste() {
     setMostrarResumo(false);
   };
 
-  // 🔹 Finalizar teste manualmente (REGRA 4 - pode ser incompleto)
+  // 🔹 Finalizar teste manualmente
   const handleFinalizarTeste = async () => {
-    // REGRA 4: Pode enviar incompleto, apenas confirma
     const confirmar = window.confirm(
       `📊 Status do Teste:\n\n• Respondidas: ${respostas.length}/${questoes.length}\n• Não respondidas: ${questoes.length - respostas.length}\n\nDeseja finalizar o teste agora?${
         respostas.length < questoes.length ? 
@@ -330,6 +342,7 @@ export default function RealizarTeste() {
     if (!confirmar) return;
 
     setSubmitting(true);
+    limparTimers(); // Para o timer ao finalizar
 
     try {
       const dadosEnvio = {
@@ -354,7 +367,7 @@ export default function RealizarTeste() {
               }
             </div>
           </div>,
-          { duration: 15000 }
+          { duration: 5000 }
         );
 
         // Calcular acertos
@@ -383,6 +396,11 @@ export default function RealizarTeste() {
     return respostas.some(r => r.questaoId === questaoId) ? "respondida" : "pendente";
   };
 
+  // 🔹 Função para voltar às candidaturas
+  const voltarParaCandidaturas = () => {
+    router.push("/user/candidaturas");
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -404,26 +422,31 @@ export default function RealizarTeste() {
           <XCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Nenhum Teste Encontrado</h2>
           <p className="text-gray-600">Verifique se o curso possui testes disponíveis.</p>
+          <button
+            onClick={() => router.push("/user/candidaturas")}
+            className="mt-4 px-6 py-2 bg-brand-main text-white rounded-lg hover:bg-brand-main/90 transition-colors"
+          >
+            Voltar às Candidaturas
+          </button>
         </div>
       </div>
     );
   }
 
-  // 🔹 Resultado final
+  // 🔹 Resultado final - MODAL QUE NÃO FECHA SOZINHO
   if (testeFinalizado && resultado) {
     const percentual = (resultado.acertos / resultado.total) * 100;
     const aprovado = percentual >= 50;
-    const estrelas = Math.min(5, Math.ceil((percentual / 100) * 5));
     const questoesRespondidas = respostas.length;
 
     return (
-      <div className="min-h-screen flex items-center justify-center p-8">
-        <div className="bg-white rounded-3xl shadow-2xl p-12 max-w-2xl w-full text-center transform hover:scale-[1.02] transition-all duration-300">
+      <div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="bg-white rounded-3xl shadow-2xl p-12 max-w-2xl w-full text-center transform transition-all duration-300 border-4 border-white">
           <div
             className={`w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center ${
               aprovado 
-                ? "bg-brand-main text-white" 
-                : "bg-brad-lime text-white"
+                ? "bg-brand-main to-brand-lime text-white" 
+                : "bg-brand-lime text-white"
             } shadow-lg`}
           >
             {aprovado ? 
@@ -437,7 +460,7 @@ export default function RealizarTeste() {
           </h1>
           
           {/* Estatísticas do Resultado */}
-          <div className="bg-gray-50 rounded-2xl p-6 mb-6">
+          <div className="bg-gray-50 rounded-2xl p-6 mb-6 border border-gray-200">
             <div className="grid grid-cols-3 gap-4 text-center mb-4">
               <div>
                 <div className="text-2xl font-bold text-green-600">{resultado.acertos}</div>
@@ -461,7 +484,7 @@ export default function RealizarTeste() {
               </div>
             )}
             
-            <div className="bg-gray-200 rounded-full h-3">
+            <div className="bg-gray-200 rounded-full h-3 mb-2">
               <div 
                 className={`h-3 rounded-full transition-all duration-1000 ${
                   aprovado ? "bg-gradient-to-r from-green-400 to-brand-lime" : "bg-gradient-to-r from-red-400 to-orange-500"
@@ -469,35 +492,43 @@ export default function RealizarTeste() {
                 style={{ width: `${percentual}%` }}
               ></div>
             </div>
-            <div className="text-2xl font-bold mt-2 text-gray-800">
+            <div className="text-2xl font-bold text-gray-800">
               {percentual.toFixed(1)}%
+            </div>
+            <div className={`text-sm font-semibold ${aprovado ? 'text-green-600' : 'text-red-600'}`}>
+              {aprovado ? 'APROVADO' : 'REPROVADO'}
             </div>
           </div>
 
-          {/* Mensagem de redirecionamento */}
-          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-4">
-            <div className="flex items-center justify-center gap-2 text-blue-700">
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span className="font-medium">Redirecionando para suas candidaturas...</span>
-            </div>
-            <p className="text-sm text-blue-600 mt-2">
-              Você será direcionado automaticamente em alguns segundos
+          {/* Mensagem personalizada */}
+          <div className="mb-6">
+            <p className="text-gray-600 mb-4">
+              {aprovado 
+                ? "Excelente desempenho! Você está pronto para prosseguir com sua formação."
+                : "Não desanime! Revise o conteúdo e tente novamente para melhorar seu desempenho."
+              }
             </p>
           </div>
 
-          {/* Botão para redirecionamento manual (caso queira ir mais rápido) */}
-          <button
-            onClick={() => router.push("/user/candidaturas")}
-            className="px-6 py-3 bg-brand-main text-white rounded-xl hover:bg-brand-main/90 transition-all font-semibold"
-          >
-            Ir para Minhas Candidaturas Agora
-          </button>
+          {/* Botão para voltar às candidaturas - AGORA O USUÁRIO DECIDE QUANDO SAIR */}
+          <div className="space-y-3">
+            <button
+              onClick={voltarParaCandidaturas}
+              className="w-full px-8 py-4 bg-gradient-to-r from-brand-main to-purple-600 text-white rounded-xl hover:shadow-xl transition-all transform hover:scale-105 font-bold text-lg"
+            >
+              {aprovado ? '🎊 Ir para Minhas Candidaturas' : '📋 Voltar às Candidaturas'}
+            </button>
+            
+            <p className="text-sm text-gray-500">
+              Clique no botão acima para retornar à página de candidaturas
+            </p>
+          </div>
         </div>
       </div>
     );
   }
 
-  // 🔹 Tela do teste (código existente mantido igual...)
+  // 🔹 Tela do teste ativo
   return (
     <div className="min-h-screen py-8 px-4">
       <div className="max-w-6xl mx-auto">
@@ -533,7 +564,9 @@ export default function RealizarTeste() {
             </div>
             
             {/* Timer */}
-            <div className="bg-brand-main text-white rounded-2xl p-6 min-w-[200px] text-center">
+            <div className={`rounded-2xl p-6 min-w-[200px] text-center transition-all duration-300 ${
+              tempoRestante < 300 ? 'bg-gradient-to-r from-orange-500 to-red-500 animate-pulse' : 'bg-brand-main'
+            } text-white`}>
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Clock className="w-5 h-5" />
                 <span className="font-mono text-2xl font-bold">{formatarTempo(tempoRestante)}</span>
@@ -694,15 +727,15 @@ export default function RealizarTeste() {
       </div>
 
       {/* Alerta de Tempo Crítico */}
-      {tempoRestante < 3000 && !testeFinalizado && (
+      {/* {tempoRestante < 300 && !testeFinalizado && (
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-pulse border-2 border-white">
           <AlertCircle className="w-6 h-6" />
           <div>
-            <div className="font-bold">Atenção!</div>
-            <div className="text-sm">Tempo restante: {formatarTempo(tempoRestante)}</div>
+            <div className="font-bold">Atenção! Tempo acabando</div>
+            <div className="text-sm">Restam apenas {formatarTempo(tempoRestante)}</div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }
