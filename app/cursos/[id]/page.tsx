@@ -475,7 +475,7 @@ const CursoCandidatura = () => {
               className="w-1/2 px-8 py-4 bg-brand-main text-white font-bold rounded-lg hover:bg-brand-main/70 transition-colors duration-300 text-lg flex items-center justify-center mx-auto min-w-[280px] gap-2"
             >
               <Eye className="w-5 h-5" />
-              Ver Minhas Candidaturas
+              Ver Candidaturas 
             </Link>
           ) : (
             <button
