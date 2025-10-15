@@ -136,7 +136,7 @@ export default function RealizarTeste() {
         }
         return prev - 1;
       });
-    }, 1000);
+    }, 15000);
 
     return () => clearInterval(timer);
   }, [loading, testeFinalizado]);
@@ -184,7 +184,7 @@ export default function RealizarTeste() {
             <div className="font-bold">Teste Enviado Automaticamente</div>
             <div className="text-sm">Perda de foco detectada</div>
           </div>,
-          { duration: 5000 }
+          { duration: 25000 }
         );
       }
     } catch (error) {
@@ -216,13 +216,13 @@ export default function RealizarTeste() {
 
         timerRef.current = setTimeout(() => {
           if (document.hidden) {
-            // REGRA 1: Passaram 3s - Finaliza automaticamente
+            // REGRA 1: Passaram 5s - Finaliza automaticamente
             toast.dismiss('focus-warning');
             finalizarPorSeguranca();
           }
         }, 5000);
       } else {
-        // REGRA 2: Voltou antes de 3s - Cancela a contagem
+        // REGRA 2: Voltou antes de 5s - Cancela a contagem
         if (timerRef.current) {
           clearTimeout(timerRef.current);
           if (toastIdRef.current) {
@@ -354,7 +354,7 @@ export default function RealizarTeste() {
               }
             </div>
           </div>,
-          { duration: 4000 }
+          { duration: 15000 }
         );
 
         // Calcular acertos
@@ -417,7 +417,7 @@ export default function RealizarTeste() {
     const questoesRespondidas = respostas.length;
 
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
+      <div className="min-h-screen flex items-center justify-center p-8">
         <div className="bg-white rounded-3xl shadow-2xl p-12 max-w-2xl w-full text-center transform hover:scale-[1.02] transition-all duration-300">
           <div
             className={`w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center ${
@@ -499,7 +499,7 @@ export default function RealizarTeste() {
 
   // 🔹 Tela do teste (código existente mantido igual...)
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
+    <div className="min-h-screen py-8 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Header com Alertas de Segurança */}
         <div className="bg-white rounded-3xl shadow-2xl p-8 mb-8 border border-gray-100">
@@ -510,7 +510,7 @@ export default function RealizarTeste() {
                   <BookOpen className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-800">{teste.titulo}</h1>
+                  <h1 className="text-3xl font-bold text-brand-main">{teste.titulo}</h1>
                   <p className="text-gray-600 mt-1">{teste.descricao}</p>
                 </div>
               </div>
@@ -523,7 +523,7 @@ export default function RealizarTeste() {
                 </div>
                 <div className="flex items-center gap-2 text-sm bg-orange-50 text-orange-700 px-3 py-1 rounded-full">
                   <AlertCircle className="w-4 h-4" />
-                  <span>Sair da Página = Envio automático</span>
+                  <span>Ao sair da página o teste será enviado Automáticamente</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm bg-green-50 text-green-700 px-3 py-1 rounded-full">
                   <CheckSquare className="w-4 h-4" />
@@ -566,7 +566,7 @@ export default function RealizarTeste() {
                 Navegação Rápida
               </h3>
               
-              <div className="grid grid-cols-5 lg:grid-cols-1 gap-2 max-h-96 overflow-y-auto">
+              <div className="grid grid-cols-5 lg:grid-cols-1 gap-2 max-h-screen overflow-y-auto overflow-x-none">
                 {questoes.map((_, index) => (
                   <button
                     key={index}
@@ -644,7 +644,7 @@ export default function RealizarTeste() {
               </div>
 
               {/* Navegação e Finalização */}
-              <div className="flex justify-between items-center pt-6 border-t border-gray-200">
+              <div className="flex flex-col md:flex-row justify-between items-center pt-6 border-t border-gray-200">
                 <button
                   onClick={handleQuestaoAnterior}
                   disabled={questaoAtual === 0}
@@ -694,7 +694,7 @@ export default function RealizarTeste() {
       </div>
 
       {/* Alerta de Tempo Crítico */}
-      {tempoRestante < 300 && !testeFinalizado && (
+      {tempoRestante < 3000 && !testeFinalizado && (
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-pulse border-2 border-white">
           <AlertCircle className="w-6 h-6" />
           <div>

@@ -1,5 +1,5 @@
 "use client";
-
+import ModalSegurancaTeste from "./ModalSegurancaTeste";
 import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { toast, Toaster } from "react-hot-toast";
@@ -50,7 +50,27 @@ const MainCandidatura = () => {
     "curso" | "teste" | null
   >(null);
   const [certificados, setCertificados] = useState<Certificado[]>([]);
+  const [modalSegurancaOpen, setModalSegurancaOpen] = useState(false);
+  const [testeSelecionado, setTesteSelecionado] = useState<{ cursoId: string, cursoNome: string } | null>(null);
 
+  // Adicione estas funções para gerenciar o modal de segurança:
+  const abrirModalSeguranca = (cursoId: string, cursoNome: string) => {
+    setTesteSelecionado({ cursoId, cursoNome });
+    setModalSegurancaOpen(true);
+  };
+
+  const fecharModalSeguranca = () => {
+    setModalSegurancaOpen(false);
+    setTesteSelecionado(null);
+  };
+
+  const confirmarInicioTeste = () => {
+    if (testeSelecionado) {
+      setModalSegurancaOpen(false);
+      // Redireciona para a página do teste
+      window.location.href = `/user/teste/${testeSelecionado.cursoId}`;
+    }
+  };
   // Modal de pagamento
   const abrirModal = (id: string, tipo: "curso" | "teste", valor: number) => {
     setItemIdSelecionado(id);
@@ -368,7 +388,7 @@ const MainCandidatura = () => {
                 const temTesteAprovado = testes.some((t: Teste) => t.status === "aprovado");
                 const temTesteReprovado = testes.some((t: Teste) => t.status === "reprovado");
                 const totalTestes = testes.length;
-                const podeFazerOutroTeste = totalTestes < 2; // Máximo 2 testes por candidatura
+                const podeFazerOutroTeste = totalTestes < 10; // Máximo 2 testes por candidatura
                 const temCertificadoAprovado = certificados.some(
                   (cert) => cert.status === "aprovado"
                 );
@@ -545,9 +565,6 @@ const MainCandidatura = () => {
                                     <FileText className="w-5 h-5 text-brand-lime" />
                                     Teste de Diagnóstico
                                   </h4>
-                                  <span className="text-sm text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
-                                    {totalTestes}/2 tentativas
-                                  </span>
                                 </div>
                                 <div className="mb-4">
                                   <ProgramaTeste cursoId={c.cursos.id} cursoNome={c.cursos.nome} />
@@ -619,13 +636,21 @@ const MainCandidatura = () => {
                                                 </span>
                                               )
                                             ) : (
-                                              // Teste Pendente ou Outro Status - Mostrar botão Fazer Teste
-                                              <Link
-                                                href={`/user/teste/${c.cursos.id}`}
-                                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium text-sm"
-                                              >
-                                                Fazer Teste
-                                              </Link>
+                                              <>
+                                                <ModalSegurancaTeste
+                                                  isOpen={modalSegurancaOpen}
+                                                  onClose={fecharModalSeguranca}
+                                                  onConfirm={confirmarInicioTeste}
+                                                  cursoNome={testeSelecionado?.cursoNome || ''}
+                                                />
+
+                                                <button
+                                                  onClick={() => abrirModalSeguranca(c.cursos.id, c.cursos.nome)}
+                                                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium text-sm"
+                                                >
+                                                  Fazer Teste
+                                                </button>
+                                              </>
                                             )
                                           ) : !pagamentoTesteAtivo ? (
                                             <button
@@ -641,13 +666,13 @@ const MainCandidatura = () => {
                                   })}
                                 </div>
                                 <div className="flex items-center pt-4 gap-2">
-                                    <CircleAlert className="w-5 h-5 text-blue-600" />
-                                    <div>
-                                      <p className="text-brand-main text-sm">
-                                        Verifique a sua Internet antes de iniciar o teste.
-                                      </p>
-                                    </div>
+                                  <CircleAlert className="w-5 h-5 text-blue-600" />
+                                  <div>
+                                    <p className="text-brand-main text-sm">
+                                      Verifique a sua Internet antes de iniciar o teste.
+                                    </p>
                                   </div>
+                                </div>
                               </div>
                             )}
 
@@ -730,7 +755,7 @@ const MainCandidatura = () => {
                                       Limite de Tentativas Atingido
                                     </h4>
                                     <p className="text-amber-800 dark:text-amber-400 text-sm">
-                                      Você já utilizou todas as 2 tentativas disponíveis para o teste.
+                                      Você já utilizou todas as 10 tentativas disponíveis para o teste.
                                     </p>
                                   </div>
                                 </div>

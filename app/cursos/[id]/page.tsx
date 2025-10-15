@@ -19,6 +19,7 @@ import {
   AlertTriangle,
   Loader2,
   BookA,
+  Eye,
 } from "lucide-react";
 import { enviarCandidatura } from "../../../lib/enviar-candidatura-actions";
 import toast from "react-hot-toast";
@@ -143,15 +144,17 @@ const CursoCandidatura = () => {
     checkCandidaturas();
   }, [params.id]);
 
-  // Função para candidatar-se
+  // Função para candidatar-se - AGORA SEMPRE REDIRECIONA PARA CANDIDATURAS
   const handleCandidatarSe = async (cursoId: string) => {
     if (hasCandidaturaForThisCourse) {
-      toast.error("Já te candidataste a este curso.");
+      // Se já está candidatado, redireciona para ver candidaturas
+      router.push("/user/candidaturas");
       return;
     }
 
     if (candidaturasCount >= 2) {
-      toast.error("Já atingiste o limite de 2 candidaturas. Não podes inscrever-te em mais cursos.");
+      // Se atingiu o limite, redireciona para ver candidaturas
+      router.push("/user/candidaturas");
       return;
     }
 
@@ -168,10 +171,11 @@ const CursoCandidatura = () => {
       setHasCandidaturaForThisCourse(true);
 
       toast.success("Candidatura enviada com sucesso!");
+      
+      // SEMPRE redireciona para candidaturas após sucesso
       router.push("/user/candidaturas");
     } catch (error: any) {
       toast.error(error.message || "Erro ao processar candidatura.");
-    } finally {
       setFinalizando(false);
     }
   };
@@ -244,36 +248,43 @@ const CursoCandidatura = () => {
                     <span className="text-xs bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-2 py-1 rounded-full">
                       Limite atingido
                     </span>
-                    
                   )}
                 </div>
               </div>
             </div>
 
             <div className="flex flex-col items-end">
-              <button
-                onClick={() => handleCandidatarSe(curso.id)}
-                disabled={!canApply || finalizando}
-                className={`px-6 py-3 font-semibold rounded-lg transition-colors duration-300 flex items-center justify-center min-w-[180px] ${
-                  !canApply || finalizando
-                    ? "bg-gray-400 text-gray-700 cursor-not-allowed"
-                    : "bg-brand-main text-white hover:bg-brand-main/70"
-                }`}
-              >
-                {finalizando ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Finalizando...
-                  </>
-                ) : hasCandidaturaForThisCourse ? (
-                  "Já Candidatado"
-                ) : candidaturasCount >= 2 ? (
-                  "Limite Atingido"
-                ) : (
-                  "Finalizar Candidatura"
-                )}
-              </button>
+              {/* Botão principal - AGORA SEMPRE LEVA PARA CANDIDATURAS QUANDO NÃO PODE APLICAR */}
+              {hasCandidaturaForThisCourse || candidaturasCount >= 2 ? (
+                <Link
+                  href="/user/candidaturas"
+                  className="px-6 py-3 bg-brand-main text-white font-semibold rounded-lg hover:bg-brand-main/70 transition-colors duration-300 flex items-center justify-center min-w-[180px]"
+                >
+                  <Eye className="w-5 h-5 mr-2" />
+                  Ver Candidaturas
+                </Link>
+              ) : (
+                <button
+                  onClick={() => handleCandidatarSe(curso.id)}
+                  disabled={finalizando}
+                  className={`px-6 py-3 font-semibold rounded-lg transition-colors duration-300 flex items-center justify-center min-w-[180px] ${
+                    finalizando
+                      ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                      : "bg-brand-main text-white hover:bg-brand-main/70"
+                  }`}
+                >
+                  {finalizando ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Finalizando...
+                    </>
+                  ) : (
+                    "Finalizar Candidatura"
+                  )}
+                </button>
+              )}
 
+              {/* Mensagens informativas */}
               {hasCandidaturaForThisCourse && (
                 <div className="mt-2 flex items-center text-sm text-amber-600 dark:text-amber-400">
                   <AlertTriangle className="w-4 h-4 mr-1" />
@@ -283,13 +294,7 @@ const CursoCandidatura = () => {
               
               {candidaturasCount >= 2 && !hasCandidaturaForThisCourse && (
                 <div className="mt-2 flex flex-col items-center text-sm text-red-600 dark:text-red-400">
-                  <div>
-                  {/* <span>Limite de 2 candidaturas atingido</span> */}
-                  </div>
-                  <p>
-                    <Link href="/user/candidaturas" className="text-brand-main hover:text-brand-lime font-bold underline decoration-solid">Ver Minhas Candidaturas</Link>
-                  </p>
-                  
+                  <span>Limite de 2 candidaturas atingido</span>
                 </div>
               )}
             </div>
@@ -324,7 +329,7 @@ const CursoCandidatura = () => {
               </div>
               <div className="flex items-center text-sm">
                 <Clock className="w-4 h-4 text-brand-main mr-2" />
-                <span className="text-gray-600 dark:text-gray-300">Período: 09-14 de Agosto</span>
+                <span className="text-gray-600 dark:text-gray-300">Período: 09-17 de Agosto</span>
               </div>
             </div>
           </div>
@@ -353,6 +358,7 @@ const CursoCandidatura = () => {
             ))}
           </div>
         </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
           <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-5">
             <h3 className="text-md font-semibold text-blue-800 dark:text-blue-200 mb-3 flex items-center">
@@ -385,6 +391,7 @@ const CursoCandidatura = () => {
             </ul>
           </div>
         </div>
+
         {/* Grid de cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {/* Benefícios do curso */}
@@ -460,39 +467,42 @@ const CursoCandidatura = () => {
           </div>
         </div>
 
-        {/* Informações adicionais */}
-        
-
-        {/* CTA Final */}
+        {/* CTA Final - AGORA SEMPRE LEVA PARA CANDIDATURAS QUANDO NÃO PODE APLICAR */}
         <div className="text-center mt-10">
-          <button
-            onClick={() => handleCandidatarSe(curso.id)}
-            disabled={!canApply || finalizando}
-            className={`px-8 py-4 font-bold rounded-lg transition-colors duration-300 text-lg flex items-center justify-center mx-auto min-w-[280px] gap-2 ${
-              !canApply || finalizando
-                ? "bg-gray-400 text-gray-700 cursor-not-allowed"
-                : "bg-brand-main text-white hover:bg-brand-lime"
-            }`}
-          >
-            {finalizando ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Finalizando...
-              </>
-            ) : hasCandidaturaForThisCourse ? (
-              "Já Candidatado"
-            ) : candidaturasCount >= 2 ? (
-              "Limite de Candidaturas Atingido"
-            ) : (
-              "Quero me Candidatar Agora"
-            )}
-          </button>
+          {hasCandidaturaForThisCourse || candidaturasCount >= 2 ? (
+            <Link
+              href="/user/candidaturas"
+              className="w-1/2 px-8 py-4 bg-brand-main text-white font-bold rounded-lg hover:bg-brand-main/70 transition-colors duration-300 text-lg flex items-center justify-center mx-auto min-w-[280px] gap-2"
+            >
+              <Eye className="w-5 h-5" />
+              Ver Minhas Candidaturas
+            </Link>
+          ) : (
+            <button
+              onClick={() => handleCandidatarSe(curso.id)}
+              disabled={finalizando}
+              className={` px-8 py-4 font-bold rounded-lg transition-colors duration-300 text-lg flex items-center justify-center mx-auto min-w-[280px] gap-2 ${
+                finalizando
+                  ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                  : "bg-brand-main text-white hover:bg-brand-lime"
+              }`}
+            >
+              {finalizando ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Finalizando...
+                </>
+              ) : (
+                "Quero me Candidatar Agora"
+              )}
+            </button>
+          )}
           
           {/* Informação sobre o limite */}
           <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
             <p>
               Podes candidatar-te a até 2 cursos diferentes. 
-              Ver as <Link href="/user/candidaturas" className="text-brand-main underline decoration-solid hover:text-brand-lime font-bold"> minhas Candidatturas</Link>
+              Ver <Link href="/user/candidaturas" className="text-brand-main underline decoration-solid hover:text-brand-lime font-bold"> Candidatura{"s"}</Link>
             </p>
           </div>
         </div>
