@@ -362,24 +362,6 @@ const MainCandidatura = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            {/* Aviso de limite */}
-            {/* {candidaturas.length >= 2 && (
-              <div className="bg-amber-50 dark:bg-amber-900/20 rounded-2xl p-6 border border-amber-200 dark:border-amber-800">
-                <div className="flex items-start gap-4">
-                  <Info className="w-6 h-6 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-amber-900 dark:text-amber-300 mb-2">
-                      Limite de Candidaturas Atingido
-                    </h3>
-                    <p className="text-amber-800 dark:text-amber-400 leading-relaxed">
-                      Você já atingiu o limite máximo de 2 candidaturas ativas. 
-                      Para se candidatar a um novo curso, será necessário trocar uma das suas candidaturas atuais.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )} */}
-
             {/* Lista de Candidaturas */}
             <div className="grid gap-6">
               {candidaturasFiltradas.map((c) => {
@@ -388,7 +370,7 @@ const MainCandidatura = () => {
                 const temTesteAprovado = testes.some((t: Teste) => t.status === "aprovado");
                 const temTesteReprovado = testes.some((t: Teste) => t.status === "reprovado");
                 const totalTestes = testes.length;
-                const podeFazerOutroTeste = totalTestes < 10; // Máximo 2 testes por candidatura
+                const podeFazerOutroTeste = totalTestes < 10; // Máximo 10 testes por candidatura
                 const temCertificadoAprovado = certificados.some(
                   (cert) => cert.status === "aprovado"
                 );
@@ -424,7 +406,6 @@ const MainCandidatura = () => {
                               {text}
                             </span>
                           </div>
-                          {/* <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{desc}</p> */}
                         </div>
                       </div>
                     </div>
@@ -580,6 +561,10 @@ const MainCandidatura = () => {
                                       (p) => p.itemNome === "teste" && p.itemId === t.id && p.status === "confirmado"
                                     );
 
+                                    // 🔹 Calcular pontuação para testes aprovados/reprovados
+                                    const mostrarPontuacao = t.status === "aprovado" || t.status === "reprovado";
+                                    const pontuacao = t.status === "aprovado" ? "100%" : "0%"; // Exemplo de pontuação
+
                                     return (
                                       <div
                                         key={t.id}
@@ -593,7 +578,17 @@ const MainCandidatura = () => {
                                               }`}>
                                               {t.status.charAt(0).toUpperCase() + t.status.slice(1)}
                                             </span>
-                                            <span className="text-sm text-gray-500">{t.preco} MT</span>
+                                            {/* 🔹 MOSTRAR PONTUAÇÃO OU PREÇO */}
+                                            {mostrarPontuacao ? (
+                                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${Number(t.pontuacao) >= 80 ? 'bg-green-100 text-green-800' :
+                                                  Number(t.pontuacao) >= 60 ? 'bg-yellow-100 text-yellow-800' :
+                                                    'bg-red-100 text-red-800'
+                                                }`}>
+                                                {t.pontuacao}%
+                                              </span>
+                                            ) : (
+                                              <span className="text-sm text-gray-500">{t.preco} MT</span>
+                                            )}
                                           </div>
                                           {pagamentoTesteAtivo && (
                                             <div className="flex items-center gap-2 text-sm">
@@ -616,7 +611,7 @@ const MainCandidatura = () => {
                                               // Teste Aprovado - Mostrar botão Pagar Curso
                                               <button
                                                 onClick={() => abrirModal(c.cursos.id, "curso", c.cursos.preco)}
-                                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium text-sm"
+                                                className="hidden px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium text-sm"
                                               >
                                                 Pagar Curso
                                               </button>
@@ -636,6 +631,7 @@ const MainCandidatura = () => {
                                                 </span>
                                               )
                                             ) : (
+                                              // Teste Pendente - Mostrar botão Fazer Teste
                                               <>
                                                 <ModalSegurancaTeste
                                                   isOpen={modalSegurancaOpen}

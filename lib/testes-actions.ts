@@ -28,6 +28,7 @@ export interface Teste {
   contadorTeste: number;
   createdAt: string;
   updatedAt: string;
+  pontuacao:string;
   pagamentos?: Pagamento[];
 }
 
