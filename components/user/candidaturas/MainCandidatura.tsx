@@ -812,13 +812,13 @@ const MainCandidatura = () => {
                   <span className="text-blue-600 dark:text-blue-400 ml-1">Presencial</span>
                 </div>  
               </div>
-              {/* <div className="flex items-start gap-3">
+              <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                 <div>
-                  <span className="font-semibold text-blue-700 dark:text-blue-300">Local:</span>
-                  <span className="text-blue-600 dark:text-blue-400 ml-1">Após aprovação da candidatura</span>
+                  <span className="font-semibold text-blue-700 dark:text-blue-300">Início das aulas:</span>
+                  <span className="text-blue-600 dark:text-blue-400 ml-1">11/11/2025</span>
                 </div>
-              </div> */}
+              </div>
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                 <div>

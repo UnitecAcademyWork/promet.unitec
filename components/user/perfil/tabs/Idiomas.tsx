@@ -229,11 +229,11 @@ export default function Idiomas() {
                         className="bg-gradient-to-r from-brand-main to-brand-lime h-2.5 rounded-full"
                         style={{
                           width:
-                            idioma.fluencia === "Fluente"
+                            idioma.fluencia === "fluente"
                               ? "100%"
-                              : idioma.fluencia === "Avancado"
+                              : idioma.fluencia === "avancado"
                               ? "75%"
-                              : idioma.fluencia === "Intermediario"
+                              : idioma.fluencia === "intermediario"
                               ? "50%"
                               : "25%",
                         }}
