@@ -18,6 +18,9 @@ import {
   FileText,
   BookOpen,
   CreditCard,
+  DollarSign,
+  FileCheck,
+  TestTube,
 } from "lucide-react";
 import ProgramaTeste from "./ProgramaTeste";
 import { getCandidaturas } from "../../../lib/candidaturas-get";
@@ -235,6 +238,17 @@ const MainCandidatura = () => {
       (filtroStatus === "todos" || c.status === filtroStatus) &&
       c.cursos.nome.toLowerCase().includes(pesquisa.toLowerCase())
   );
+
+  // Estatísticas para o resumo
+  const totalCandidaturas = candidaturas.length;
+  const totalTestesRealizados = candidaturas.reduce((total, c) => 
+    total + (c.testesdiagnosticos?.length || 0), 0
+  );
+  const totalPagamentos = pagamentos.length;
+  const pagamentosConfirmados = pagamentos.filter(p => p.status === "confirmado").length;
+  const totalGasto = pagamentos
+    .filter(p => p.status === "confirmado")
+    .reduce((total, p) => total + p.valor, 0);
 
   const getStatusInfo = (status: string) => {
     const statusInfo = {
@@ -581,8 +595,8 @@ const MainCandidatura = () => {
                                             {/* 🔹 MOSTRAR PONTUAÇÃO OU PREÇO */}
                                             {mostrarPontuacao ? (
                                               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${Number(t.pontuacao) >= 80 ? 'bg-green-100 text-green-800' :
-                                                  Number(t.pontuacao) >= 60 ? 'bg-yellow-100 text-yellow-800' :
-                                                    'bg-red-100 text-red-800'
+                                                Number(t.pontuacao) >= 60 ? 'bg-yellow-100 text-yellow-800' :
+                                                  'bg-red-100 text-red-800'
                                                 }`}>
                                                 {t.pontuacao}%
                                               </span>
@@ -733,7 +747,6 @@ const MainCandidatura = () => {
                               </div>
                             )}
 
-                            {/* Aviso de limite de testes atingido */}
                             {temTesteReprovado && !temTesteAprovado && !podeFazerOutroTeste && (
                               <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-6 border border-amber-200 dark:border-amber-800">
                                 <div className="flex items-center gap-3">
@@ -750,7 +763,6 @@ const MainCandidatura = () => {
                               </div>
                             )}
 
-                            {/* Botão Trocar Formação (apenas se não tiver teste aprovado) */}
                             {!temTesteAprovado && (
                               <div className="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
                                 <button
@@ -771,20 +783,86 @@ const MainCandidatura = () => {
             </div>
           </div>
         )}
-  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-5">
-            <h3 className="text-md font-semibold text-blue-800 dark:text-blue-200 mb-3 flex items-center">
+
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border border-blue-200 dark:border-blue-800">
+            <h3 className="text-lg font-bold text-blue-800 dark:text-blue-200 mb-4 flex items-center">
               <AlertCircle className="w-5 h-5 mr-2" />
-              Informações Importantes
+              Informações da Formação
             </h3>
-            <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-2">
-              <li>• As vagas são limitadas</li>
-              <li>• Formação : 30 Dias</li>
-              <li>• Modalidade: Presencial</li>
-              <li>• Local: Após a aprovação da candidatura</li>
-              <li>• Horário: Segunda a Sexta, 08:35-11:35 - 16:00-19:00</li>
-              <li>• Limite: Máximo 2 candidaturas por candidato</li>
-            </ul>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                <div>
+                  <span className="font-semibold text-blue-700 dark:text-blue-300">Vagas:</span>
+                  <span className="text-blue-600 dark:text-blue-400 ml-1">Limitadas</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                <div>
+                  <span className="font-semibold text-blue-700 dark:text-blue-300">Duração:</span>
+                  <span className="text-blue-600 dark:text-blue-400 ml-1">30 Dias</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                <div>
+                  <span className="font-semibold text-blue-700 dark:text-blue-300">Modalidade:</span>
+                  <span className="text-blue-600 dark:text-blue-400 ml-1">Presencial</span>
+                </div>  
+              </div>
+              {/* <div className="flex items-start gap-3">
+                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                <div>
+                  <span className="font-semibold text-blue-700 dark:text-blue-300">Local:</span>
+                  <span className="text-blue-600 dark:text-blue-400 ml-1">Após aprovação da candidatura</span>
+                </div>
+              </div> */}
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                <div>
+                  <span className="font-semibold text-blue-700 dark:text-blue-300">Horário:</span>
+                  <span className="text-blue-600 dark:text-blue-400 ml-1">Seg-Sex, 08:35-11:35 / 16:00-19:00</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                <div>
+                  <span className="font-semibold text-blue-700 dark:text-blue-300">Limite Candidaturas:</span>
+                  <span className="text-blue-600 dark:text-blue-400 ml-1">Máximo 2 por candidato</span>
+                </div>
+              </div>
+            </div>
           </div>
+
+          {/* Resumo do Candidato */}
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border border-green-200 dark:border-green-800">
+            <h3 className="text-lg font-bold text-green-800 dark:text-green-200 mb-4 flex items-center">
+              <FileCheck className="w-5 h-5 mr-2" />
+              Testes
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-4 text-center border border-blue-100 dark:border-blue-900">
+                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <TestTube className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{totalTestesRealizados}</p>
+                <p className="text-sm text-blue-600 dark:text-blue-400">Testes</p>
+              </div>
+              
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-4 text-center border border-yellow-100 dark:border-yellow-900">
+                <div className="w-10 h-10 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <CreditCard className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                </div>
+                <p className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">{pagamentosConfirmados}</p>
+                <p className="text-sm text-yellow-600 dark:text-yellow-400">Pagamentos</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Botão Nova Candidatura */}
         {podeAdicionarCandidatura && (
           <div className="text-center mt-12">
