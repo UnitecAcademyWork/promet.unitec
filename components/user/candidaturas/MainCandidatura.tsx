@@ -771,7 +771,20 @@ const MainCandidatura = () => {
             </div>
           </div>
         )}
-
+  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-5">
+            <h3 className="text-md font-semibold text-blue-800 dark:text-blue-200 mb-3 flex items-center">
+              <AlertCircle className="w-5 h-5 mr-2" />
+              Informações Importantes
+            </h3>
+            <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-2">
+              <li>• As vagas são limitadas</li>
+              <li>• Formação : 30 Dias</li>
+              <li>• Modalidade: Presencial</li>
+              <li>• Local: Após a aprovação da candidatura</li>
+              <li>• Horário: Segunda a Sexta, 08:35-11:35 - 16:00-19:00</li>
+              <li>• Limite: Máximo 2 candidaturas por candidato</li>
+            </ul>
+          </div>
         {/* Botão Nova Candidatura */}
         {podeAdicionarCandidatura && (
           <div className="text-center mt-12">
