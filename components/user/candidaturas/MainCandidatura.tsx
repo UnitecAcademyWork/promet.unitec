@@ -826,13 +826,6 @@ const MainCandidatura = () => {
                   <span className="text-blue-600 dark:text-blue-400 ml-1">Seg-Sex, 08:35-11:35 / 16:00-19:00</span>
                 </div>
               </div>
-              <div className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                <div>
-                  <span className="font-semibold text-blue-700 dark:text-blue-300">Limite Candidaturas:</span>
-                  <span className="text-blue-600 dark:text-blue-400 ml-1">Máximo 2 por candidato</span>
-                </div>
-              </div>
             </div>
           </div>
 
