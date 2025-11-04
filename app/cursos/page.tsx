@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Curso, getCursos } from "../../lib/cursos-actions";
+import CTAGraduacao from "../../components/Landing/Graduacao/CTAGraduacao";
 
 
 const CursosPage = () => {
@@ -202,6 +203,7 @@ const CursosPage = () => {
           </motion.div>
         )}
       </div>
+      <CTAGraduacao />
     </div>
   );
 };
