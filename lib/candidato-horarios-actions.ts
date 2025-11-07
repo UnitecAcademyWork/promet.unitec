@@ -58,16 +58,16 @@ export async function chooseHorario(idHorario: string, idCandidatura: string): P
 
 
 // 🔹 Listar horários de um candidato autenticado
-export async function getHorariosCandidato(): Promise<ApiResponse<Horario[]>> {
+export async function getHorariosCandidato(): Promise<ApiResponse<{ horario: Horario[] }>> {
   try {
-  const token = (await cookies()).get("auth_token")?.value;
+    const token = (await cookies()).get("auth_token")?.value;
     if (!token) return { success: false, message: "Token não encontrado" };
 
     const res = await fetch(`${API_URL}/candidato`, {
-      headers: { "Authorization": `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
-    return { success: res.ok, data };
+    return { success: res.ok, data }; // data: { horario: [...] }
   } catch (error: any) {
     return { success: false, message: error.message };
   }

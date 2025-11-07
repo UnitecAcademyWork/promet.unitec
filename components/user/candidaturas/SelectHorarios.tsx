@@ -4,7 +4,8 @@ import React, { useEffect, useState } from "react";
 import { chooseHorario, getHorariosCandidato, listHorarios } from "../../../lib/candidato-horarios-actions";
 import toast from "react-hot-toast";
 
-interface Horario {
+// 🔹 Tipo local para evitar conflito com imports externos
+interface HorarioLocal {
   id: string;
   periodo?: string;
   hora_inicio: string;
@@ -25,7 +26,7 @@ const SelectHorarios: React.FC<SelectHorariosProps> = ({
   onHorarioChange,
   disabled = false,
 }) => {
-  const [horarios, setHorarios] = useState<Horario[]>([]);
+  const [horarios, setHorarios] = useState<HorarioLocal[]>([]);
   const [horarioAtual, setHorarioAtual] = useState<string>(horarioSelecionado);
   const [loading, setLoading] = useState(true);
   const [atualizando, setAtualizando] = useState(false);
@@ -35,25 +36,31 @@ const SelectHorarios: React.FC<SelectHorariosProps> = ({
       try {
         setLoading(true);
 
-        // 🔹 Busca todos os horários disponíveis
+        // 🔹 1. Buscar todos os horários disponíveis
         const todos = await listHorarios();
         if (!todos.success || !todos.data) {
           toast.error("Erro ao carregar horários disponíveis.");
-          setLoading(false);
           return;
         }
-        setHorarios(todos.data);
 
-        // 🔹 Busca os horários do candidato autenticado
+        // 🔹 Normaliza os horários para o formato esperado
+        const horariosNormalizados: HorarioLocal[] = todos.data.map((h: any) => ({
+          id: h.id,
+          periodo: h.periodo,
+          hora_inicio: h.hora_inicio || h.horaInicio || "",
+          hora_fim: h.hora_fim || h.horaFim || "",
+          candidaturas: h.candidaturas || [],
+        }));
+        setHorarios(horariosNormalizados);
+
+        // 🔹 2. Buscar horários já escolhidos pelo candidato
         const candidato = await getHorariosCandidato();
         if (candidato.success && candidato.data?.horario) {
-          // Procura o horário que contém esta candidatura
-          const horarioRelacionado = candidato.data.horario.find((h: Horario) =>
-            h.candidaturas?.some((c) => c.id === candidaturaId)
+          const horarioEscolhido = candidato.data.horario.find((h: any) =>
+            h.candidaturas?.some((c: any) => c.id === candidaturaId)
           );
-
-          if (horarioRelacionado) {
-            setHorarioAtual(horarioRelacionado.id);
+          if (horarioEscolhido) {
+            setHorarioAtual(horarioEscolhido.id); // Define o placeholder/selecionado
           }
         }
       } catch (error) {
@@ -91,7 +98,8 @@ const SelectHorarios: React.FC<SelectHorariosProps> = ({
     }
   };
 
-  const formatarHorario = (h: Horario) => {
+  // 🔹 Formata para exibição
+  const formatarHorario = (h: HorarioLocal) => {
     const periodo = h.periodo ? `${h.periodo} • ` : "";
     return `${periodo}${h.hora_inicio} às ${h.hora_fim}`;
   };
