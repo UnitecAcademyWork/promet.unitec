@@ -19,6 +19,7 @@ export interface Candidatura {
   idCandidato: string;
   idEdicao: string;
   idCurso: string;
+  idHorario?: string; // Adicionado campo para horário
   createdAt: string;
   updatedAt: string;
   cursos: Curso;
@@ -26,6 +27,12 @@ export interface Candidatura {
 
 export interface ApiResponseError {
   message: string;
+}
+
+export interface UpdateCandidaturaResponse {
+  success: boolean;
+  error?: string;
+  data?: Candidatura;
 }
 
 /**
@@ -102,3 +109,92 @@ export const deleteCandidatura = async (
   }
 };
 
+/**
+ * Atualiza o horário de uma candidatura
+ * @param candidaturaId ID da candidatura a ser atualizada
+ * @param horarioId ID do horário selecionado
+ */
+export const updateCandidaturaHorario = async (
+  candidaturaId: string,
+  horarioId: string
+): Promise<UpdateCandidaturaResponse> => {
+  try {
+    const token = Cookies.get("auth_token");
+    if (!token) {
+      throw new Error("Token de autenticação não encontrado");
+    }
+
+    const response = await fetch(
+      `https://backend-promet.unitec.academy/candidatura/${candidaturaId}`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          idHorario: horarioId
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const apiError = data as ApiResponseError;
+      throw new Error(apiError.message || "Erro ao atualizar horário da candidatura");
+    }
+
+    return {
+      success: true,
+      data: data as Candidatura
+    };
+  } catch (error: any) {
+    console.error("Erro ao atualizar horário da candidatura:", error.message || error);
+    return {
+      success: false,
+      error: error.message || "Erro desconhecido ao atualizar horário"
+    };
+  }
+};
+
+/**
+ * Busca uma candidatura específica pelo ID
+ * @param id ID da candidatura
+ */
+export const getCandidaturaById = async (
+  id: string
+): Promise<{ success: boolean; data?: Candidatura; error?: string }> => {
+  try {
+    const token = Cookies.get("auth_token");
+    if (!token) throw new Error("Token de autenticação não encontrado");
+
+    const response = await fetch(
+      `https://backend-promet.unitec.academy/candidatura/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const apiError = data as ApiResponseError;
+      throw new Error(apiError.message || "Erro ao buscar candidatura");
+    }
+
+    return {
+      success: true,
+      data: data as Candidatura
+    };
+  } catch (error: any) {
+    console.error("Erro ao buscar candidatura:", error.message || error);
+    return {
+      success: false,
+      error: error.message || "Erro desconhecido"
+    };
+  }
+};

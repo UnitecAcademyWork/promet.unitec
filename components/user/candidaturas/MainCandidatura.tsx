@@ -18,6 +18,7 @@ import {
   FileText,
   BookOpen,
   CreditCard,
+  Calendar, HeartHandshake
 } from "lucide-react";
 import ProgramaTeste from "./ProgramaTeste";
 import { getCandidaturas } from "../../../lib/candidaturas-get";
@@ -33,6 +34,7 @@ import { deleteCandidatura } from "../../../lib/candidaturas-get";
 import { addTesteDiagnostico } from "../../../lib/add-teste-actions";
 import ListaCertificados, { Certificado } from "./certificado";
 import { listarPagamentos } from "../../../lib/listar-pagamentos-actions";
+import SelectHorarios from "./SelectHorarios";
 
 const MainCandidatura = () => {
   const [candidaturas, setCandidaturas] = useState<CandidaturaTeste[]>([]);
@@ -52,6 +54,7 @@ const MainCandidatura = () => {
   const [certificados, setCertificados] = useState<Certificado[]>([]);
   const [modalSegurancaOpen, setModalSegurancaOpen] = useState(false);
   const [testeSelecionado, setTesteSelecionado] = useState<{ cursoId: string, cursoNome: string } | null>(null);
+  const [horariosSelecionados, setHorariosSelecionados] = useState<Record<string, string>>({});
 
   // Adicione estas funções para gerenciar o modal de segurança:
   const abrirModalSeguranca = (cursoId: string, cursoNome: string) => {
@@ -71,6 +74,21 @@ const MainCandidatura = () => {
       window.location.href = `/user/teste/${testeSelecionado.cursoId}`;
     }
   };
+
+  // Função para lidar com mudança de horário
+  const handleHorarioChange = (candidaturaId: string, horarioId: string) => {
+    setHorariosSelecionados(prev => ({
+      ...prev,
+      [candidaturaId]: horarioId
+    }));
+    
+    // Aqui você pode fazer a chamada API para atualizar a candidatura com o horário selecionado
+    console.log(`Candidatura ${candidaturaId} - Horário selecionado: ${horarioId}`);
+    
+    // TODO: Implementar a função para atualizar a candidatura com o horário
+    // updateCandidaturaHorario(candidaturaId, horarioId);
+  };
+
   // Modal de pagamento
   const abrirModal = (id: string, tipo: "curso" | "teste", valor: number) => {
     setItemIdSelecionado(id);
@@ -408,6 +426,21 @@ const MainCandidatura = () => {
                           </div>
                         </div>
                       </div>
+                      
+                      {/* Seletor de Horário - Disponível para candidaturas aprovadas */}
+                      {isConcluido && (
+                        <div className="flex items-center gap-3">
+                          <Calendar className="w-5 h-5 text-brand-main" />
+                          <div className="min-w-[200px]">
+                            <SelectHorarios
+                              candidaturaId={c.id}
+                              horarioSelecionado={horariosSelecionados[c.id]}
+                              onHorarioChange={handleHorarioChange}
+                              disabled={temTesteAprovado} // Desabilita se já tem teste aprovado
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Certificados */}
@@ -771,21 +804,76 @@ const MainCandidatura = () => {
             </div>
           </div>
         )}
-  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-5">
-            <h3 className="text-md font-semibold text-blue-800 dark:text-blue-200 mb-3 flex items-center">
-              <AlertCircle className="w-5 h-5 mr-2" />
-              Informações Importantes
-            </h3>
-            <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-2">
-              <li>• As vagas são limitadas</li>
-              <li>• Início das aulas: : 11/11/2025</li>
-              <li>• Formação : 30 Dias</li>
-              <li>• Modalidade: Presencial</li>
-              <li>• Local: Após a aprovação da candidatura</li>
-              <li>• Horário: Segunda a Sexta, 08:35-11:35 - 16:00-19:00</li>
-              <li>• Limite: Máximo 2 candidaturas por candidato</li>
-            </ul>
-          </div>
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+  {/* Informações Importantes */}
+  <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/10 rounded-2xl p-6 border border-blue-200 dark:border-blue-700 shadow-sm">
+    <div className="flex items-center gap-3 mb-4">
+      <AlertCircle className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+      <h3 className="text-lg font-bold text-blue-900 dark:text-blue-100">
+        Informações
+      </h3>
+    </div>
+    
+    <ul className="space-y-3">
+      <li className="flex items-center gap-2 text-blue-800 dark:text-blue-200 text-sm">
+        <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+        Vagas limitadas
+      </li>
+      <li className="flex items-center gap-2 text-blue-800 dark:text-blue-200 text-sm">
+        <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+        Início: 11/11/2025
+      </li>
+      <li className="flex items-center gap-2 text-blue-800 dark:text-blue-200 text-sm">
+        <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+        Modalidade Presencial
+      </li>
+      <li className="flex items-center gap-2 text-blue-800 dark:text-blue-200 text-sm">
+        <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+        Horário flexível
+      </li>
+      <li className="flex items-center gap-2 text-blue-800 dark:text-blue-200 text-sm">
+        <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+        2 candidaturas máximo
+      </li>
+    </ul>
+  </div>
+
+  {/* Benefícios */}
+  <div className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-800/10 rounded-2xl p-6 border border-green-200 dark:border-green-700 shadow-sm">
+    <div className="flex items-center gap-3 mb-4">
+      <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+      <h3 className="text-lg font-bold text-green-900 dark:text-green-100">
+        Benefícios
+      </h3>
+    </div>
+    
+    <ul className="space-y-3">
+      <li className="flex items-center gap-2 text-green-800 dark:text-green-200 text-sm">
+        <CheckCircle className="w-4 h-4 text-green-500" />
+        Certificado reconhecido
+      </li>
+      <li className="flex items-center gap-2 text-green-800 dark:text-green-200 text-sm">
+        <CheckCircle className="w-4 h-4 text-green-500" />
+        Material didático
+      </li>
+      <li className="flex items-center gap-2 text-green-800 dark:text-green-200 text-sm">
+        <CheckCircle className="w-4 h-4 text-green-500" />
+        Networking profissional
+      </li>
+      <li className="flex items-center gap-2 text-green-800 dark:text-green-200 text-sm">
+        <CheckCircle className="w-4 h-4 text-green-500" />
+        Professores experientes
+      </li>
+      <li className="flex items-center gap-2 text-green-800 dark:text-green-200 text-sm">
+        <CheckCircle className="w-4 h-4 text-green-500" />
+        Material Actualizado
+      </li>
+    </ul>
+  </div>
+
+  {/* Suporte */}
+  
+</div>
         {/* Botão Nova Candidatura */}
         {podeAdicionarCandidatura && (
           <div className="text-center mt-12">

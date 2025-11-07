@@ -20,12 +20,14 @@ import {
   Loader2,
   BookA,
   Eye,
+  ChevronDown,
 } from "lucide-react";
 import { enviarCandidatura } from "../../../lib/enviar-candidatura-actions";
 import toast from "react-hot-toast";
 import CursoCandidaturaSkeleton from "../../../components/common/CursosSkeleton";
 import { getCandidato } from "../../../lib/candidato-actions";
 import Link from "next/link";
+import { getHorarios, Horario } from "../../../lib/horarios-get-actions";
 
 interface CursoReal {
   id: string;
@@ -48,6 +50,9 @@ const CursoCandidatura = () => {
   const [hasCandidaturaForThisCourse, setHasCandidaturaForThisCourse] = useState(false);
   const [candidaturaLoading, setCandidaturaLoading] = useState(true);
   const [finalizando, setFinalizando] = useState(false);
+  const [horarios, setHorarios] = useState<Horario[]>([]);
+  const [horarioSelecionado, setHorarioSelecionado] = useState<string>("");
+  const [carregandoHorarios, setCarregandoHorarios] = useState(true);
 
   // Benefícios do curso
   const beneficiosCurso = [
@@ -113,6 +118,30 @@ const CursoCandidatura = () => {
     fetchCurso();
   }, [params.id]);
 
+  // Buscar horários disponíveis
+  useEffect(() => {
+    const fetchHorarios = async () => {
+      try {
+        const horariosData = await getHorarios();
+        if (horariosData) {
+          setHorarios(horariosData);
+          // Selecionar o primeiro horário por padrão
+          if (horariosData.length > 0) {
+            setHorarioSelecionado(horariosData[0].id);
+          }
+        } else {
+          toast.error("Erro ao carregar horários disponíveis.");
+        }
+      } catch (error: any) {
+        toast.error(error.message || "Erro ao carregar horários.");
+      } finally {
+        setCarregandoHorarios(false);
+      }
+    };
+
+    fetchHorarios();
+  }, []);
+
   // Verificar candidaturas do candidato
   useEffect(() => {
     const checkCandidaturas = async () => {
@@ -158,6 +187,12 @@ const CursoCandidatura = () => {
       return;
     }
 
+    // Validar se um horário foi selecionado
+    if (!horarioSelecionado) {
+      toast.error("Por favor, selecione um horário para a formação.");
+      return;
+    }
+
     setFinalizando(true);
 
     try {
@@ -166,7 +201,10 @@ const CursoCandidatura = () => {
         throw new Error("Preencha os dados do seu perfil para candidatar-se.");
       }
 
-      await enviarCandidatura({ idCurso: cursoId });
+      await enviarCandidatura({ 
+        idCurso: cursoId,
+        idHorario: horarioSelecionado 
+      });
       setCandidaturasCount(prev => prev + 1);
       setHasCandidaturaForThisCourse(true);
 
@@ -181,6 +219,11 @@ const CursoCandidatura = () => {
   };
 
   const canApply = candidaturasCount < 2 && !hasCandidaturaForThisCourse;
+
+  // Função para formatar o horário para exibição
+  const formatarHorario = (horario: Horario) => {
+    return `(${horario.hora_inicio} - ${horario.hora_fim})`;
+  };
 
   if (loading || candidaturaLoading) {
     return (
@@ -264,24 +307,49 @@ const CursoCandidatura = () => {
                   Ver Candidaturas
                 </Link>
               ) : (
-                <button
-                  onClick={() => handleCandidatarSe(curso.id)}
-                  disabled={finalizando}
-                  className={`px-6 py-3 font-semibold rounded-lg transition-colors duration-300 flex items-center justify-center min-w-[180px] ${
-                    finalizando
-                      ? "bg-gray-400 text-gray-700 cursor-not-allowed"
-                      : "bg-brand-main text-white hover:bg-brand-main/70"
-                  }`}
-                >
-                  {finalizando ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Finalizando...
-                    </>
-                  ) : (
-                    "Finalizar Candidatura"
-                  )}
-                </button>
+                <div className="flex flex-col md:flex-row items-center gap-4">
+                  {/* Select de Horários */}
+                  <div className="relative">
+                    <select
+                      value={horarioSelecionado}
+                      onChange={(e) => setHorarioSelecionado(e.target.value)}
+                      disabled={carregandoHorarios || finalizando}
+                      className="appearance-none bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-brand-main focus:border-transparent min-w-[200px]"
+                    >
+                      {carregandoHorarios ? (
+                        <option value="">Carregando horários...</option>
+                      ) : horarios.length === 0 ? (
+                        <option value="">Nenhum horário disponível</option>
+                      ) : (
+                        horarios.map((horario) => (
+                          <option key={horario.id} value={horario.id}>
+                            {formatarHorario(horario)}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                    <ChevronDown className="w-4 h-4 text-gray-400 absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none" />
+                  </div>
+
+                  <button
+                    onClick={() => handleCandidatarSe(curso.id)}
+                    disabled={finalizando || !horarioSelecionado || carregandoHorarios}
+                    className={`px-6 py-3 font-semibold rounded-lg transition-colors duration-300 flex items-center justify-center min-w-[180px] ${
+                      finalizando || !horarioSelecionado || carregandoHorarios
+                        ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                        : "bg-brand-main text-white hover:bg-brand-main/70"
+                    }`}
+                  >
+                    {finalizando ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Finalizando...
+                      </>
+                    ) : (
+                      "Finalizar Candidatura"
+                    )}
+                  </button>
+                </div>
               )}
 
               {/* Mensagens informativas */}
@@ -478,32 +546,59 @@ const CursoCandidatura = () => {
               Ver Candidaturas 
             </Link>
           ) : (
-            <button
-              onClick={() => handleCandidatarSe(curso.id)}
-              disabled={finalizando}
-              className={` px-8 py-4 font-bold rounded-lg transition-colors duration-300 text-lg flex items-center justify-center mx-auto min-w-[280px] gap-2 ${
-                finalizando
-                  ? "bg-gray-400 text-gray-700 cursor-not-allowed"
-                  : "bg-brand-main text-white hover:bg-brand-lime"
-              }`}
-            >
-              {finalizando ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Finalizando...
-                </>
-              ) : (
-                "Quero me Candidatar Agora"
-              )}
-            </button>
+            <div className="flex flex-col items-center gap-4">
+              <div className="flex flex-col md:flex-row items-center gap-4">
+                {/* Select de Horários para o CTA */}
+                <div className="relative">
+                  <select
+                    value={horarioSelecionado}
+                    onChange={(e) => setHorarioSelecionado(e.target.value)}
+                    disabled={carregandoHorarios || finalizando}
+                    className="appearance-none bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-brand-main focus:border-transparent min-w-[220px]"
+                  >
+                    {carregandoHorarios ? (
+                      <option value="">Carregando horários...</option>
+                    ) : horarios.length === 0 ? (
+                      <option value="">Nenhum horário disponível</option>
+                    ) : (
+                      horarios.map((horario) => (
+                        <option key={horario.id} value={horario.id}>
+                          {formatarHorario(horario)}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                  <ChevronDown className="w-4 h-4 text-gray-400 absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none" />
+                </div>
+
+                <button
+                  onClick={() => handleCandidatarSe(curso.id)}
+                  disabled={finalizando || !horarioSelecionado || carregandoHorarios}
+                  className={`px-8 py-4 font-bold rounded-lg transition-colors duration-300 text-lg flex items-center justify-center min-w-[280px] gap-2 ${
+                    finalizando || !horarioSelecionado || carregandoHorarios
+                      ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                      : "bg-brand-main text-white hover:bg-brand-lime"
+                  }`}
+                >
+                  {finalizando ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Finalizando...
+                    </>
+                  ) : (
+                    "Quero me Candidatar Agora"
+                  )}
+                </button>
+              </div>
+              
+              {/* Informação sobre o limite */}
+              <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                <p>
+                  Podes candidatar-te a até 2 cursos diferentes. 
+                </p>
+              </div>
+            </div>
           )}
-          
-          {/* Informação sobre o limite */}
-          <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-            <p>
-              Podes candidatar-te a até 2 cursos diferentes. 
-            </p>
-          </div>
         </div>
       </div>
     </div>

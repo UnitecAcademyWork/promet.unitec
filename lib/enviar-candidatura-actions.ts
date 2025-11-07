@@ -4,6 +4,7 @@ import { routes } from "../config/routes";
 
 export interface CandidaturaData {
   idCurso: string;
+  idHorario: string;
 }
 
 export const enviarCandidatura = async (data: CandidaturaData) => {

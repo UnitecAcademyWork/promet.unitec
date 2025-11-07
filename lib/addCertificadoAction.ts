@@ -1,7 +1,7 @@
 "use server";
-
 import { cookies } from "next/headers";
 import { routes } from "../config/routes";
+import { compressFile } from "./compress-fil";
 
 export type ApiResponse = {
   success: boolean;
@@ -47,18 +47,14 @@ export type ApiResponsee<T> = {
 /**
  * Adicionar certificado (suporta imagens e PDFs)
  */
+
+
 export async function adicionarCertificado(file: File): Promise<ApiResponse> {
   try {
     const token = (await cookies()).get("auth_token")?.value;
     if (!token) throw new Error("Erro de autenticação");
 
-    // Verificar tipo de arquivo permitido
-    const validTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/jpg",
-      "application/pdf",
-    ];
+    const validTypes = ["image/jpeg", "image/png", "image/jpg", "application/pdf"];
     if (!validTypes.includes(file.type)) {
       return {
         success: false,
@@ -66,8 +62,11 @@ export async function adicionarCertificado(file: File): Promise<ApiResponse> {
       };
     }
 
+    // ✅ Comprimir se for imagem
+    const fileToSend = await compressFile(file);
+
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", fileToSend);
 
     const resp = await fetch(routes.Adicionarcertificado, {
       method: "POST",
