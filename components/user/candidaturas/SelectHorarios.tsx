@@ -101,7 +101,7 @@ const SelectHorarios: React.FC<SelectHorariosProps> = ({
   // 🔹 Formata para exibição
   const formatarHorario = (h: HorarioLocal) => {
     const periodo = h.periodo ? `${h.periodo} • ` : "";
-    return `${periodo}${h.hora_inicio} às ${h.hora_fim}`;
+    return `${h.hora_inicio} às ${h.hora_fim}`;
   };
 
   if (loading) {
